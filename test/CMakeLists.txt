@@ -3,7 +3,7 @@ project(ChessEngine)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(ChessEngine-test bitboard.cxx)
-target_link_libraries(ChessEngine-test PUBLIC
+add_executable(Raab-test bitboard.cxx)
+target_link_libraries(Raab-test PUBLIC
         /usr/local/lib/libCatch2Maind.a
         /usr/local/lib/libCatch2d.a)
