@@ -1,9 +1,10 @@
-#ifndef CHESSENGINE_BITBOARD_H
-#define CHESSENGINE_BITBOARD_H
+#ifndef SRC_BITBOARD_H_
+#define SRC_BITBOARD_H_
 
 #include <cstdint>
 #include <string>
 #include <utility>
+#include <vector>
 
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Square
@@ -25,22 +26,39 @@ Square& operator--(Square& square)
     return square;
 }
 
+// TODO overload stream extraction operator
+
 // END Square
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Game_State
 
+/**
+ * @brief The Game_State struct represents the current state of a game.
+ * @details  This struct stores information such as the active color, castling ability, en passant targets,
+ * half move clock, and full move number.
+ */
 struct Game_State {
     [[nodiscard]] char fen_active_color() const { return active_color_clock % 2 == 0 ? 'w' : 'b'; }
 
     [[nodiscard]] std::string fen_castling_ability() const;
+    [[nodiscard]] std::string fen_en_passant_targets() const;
+    [[nodiscard]] std::string fen_half_move_clock() const;
+    [[nodiscard]] std::string fen_full_move_number() const;
 
-    ushort active_color_clock{};
-    bool castle_K = true;
-    bool castle_Q = true;
-    bool castle_k = true;
-    bool castle_q = true;
+    ushort active_color_clock{};    // increments after every move. even for white, odd for black.
+    bool castle_K = true;           // white can castle king side
+    bool castle_Q = true;           // white can castle queen side
+    bool castle_k = true;           // black can castle king side
+    bool castle_q = true;           // black can castle queen side
+    std::vector<Square> en_passant_targets{};   // vector of en passant target squares
+    uint8_t half_move_clock{};      // for the 50 move rule
+    uint16_t full_move_number = 1;  // starts at 1, increments after black moves
 };
 
+/**
+ * @brief Returns the castling ability of the game state in Forsyth-Edwards Notation (FEN).
+ * @return A string representing the castling ability in FEN notation.
+ */
 std::string Game_State::fen_castling_ability() const
 {
     std::string s;
@@ -52,6 +70,49 @@ std::string Game_State::fen_castling_ability() const
         if (castle_q) { s += 'q'; }
     }
     return s;
+}
+
+/**
+ * @brief Returns a string in FEN notation for the en passant targets.
+ * @return A string in FEN notation for the en passant targets.
+ *         If there are no en passant targets, "-" is returned.
+ */
+std::string Game_State::fen_en_passant_targets() const
+{
+    // IMPORTANT en passant possibility is recorded WHENEVER a pawn moves two squares
+    // and is only valid for the opponent's next move.
+    std::string s;
+    if (en_passant_targets.empty()) {
+        s = '-';
+    }
+    else {
+        // write the code for the thing lol
+    }
+    return s;
+}
+
+/**
+ * @brief Returns the value of the half move clock.
+ * @details The half move clock represents the number of half moves since the last capture or pawn advance, and is used
+ * for the fifty move rule.
+ * @return The value of the half move clock as a string.
+ */
+std::string Game_State::fen_half_move_clock() const
+{
+    // half move clock: number of half moves since the last capture or pawn advance, used for the fifty move rule
+    return std::to_string(half_move_clock);
+}
+
+/**
+ * @brief Returns the full move number as a string.
+ * @details The full move number represents the number of full moves made in the game.
+ * It starts at 1 and increments after black's move.
+ * @return The full move number as a string.
+ */
+std::string Game_State::fen_full_move_number() const
+{
+    // full move number: number of full moves. Starts at 1 and increments after blacks move.
+    return std::to_string(full_move_number);
 }
 
 // END Game_State
@@ -136,36 +197,33 @@ std::string Board::fen_piece_placement() const
 // END Board
 //----------------------------------------------------------------------------------------------------------------------
 
+/**
+ * @brief Export the current state of the board as FEN (Forsyth–Edwards Notation) string.
+ * @details
+ * 1. piece placement \n
+ * 2. active color \n
+ * 3. castling ability '-' if neither side has the ability \n
+ * 4. en passant target squares '-' if there are no target squares \n
+ * 5. half move clock, for fifty move rule
+ * 6. full move number
+ * @param board Pointer to the board object.
+ * @return std::string Returns the FEN string representing the board state.
+ */
 std::string export_fen(const Board *board)
 {
-    std::string fen;
-    // 1 piece placement
+    std::string fen;    // string to be exported
     fen += board->fen_piece_placement();
     fen += ' ';
-    // 2
-    // active color
-    // we need to have two clocks, one for half moves (to track turn) another for the 50 move rule
     fen += board->game_state.fen_active_color();
     fen += ' ';
-
-    // 3
-    // castling ability '-' if neither side has the ability
     fen += board->game_state.fen_castling_ability();
     fen += ' ';
-
-    // 4
-    // IMPORTANT en passant possibility is recorded WHENEVER a pawn moves two squares. It is only valid for the
-    // opponent's next move
-    // en passant target square '-' if there is no target square
-
-
-
-    // 5
-    // half move clock: number of half moves since the last capture or pawn advance, used for the fifty move rule
-    // 6
-    // full move number: number of full moves. Starts at 1 and increments after blacks move.
-
+    fen += board->game_state.fen_en_passant_targets();
+    fen += ' ';
+    fen += board->game_state.fen_half_move_clock();
+    fen += ' ';
+    fen += board->game_state.fen_full_move_number();
     return fen;
 }
 
-#endif //CHESSENGINE_BITBOARD_H
+#endif  // SRC_BITBOARD_H_
