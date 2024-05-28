@@ -32,8 +32,14 @@ TEST_CASE("import fen")
         s = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         import_fen(&board, s);
         CHECK(export_fen(&board) == s);
-    }SECTION("pos b") {
-
+    }SECTION("pos en passant") {
+        s = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+        import_fen(&board, s);
+        CHECK(export_fen(&board) == s);
+    }SECTION("castling") {
+        s = "r1b1k2r/pp1nqpb1/2p1p1pp/3p4/2PP4/P1N1PN2/1P2BPPP/2RQ1RK1 b kq - 0 11";
+        import_fen(&board, s);
+        CHECK(export_fen(&board) == s);
     }
 }
 

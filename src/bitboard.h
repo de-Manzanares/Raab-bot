@@ -46,17 +46,17 @@ struct Game_State {
     [[nodiscard]] std::string fen_en_passant_targets() const;
     [[nodiscard]] std::string fen_half_move_clock() const;
     [[nodiscard]] std::string fen_full_move_number() const;
-
     void clear();
+    void set_castling_ability(const std::string& s);
 
-    ushort active_color_clock{};    // increments after every move. even for white, odd for black.
-    bool castle_K = true;           // white can castle king side
-    bool castle_Q = true;           // white can castle queen side
-    bool castle_k = true;           // black can castle king side
-    bool castle_q = true;           // black can castle queen side
-    std::vector<Square> en_passant_targets{};   // vector of en passant target squares
-    uint8_t half_move_clock{};      // for the 50 move rule
-    uint16_t full_move_number = 1;  // starts at 1, increments after black moves
+    uint active_color_clock{};  // increments after every move. even for white, odd for black.
+    bool castle_K = true;       // white can castle king side
+    bool castle_Q = true;       // white can castle queen side
+    bool castle_k = true;       // black can castle king side
+    bool castle_q = true;       // black can castle queen side
+    std::string en_passant_target;   // en passant target
+    uint half_move_clock{};     // for the 50 move rule
+    uint full_move_number = 1;  // starts at 1, increments after black moves
 };
 
 /**
@@ -87,14 +87,8 @@ std::string Game_State::fen_en_passant_targets() const
     // As such, whenever a pawn makes a two-square move, the en passant square is recorded.
     // IMPORTANT en passant possibility is recorded WHENEVER a pawn moves two squares
     // and is only valid for the opponent's next move.
-    std::string s;
-    if (en_passant_targets.empty()) {
-        s = '-';
-    }
-    else {
-        // write the code for the thing lol
-    }
-    return s;
+
+    return en_passant_target.empty() ? "-" : en_passant_target;
 }
 
 /**
@@ -129,7 +123,30 @@ void Game_State::clear()
 {
     active_color_clock = half_move_clock = full_move_number = 0;
     castle_K = castle_Q = castle_k = castle_q = false;
-    en_passant_targets.clear();
+    en_passant_target.clear();
+}
+
+void Game_State::set_castling_ability(const std::string& s)
+{
+    if (s == "-") {
+        castle_K = castle_Q = false;
+        castle_k = castle_q = false;
+    }
+    else {
+        std::unordered_map<char, bool&> castling_map = {
+                {'K', castle_K},
+                {'Q', castle_Q},
+                {'k', castle_k},
+                {'q', castle_q}
+        };
+        for (const auto& ch : s) {
+            for (auto& [key, value] : castling_map) {
+                if (ch == key) {
+                    value = true;
+                }
+            }
+        }
+    }
 }
 
 // END Game_State
@@ -141,6 +158,7 @@ struct Board {
     [[nodiscard]] std::string fen_piece_placement() const;
     void clear();
     void place_piece(Square square, const char& ch);
+    uint set_pieces(const std::string& fen);
 
     uint64_t b_pawn = 0b00000000'11111111'00000000'00000000'00000000'00000000'00000000'00000000;
     uint64_t b_night = 0b01000010'00000000'00000000'00000000'00000000'00000000'00000000'00000000;
@@ -223,7 +241,7 @@ std::string Board::fen_piece_placement() const
 }
 
 /**
- * @brief Remove all pieces, and clear the game state.
+ * @brief Remove all pieces and clear the game state.
  */
 void Board::clear()
 {
@@ -243,8 +261,38 @@ void Board::place_piece(Square square, const char& ch)
         }
     }
 }
+
+bool is_piece(const char& ch)
+{
+    return ch == 'p' || ch == 'n' || ch == 'b' || ch == 'r' || ch == 'q' || ch == 'k' ||
+            ch == 'P' || ch == 'N' || ch == 'B' || ch == 'R' || ch == 'Q' || ch == 'K';
+}
+
+uint Board::set_pieces(const std::string& fen)
+{
+    Square square = Square::a8;
+    uint counter{};
+    for (const auto& ch : fen) {
+        if (is_piece(ch)) {
+            this->place_piece(square, ch);
+            --square;
+        }
+        if (std::isdigit(ch)) {
+            for (auto i = 0; i < ch - '0'; i++) {
+                --square;
+            }
+        }
+        if (ch == ' ') {
+            counter++;
+            break;
+        }
+        counter++;
+    }
+    return counter;
+}
 // END Board
 //----------------------------------------------------------------------------------------------------------------------
+// BEGIN FEN
 
 /**
  * @brief Export the current state of the board as FEN (Forsyth–Edwards Notation) string.
@@ -275,77 +323,49 @@ std::string export_fen(const Board *board)
     return fen;
 }
 
+/**
+ * Sets the board from a given FEN string.
+ * @param board  A pointer to the Board object.
+ * @param fen    The FEN string to import.
+ */
 // TODO check if fen is valid before/during import
-
-bool is_piece(const char& ch)
-{
-    return ch == 'p' || ch == 'n' || ch == 'b' || ch == 'r' || ch == 'q' || ch == 'k' ||
-            ch == 'P' || ch == 'N' || ch == 'B' || ch == 'R' || ch == 'Q' || ch == 'K';
-}
-
 void import_fen(Board *board, const std::string& fen)
 {
-    uint8_t gs_counter{};
-    std::string gs;
+    std::string game_state_string;
     std::string temp;
-    Square square = Square::a8;
 
+    // clear the board
     board->clear();
 
-    // set pieces
-    for (const auto& ch : fen) {
-        if (is_piece(ch)) {
-            board->place_piece(square, ch);
-            --square;
-        }
-        if (std::isdigit(ch)) {
-            for (auto i = 0; i < ch - '0'; i++) {
-                --square;
-            }
-        }
-        if (ch == ' ') {
-            gs_counter++;
-            break;
-        }
-        gs_counter++;
-    }
-    gs = fen.substr(gs_counter);
-    std::istringstream iss(gs);
+    // set pieces and create game state string
+    game_state_string = fen.substr(board->set_pieces(fen));
 
     // set games state variables
+    std::istringstream iss(game_state_string);
+
+    // create variables
     char active_color;
     std::string castling_ability;
-    std::string en_passant_targets;
-    uint16_t half_move_clock;
-    uint16_t full_move_number;
+    std::string en_passant_target;
+    uint half_move_clock;
+    uint full_move_number;
+
     // gather data
-    iss >> active_color >> castling_ability >> en_passant_targets >> half_move_clock >> full_move_number;
+    iss >> active_color >> castling_ability >> en_passant_target >> half_move_clock >> full_move_number;
 
     // assign to board variables
+    // active color
     active_color == 'w' ?
             board->game_state.active_color_clock = 0 : board->game_state.active_color_clock = 1;
-    if (castling_ability == "-") {
-        board->game_state.castle_K = board->game_state.castle_Q = false;
-        board->game_state.castle_k = board->game_state.castle_q = false;
-    }
-    else {
-        std::unordered_map<char, bool&> castling_map = {
-                {'K', board->game_state.castle_K},
-                {'Q', board->game_state.castle_Q},
-                {'k', board->game_state.castle_k},
-                {'q', board->game_state.castle_q}
-        };
-        for (const auto& ch : castling_ability) {
-            for (auto& [key, value] : castling_map) {
-                if (ch == key) {
-                    value = true;
-                }
-            }
-        }
-    }
-    // TODO en passant squares
+
+    // castling ability
+    board->game_state.set_castling_ability(castling_ability);
+    board->game_state.en_passant_target = en_passant_target;
     board->game_state.half_move_clock = half_move_clock;
     board->game_state.full_move_number = full_move_number;
 }
+
+// END FEN
+//----------------------------------------------------------------------------------------------------------------------
 
 #endif  // SRC_BITBOARD_H_
