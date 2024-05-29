@@ -198,13 +198,20 @@ bool is_boundary(Square sq)
     return is_vertical_boundary(sq) || is_horizontal_boundary(sq);
 }
 
+bool is_corner(Square sq)
+{
+    return is_vertical_boundary(sq) && is_horizontal_boundary(sq);
+}
+
 // can do attack map and move map simultaneously?
 std::vector<Square> Board::attack_map(Square sq) const
 {
     std::vector<Square> attack_map{};
 
     // if the square is empty, there is no influence
-
+    //TODO might have a bug, check to if downward vertical moves are still found even if the piece sits on the top
+    // vertical boundary. Same goes for the bishop and queen of course. If that is the case, all we need to do is
+    // separate the upper and lower vertical boundary and the left and right horizontal boundary.
     if (what_piece(sq) == ' ') { return attack_map; }
     else if (what_piece(sq) == 'R' || what_piece(sq) == 'r') {
         // check all the rookie things to do ...
@@ -494,6 +501,30 @@ std::vector<Square> Board::attack_map(Square sq) const
         else if (isq == static_cast<int>(Square::a8)) {
             attack_map.push_back(sq - (8 + 2));         // right down
             attack_map.push_back(sq - (2 * 8 + 1));     // down right
+        }
+    }
+    else if (what_piece(sq) == 'K' || what_piece(sq) == 'k') {
+        Square square;
+        if (!is_corner(sq)) {
+            // vertical
+            square = sq + 8;
+            if (!is_vertical_boundary(square - 8)) { attack_map.push_back(square); }
+            square = sq - 8;
+            if (!is_vertical_boundary(square + 8)) { attack_map.push_back(square); }
+            // horizontal
+            square = sq + 1;
+            if (!is_horizontal_boundary(square - 1)) { attack_map.push_back(square); }
+            square = sq - 1;
+            if (!is_horizontal_boundary(square + 1)) { attack_map.push_back(square); }
+            // diagonal
+            square = sq + 9;
+            if (!is_boundary(square - 9)) { attack_map.push_back(square); }
+            square = sq + 7;
+            if (!is_boundary(square - 7)) { attack_map.push_back(square); }
+            square = sq - 7;
+            if (!is_boundary(square + 7)) { attack_map.push_back(square); }
+            square = sq - 9;
+            if (!is_boundary(square + 9)) { attack_map.push_back(square); }
         }
     }
     return attack_map;

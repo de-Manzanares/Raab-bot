@@ -273,5 +273,7 @@ TEST_CASE("attack map")
         CHECK(a.size() == 2);
         a = board.attack_map(Square::a8);
         CHECK(a.size() == 2);
+    }SECTION("king") {
+
     }
 }
