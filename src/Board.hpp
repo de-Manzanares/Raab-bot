@@ -90,6 +90,19 @@ struct Board {
     bool is_black_pawn(Square sq) const;
     bool is_pawn(Square sq) const;
     std::vector<Square> influence_map_pawn(Square sq) const;
+    bool is_under_attack(Square sq, Color color) const;
+    bool is_black(Square sq) const;
+    bool is_white(Square sq) const;
+    Color what_color(Square sq) const;
+    bool is_same_color(Square sq, Color color) const;
+    bool is_empty(Square sq) const;
+    bool is_opposite_rook(Square sq, Color c) const;
+    bool is_opposite_bishop(Square sq, Color c) const;
+    bool is_opposite_queen(Square sq, Color c) const;
+    bool is_opposite_knight(Square sq, Color c) const;
+    bool is_opposite_king(Square sq, Color c) const;
+    bool is_opposite_pawn(Square sq, Color c) const;
+    bool is_opposite_color(Square sq, Color c) const;
 };
 
 // END Board
@@ -304,6 +317,72 @@ bool Board::is_pawn(Square sq) const
     return is_white_pawn(sq) || is_black_pawn(sq);
 }
 
+bool Board::is_white(Square sq) const
+{
+    return is_white_pawn(sq) || is_white_rook(sq) || is_white_bishop(sq) || is_white_knight(sq) ||
+            is_white_queen(sq) || is_white_king(sq);
+}
+
+bool Board::is_black(Square sq) const
+{
+    return is_black_pawn(sq) || is_black_rook(sq) || is_black_bishop(sq) || is_black_knight(sq) ||
+            is_black_queen(sq) || is_black_king(sq);
+}
+
+Color Board::what_color(Square sq) const
+{
+    Color color;
+    if (is_white(sq)) { color = Color::white; }
+    else if (is_black(sq)) { color = Color::black; }
+    else { color = Color::none; }
+    return color;
+}
+
+bool Board::is_same_color(Square sq, Color color) const
+{
+    return what_color(sq) == color;
+}
+
+bool Board::is_empty(Square sq) const
+{
+    return what_piece(sq) == ' ';
+}
+
+bool Board::is_opposite_rook(Square sq, Color c) const
+{
+    return c == Color::white ? is_black_rook(sq) : is_white_rook(sq);
+}
+
+bool Board::is_opposite_bishop(Square sq, Color c) const
+{
+    return c == Color::white ? is_black_bishop(sq) : is_white_bishop(sq);
+}
+
+bool Board::is_opposite_queen(Square sq, Color c) const
+{
+    return c == Color::white ? is_black_queen(sq) : is_white_queen(sq);
+}
+
+bool Board::is_opposite_knight(Square sq, Color c) const
+{
+    return c == Color::white ? is_black_knight(sq) : is_white_knight(sq);
+}
+
+bool Board::is_opposite_king(Square sq, Color c) const
+{
+    return c == Color::white ? is_black_king(sq) : is_white_king(sq);
+}
+
+bool Board::is_opposite_pawn(Square sq, Color c) const
+{
+    return c == Color::white ? is_black_pawn(sq) : is_white_pawn(sq);
+}
+
+bool Board::is_opposite_color(Square sq, Color c) const
+{
+    return c == Color::white ? is_black(sq) : is_white(sq);
+}
+
 // END piece detection
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN boundary checking
@@ -330,7 +409,9 @@ bool is_left_horizontal_boundary(Square sq)
 
 bool is_right_horizontal_boundary(Square sq)
 {
-    return static_cast<int>(sq) % 8 == 0;
+    using s = Square;
+    return sq == s::h1 || sq == s::h2 || sq == s::h3 || sq == s::h4 || sq == s::h5 || sq == s::h6 || sq == s::h7
+            || sq == s::h8;
 }
 
 bool is_horizontal_boundary(Square sq)
@@ -585,6 +666,12 @@ std::vector<Square> Board::influence_map_pawn(Square sq) const
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN influence map
 // can do influence map and move map simultaneously?
+
+/**
+ * @brief Creates a list of squares that a given piece is currently "influencing".
+ * @param sq A given square.
+ * @return A list of squares that the piece is currently "influencing".
+ */
 std::vector<Square> Board::influence_map(Square sq) const
 {
     std::vector<Square> influence_map{};
@@ -605,11 +692,147 @@ std::vector<Square> Board::influence_map(Square sq) const
 
 // END influence map
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN
+// BEGIN is under attack
 
+/**
+ * @brief Determines if a given square is under attack.
+ * @param sq The square to check.
+ * @param color The color of the attacking pieces.
+ * @return True if the square is under attack, false otherwise.
+ */
+bool Board::is_under_attack(Square sq, Color color) const
+{
+    // check vertical, horizontal, diagonal, and knight L's
+    // check if the square is occupied by the appropriate enemy piece
+    // or if the lane is "blocked" by a non-threatening enemy piece, or any friendly piece
+    // or if the lane is empty
+    // break and return true if the square is under attack
+    // otherwise, return false
 
+    // vertical attacks may come from a rook, queen, or king
+    // horizontal attacks may come from a rook, queen, or king
+    // diagonal attacks may come from a bishop, queen, or king
+    // knight attacks may come from a knight
 
-// END
+    // vertical up
+    bool first_iteration = true;
+    for (auto square = sq + 8; !is_upper_vertical_boundary(square - 8); square = square + 8) {
+        if (first_iteration) {
+            if (is_opposite_king(square, color)) { return true; }
+            first_iteration = false;
+        }
+        if (is_opposite_rook(square, color) || is_opposite_queen(square, color)) { return true; }
+        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
+                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
+            break;
+        }
+    }
+    // vertical down
+    first_iteration = true;
+    for (auto square = sq - 8; !is_lower_vertical_boundary(square + 8); square = square - 8) {
+        if (first_iteration) {
+            if (is_opposite_king(square, color)) { return true; }
+            first_iteration = false;
+        }
+        if (is_opposite_rook(square, color) || is_opposite_queen(square, color)) { return true; }
+        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
+                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
+            break;
+        }
+    }
+    // horizontal left
+    first_iteration = true;
+    for (auto square = sq + 1; !is_left_horizontal_boundary(square - 1); square = square + 1) {
+        if (first_iteration) {
+            if (is_opposite_king(square, color)) { return true; }
+            first_iteration = false;
+        }
+        if (is_opposite_rook(square, color) || is_opposite_queen(square, color)) { return true; }
+        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
+                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
+            break;
+        }
+    }
+    // horizontal right
+    first_iteration = true;
+    for (auto square = sq - 1; !is_right_horizontal_boundary(square + 1); square = square - 1) {
+        if (first_iteration) {
+            if (is_opposite_king(square, color)) { return true; }
+            first_iteration = false;
+        }
+        if (is_opposite_rook(square, color) || is_opposite_queen(square, color)) { return true; }
+        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
+                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
+            break;
+        }
+    }
+    // diagonal down right
+    // TODO
+    // pawn attacks are color sensitive
+    // gotta fix the piece conditionals
+    first_iteration = true;
+    for (auto square = sq - 9;
+         !is_right_horizontal_boundary(square + 9) && !is_lower_vertical_boundary(square + 9);
+         square = square - 9) {
+        if (first_iteration) {
+            if (is_opposite_king(square, color)) { return true; }
+            first_iteration = false;
+        }
+        if (is_opposite_bishop(square,color)) { return true; }
+        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
+                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
+            break;
+        }
+    }
+    // diagonal down left
+    first_iteration = true;
+    for (auto square = sq - 7;
+         !is_left_horizontal_boundary(square + 7) && !is_lower_vertical_boundary(square + 7);
+         square = square - 7) {
+        if (first_iteration) {
+            if (is_opposite_king(square, color)) { return true; }
+            first_iteration = false;
+        }
+        if (is_opposite_rook(square, color) || is_opposite_queen(square, color)) { return true; }
+        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
+                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
+            break;
+        }
+    }
+    // diagonal up right
+    first_iteration = true;
+    for (auto square = sq + 7;
+         !is_right_horizontal_boundary(square - 7) && !is_upper_vertical_boundary(square - 7);
+         square = square + 7) {
+        if (first_iteration) {
+            if (is_opposite_king(square, color)) { return true; }
+            first_iteration = false;
+        }
+        if (is_opposite_rook(square, color) || is_opposite_queen(square, color)) { return true; }
+        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
+                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
+            break;
+        }
+    }
+    // diagonal up left
+    first_iteration = true;
+    for (auto square = sq + 9;
+         !is_right_horizontal_boundary(square - 9) && !is_upper_vertical_boundary(square - 9);
+         square = square + 9) {
+        if (first_iteration) {
+            if (is_opposite_king(square, color)) { return true; }
+            first_iteration = false;
+        }
+        if (is_opposite_rook(square, color) || is_opposite_queen(square, color)) { return true; }
+        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
+                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
+            break;
+        }
+    }
+    return false;
+}
+
+// END is under attack
 //----------------------------------------------------------------------------------------------------------------------
 
 // scratch
