@@ -75,6 +75,10 @@ struct Board {
     bool is_black_bishop(Square sq) const;
     bool is_bishop(Square sq) const;
     std::vector<Square> attack_map_bishop(Square sq) const;
+    bool is_white_queen(Square sq) const;
+    bool is_black_queen(Square sq) const;
+    bool is_queen(Square sq) const;
+    std::vector<Square> attack_map_queen(Square sq) const;
 };
 
 // END Board
@@ -229,6 +233,22 @@ bool Board::is_bishop(Square sq) const
     return is_white_bishop(sq) || is_black_bishop(sq);
 }
 
+bool Board::is_white_queen(Square sq) const
+{
+    return what_piece(sq) == 'Q';
+}
+
+bool Board::is_black_queen(Square sq) const
+{
+    return what_piece(sq) == 'q';
+}
+
+bool Board::is_queen(Square sq) const
+{
+    return is_white_queen(sq) || is_black_queen(sq);
+}
+
+// END piece detection
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN boundary checking
 
@@ -342,6 +362,20 @@ std::vector<Square> Board::attack_map_bishop(Square sq) const
 
 // END attack map bishop
 //----------------------------------------------------------------------------------------------------------------------
+// BEGIN attack map queen
+
+std::vector<Square> Board::attack_map_queen(Square sq) const
+{
+    std::vector<Square> v1 = attack_map_rook(sq);
+    std::vector<Square> v2 = attack_map_bishop(sq);
+
+    v1.insert(v1.end(), v2.begin(), v2.end());
+
+    return v1;
+}
+
+// END attack map queen
+//----------------------------------------------------------------------------------------------------------------------
 
 // can do attack map and move map simultaneously?
 std::vector<Square> Board::attack_map(Square sq) const
@@ -352,85 +386,7 @@ std::vector<Square> Board::attack_map(Square sq) const
     if (what_piece(sq) == ' ') { return attack_map; }
     else if (is_rook(sq)) { attack_map = attack_map_rook(sq); }
     else if (is_bishop(sq)) { attack_map = attack_map_bishop(sq); }
-    else if (what_piece(sq) == 'Q' || what_piece(sq) == 'q') {
-        for (auto square = sq + 8; !is_vertical_boundary(square - 8); square = square + 8) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-        for (auto square = sq - 8; !is_vertical_boundary(square + 8); square = square - 8) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-        // check horizontal with bounds
-        for (auto square = sq + 1; !is_horizontal_boundary(square - 1); square = square + 1) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-        for (auto square = sq - 1; !is_horizontal_boundary(square + 1); square = square - 1) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-        // up right
-        for (auto square = sq + 9; !is_boundary(square - 9); square = square + 9) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-        // up left
-        for (auto square = sq + 7; !is_boundary(square - 7); square = square + 7) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-        // down right
-        for (auto square = sq - 7; !is_boundary(square + 7); square = square - 7) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-        // down left
-        for (auto square = sq - 9; !is_boundary(square + 9); square = square - 9) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-    }
+    else if (is_queen(sq)) { attack_map = attack_map_queen(sq); }
     else if (what_piece(sq) == 'N' || what_piece(sq) == 'n') {
         // center 4x4
         int isq = static_cast<int>(sq);
