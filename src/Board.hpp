@@ -27,6 +27,11 @@ struct Board {
     void move(const std::string *s);
     std::vector<Square> attack_map(Square sq) const;
 
+    // I think there may need to be three maps?
+    // an "attack" map - influence of the piece
+    // a "move" map - where the piece can actually move
+    // an xray map - where the piece could move if there were no pieces in the way
+
     uint64_t b_pawn = 0b00000000'11111111'00000000'00000000'00000000'00000000'00000000'00000000;
     uint64_t b_night = 0b01000010'00000000'00000000'00000000'00000000'00000000'00000000'00000000;
     uint64_t b_bishop = 0b00100100'00000000'00000000'00000000'00000000'00000000'00000000'00000000;
@@ -61,6 +66,11 @@ struct Board {
 
     Move_Set move_set;
     char what_piece(Square sq) const;
+    std::vector<Square> attack_map_rook(Square sq) const;
+    bool is_white_rook(Square sq) const;
+    bool is_black_rook(Square sq);
+    bool is_black_rook(Square sq) const;
+    bool is_rook(Square sq) const;
 };
 
 // END Board
@@ -182,15 +192,55 @@ char Board::what_piece(uint sq) const
     return ' ';
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN piece detection
+
+bool Board::is_white_rook(Square sq) const
+{
+    return what_piece(sq) == 'R';
+}
+
+bool Board::is_black_rook(Square sq) const
+{
+    return what_piece(sq) == 'r';
+}
+
+bool Board::is_rook(Square sq) const
+{
+    return is_white_rook(sq) || is_black_rook(sq);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN boundary checking
+
+bool is_upper_vertical_boundary(Square square)
+{
+    return static_cast<int>(square) > 55;
+}
+
+bool is_lower_vertical_boundary(Square square)
+{
+    return static_cast<int>(square) < 8;
+}
+
 bool is_vertical_boundary(Square sq)
 {
-    return static_cast<int>(sq) < 8 || static_cast<int>(sq) > 55;
+    return is_upper_vertical_boundary(sq) || is_lower_vertical_boundary(sq);
+}
 
+bool is_left_horizontal_boundary(Square sq)
+{
+    return (static_cast<int>(sq) + 1) % 8 == 0;
+}
+
+bool is_right_horizontal_boundary(Square sq)
+{
+    return static_cast<int>(sq) % 8 == 0;
 }
 
 bool is_horizontal_boundary(Square sq)
 {
-    return static_cast<int>(sq) % 8 == 0 || (static_cast<int>(sq) + 1) % 8 == 0;
+    return is_left_horizontal_boundary(sq) || is_right_horizontal_boundary(sq);
 }
 
 bool is_boundary(Square sq)
@@ -203,6 +253,39 @@ bool is_corner(Square sq)
     return is_vertical_boundary(sq) && is_horizontal_boundary(sq);
 }
 
+// END boundary checking
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN attack map rook
+
+std::vector<Square> Board::attack_map_rook(Square sq) const
+{
+    std::vector<Square> attack_map{};
+    // vertical up
+    for (auto square = sq + 8; !is_upper_vertical_boundary(square - 8); square = square + 8) {
+        attack_map.push_back(square);
+        if (what_piece(square) != ' ') { break; }
+    }
+    // vertical down
+    for (auto square = sq - 8; !is_lower_vertical_boundary(square + 8); square = square - 8) {
+        attack_map.push_back(square);
+        if (what_piece(square) != ' ') { break; }
+    }
+    // horizontal right
+    for (auto square = sq - 1; !is_right_horizontal_boundary(square + 1); square = square - 1) {
+        attack_map.push_back(square);
+        if (what_piece(square) != ' ') { break; }
+    }
+    // horizontal left
+    for (auto square = sq + 1; !is_left_horizontal_boundary(square - 1); square = square + 1) {
+        attack_map.push_back(square);
+        if (what_piece(square) != ' ') { break; }
+    }
+    return attack_map;
+}
+
+// END attack map rook
+//----------------------------------------------------------------------------------------------------------------------
+
 // can do attack map and move map simultaneously?
 std::vector<Square> Board::attack_map(Square sq) const
 {
@@ -213,47 +296,8 @@ std::vector<Square> Board::attack_map(Square sq) const
     // vertical boundary. Same goes for the bishop and queen of course. If that is the case, all we need to do is
     // separate the upper and lower vertical boundary and the left and right horizontal boundary.
     if (what_piece(sq) == ' ') { return attack_map; }
-    else if (what_piece(sq) == 'R' || what_piece(sq) == 'r') {
-        // check all the rookie things to do ...
-        // check vertical with bounds
-        for (auto square = sq + 8; !is_vertical_boundary(square - 8); square = square + 8) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-        for (auto square = sq - 8; !is_vertical_boundary(square + 8); square = square - 8) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-        // check horizontal with bounds
-        for (auto square = sq + 1; !is_horizontal_boundary(square - 1); square = square + 1) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-        for (auto square = sq - 1; !is_horizontal_boundary(square + 1); square = square - 1) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-    }
+
+    else if (is_rook(sq)) { attack_map = attack_map_rook(sq); }
     else if (what_piece(sq) == 'B' || what_piece(sq) == 'b') {
         // check all the bishopy things to do
         // up right
@@ -503,6 +547,9 @@ std::vector<Square> Board::attack_map(Square sq) const
             attack_map.push_back(sq - (2 * 8 + 1));     // down right
         }
     }
+        // might be best to check for discovered checks directly from the king's perspective
+        // run out in all directions
+        // if there is a friendly piece "blocking" check, that friendly piece is pinned
     else if (what_piece(sq) == 'K' || what_piece(sq) == 'k') {
         Square square;
         if (!is_corner(sq)) {
