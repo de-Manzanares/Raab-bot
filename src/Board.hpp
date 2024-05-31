@@ -86,6 +86,10 @@ struct Board {
     bool is_black_king(Square sq) const;
     bool is_king(Square sq) const;
     std::vector<Square> attack_map_king(Square sq) const;
+    bool is_white_pawn(Square sq) const;
+    bool is_black_pawn(Square sq) const;
+    bool is_pawn(Square sq) const;
+    std::vector<Square> attack_map_pawn(Square sq) const;
 };
 
 // END Board
@@ -283,6 +287,21 @@ bool Board::is_black_king(Square sq) const
 bool Board::is_king(Square sq) const
 {
     return is_white_king(sq) || is_black_king(sq);
+}
+
+bool Board::is_white_pawn(Square sq) const
+{
+    return what_piece(sq) == 'P';
+}
+
+bool Board::is_black_pawn(Square sq) const
+{
+    return what_piece(sq) == 'p';
+}
+
+bool Board::is_pawn(Square sq) const
+{
+    return is_white_pawn(sq) || is_black_pawn(sq);
 }
 
 // END piece detection
@@ -545,6 +564,25 @@ std::vector<Square> Board::attack_map_king(Square sq) const
 
 // END attack map king
 //----------------------------------------------------------------------------------------------------------------------
+// BEGIN attack map pawn
+
+std::vector<Square> Board::attack_map_pawn(Square sq) const
+{
+    std::vector<Square> attack_map{};
+    int front_left = 9;
+    int front_right = 7;
+
+    if (!is_left_horizontal_boundary(sq)) {
+        is_white_pawn(sq) ? attack_map.push_back(sq + front_left) : attack_map.push_back(sq - front_right);
+    }
+    if (!is_right_horizontal_boundary(sq)) {
+        is_white_pawn(sq) ? attack_map.push_back(sq + front_right) : attack_map.push_back(sq - front_left);
+    }
+    return attack_map;
+}
+
+// END attack map pawn
+//----------------------------------------------------------------------------------------------------------------------
 
 // can do attack map and move map simultaneously?
 std::vector<Square> Board::attack_map(Square sq) const
@@ -557,12 +595,11 @@ std::vector<Square> Board::attack_map(Square sq) const
     else if (is_bishop(sq)) { attack_map = attack_map_bishop(sq); }
     else if (is_queen(sq)) { attack_map = attack_map_queen(sq); }
     else if (is_knight(sq)) { attack_map = attack_map_knight(sq); }
+        // TODO might be best to check for discovered checks directly from the king's perspective
+        // run out in all directions
+        // if there is a friendly piece "blocking" check, that friendly piece is pinned
     else if (is_king(sq)) { attack_map = attack_map_king(sq); }
-    // TODO might be best to check for discovered checks directly from the king's perspective
-    // run out in all directions
-    // if there is a friendly piece "blocking" check, that friendly piece is pinned
-
-    // else if is pawn
+    else if (is_pawn(sq)) { attack_map = attack_map_pawn(sq); }
     return attack_map;
 }
 

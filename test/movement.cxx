@@ -219,3 +219,20 @@ TEST_CASE("king attack map")
     generate_and_sort(board, s::a8, v);
     CHECK(v == std::vector<Square>{s::b7, s::a7, s::b8});
 }
+
+TEST_CASE("pawn attack map")
+{
+    import_fen(&board, "8/p2p3p/8/8/8/8/P3P2P/8 w - - 0 1");
+    generate_and_sort(board, s::h2, v);
+    CHECK(v == std::vector<Square>{s::g3});
+    generate_and_sort(board, s::e2, v);
+    CHECK(v == std::vector<Square>{s::f3, s::d3});
+    generate_and_sort(board, s::a2, v);
+    CHECK(v == std::vector<Square>{s::b3});
+    generate_and_sort(board, s::h7, v);
+    CHECK(v == std::vector<Square>{s::g6});
+    generate_and_sort(board, s::d7, v);
+    CHECK(v == std::vector<Square>{s::e6, s::c6});
+    generate_and_sort(board, s::a7, v);
+    CHECK(v == std::vector<Square>{s::b6});
+}
