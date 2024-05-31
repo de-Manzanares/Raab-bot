@@ -6,7 +6,7 @@
 
 void generate_and_sort(const Board& board, const Square& sq, std::vector<Square>& v)
 {
-    v = board.attack_map(sq);
+    v = board.influence_map(sq);
     std::sort(v.begin(), v.end());
 }
 
