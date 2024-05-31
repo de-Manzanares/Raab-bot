@@ -79,6 +79,10 @@ struct Board {
     bool is_black_queen(Square sq) const;
     bool is_queen(Square sq) const;
     std::vector<Square> attack_map_queen(Square sq) const;
+    bool is_white_knight(Square sq) const;
+    bool is_black_knight(Square sq) const;
+    bool is_knight(Square sq) const;
+    std::vector<Square> attack_map_knight(Square square) const;
 };
 
 // END Board
@@ -248,6 +252,21 @@ bool Board::is_queen(Square sq) const
     return is_white_queen(sq) || is_black_queen(sq);
 }
 
+bool Board::is_white_knight(Square sq) const
+{
+    return what_piece(sq) == 'N';
+}
+
+bool Board::is_black_knight(Square sq) const
+{
+    return what_piece(sq) == 'n';
+}
+
+bool Board::is_knight(Square sq) const
+{
+    return is_white_knight(sq) || is_black_knight(sq);
+}
+
 // END piece detection
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN boundary checking
@@ -376,7 +395,115 @@ std::vector<Square> Board::attack_map_queen(Square sq) const
 
 // END attack map queen
 //----------------------------------------------------------------------------------------------------------------------
+// BEGIN attack map knight
 
+std::vector<Square> Board::attack_map_knight(Square sq) const
+{
+    using s = Square;
+    std::vector<Square> attack_map{};
+    int isq = static_cast<int>(sq);
+
+    // center 4x4 - 16 squares
+    if (isq >= 18 && isq <= 21 || isq >= 26 && isq <= 29 || isq >= 34 && isq <= 37 || isq >= 42 && isq <= 45) {
+        attack_map.push_back(sq - (2 * 8 + 1));     // down right
+        attack_map.push_back(sq - (2 * 8 - 1));     // down left
+        attack_map.push_back(sq - (8 + 2));         // right down
+        attack_map.push_back(sq - (8 - 2));         // left down
+        attack_map.push_back(sq + (8 - 2));         // right up
+        attack_map.push_back(sq + (8 + 2));         // left up
+        attack_map.push_back(sq + (2 * 8 - 1));     // up right
+        attack_map.push_back(sq + (2 * 8 + 1));     // up left
+    }
+        // b file - 4 squares
+    else if (sq == Square::b3 || sq == Square::b4 || sq == Square::b5 || sq == Square::b6) {
+        attack_map.push_back(sq - (2 * 8 + 1));     // down right
+        attack_map.push_back(sq - (2 * 8 - 1));     // down left
+        attack_map.push_back(sq - (8 + 2));         // right down
+        attack_map.push_back(sq + (8 - 2));         // right up
+        attack_map.push_back(sq + (2 * 8 - 1));     // up right
+        attack_map.push_back(sq + (2 * 8 + 1));     // up left
+    }
+        // g files - 4 squares
+    else if (sq == Square::g3 || sq == Square::g4 || sq == Square::g5 || sq == Square::g6) {
+        attack_map.push_back(sq - (2 * 8 + 1));     // down right
+        attack_map.push_back(sq - (2 * 8 - 1));     // down left
+        attack_map.push_back(sq - (8 - 2));         // left down
+        attack_map.push_back(sq + (8 + 2));         // left up
+        attack_map.push_back(sq + (2 * 8 - 1));     // up right
+        attack_map.push_back(sq + (2 * 8 + 1));     // up left
+    }
+        // 2nd rank - 4 squares
+    else if (isq >= static_cast<int>(Square::f2) && isq <= static_cast<int>(Square::c2)) {
+        attack_map.push_back(sq - (8 + 2));         // right down
+        attack_map.push_back(sq - (8 - 2));         // left down
+        attack_map.push_back(sq + (8 - 2));         // right up
+        attack_map.push_back(sq + (8 + 2));         // left up
+        attack_map.push_back(sq + (2 * 8 - 1));     // up right
+        attack_map.push_back(sq + (2 * 8 + 1));     // up left
+    }
+        // 7th rank - 4 squares
+    else if (isq >= static_cast<int>(Square::f7) && isq <= static_cast<int>(Square::c7)) {
+        attack_map.push_back(sq - (2 * 8 + 1));     // down right
+        attack_map.push_back(sq - (2 * 8 - 1));     // down left
+        attack_map.push_back(sq - (8 + 2));         // right down
+        attack_map.push_back(sq - (8 - 2));         // left down
+        attack_map.push_back(sq + (8 - 2));         // right up
+        attack_map.push_back(sq + (8 + 2));         // left up
+    }
+        // a file - 4 squares
+    else if (sq == Square::a3 || sq == Square::a4 || sq == Square::a5 || sq == Square::a6) {
+        attack_map.push_back(sq - (2 * 8 + 1));     // down right
+        attack_map.push_back(sq - (8 + 2));         // right down
+        attack_map.push_back(sq + (8 - 2));         // right up
+        attack_map.push_back(sq + (2 * 8 - 1));     // up right
+    }
+        // h file - 4 squares
+    else if (sq == Square::h3 || sq == Square::h4 || sq == Square::h5 || sq == Square::h6) {
+        attack_map.push_back(sq - (2 * 8 - 1));     // down left
+        attack_map.push_back(sq - (8 - 2));         // left down
+        attack_map.push_back(sq + (8 + 2));         // left up
+        attack_map.push_back(sq + (2 * 8 + 1));     // up left
+    }
+        // 1st rank - 4 squares
+    else if (isq >= static_cast<int>(Square::f1) && isq <= static_cast<int>(Square::c1)) {
+        attack_map.push_back(sq + (8 - 2));         // right up
+        attack_map.push_back(sq + (8 + 2));         // left up
+        attack_map.push_back(sq + (2 * 8 - 1));     // up right
+        attack_map.push_back(sq + (2 * 8 + 1));     // up left
+    }
+        // 8th rank - 4 squares
+    else if (isq >= static_cast<int>(Square::f8) && isq <= static_cast<int>(Square::c8)) {
+        attack_map.push_back(sq - (2 * 8 + 1));     // down right
+        attack_map.push_back(sq - (2 * 8 - 1));     // down left
+        attack_map.push_back(sq - (8 + 2));         // right down
+        attack_map.push_back(sq - (8 - 2));         // left down
+    }
+        // inside 2's and 7's - 1 square each
+    else if (isq == static_cast<int>(Square::g2)) { attack_map = {s::e1, s::e3, s::h4, s::f4}; }
+    else if (isq == static_cast<int>(Square::b2)) { attack_map = {s::d1, s::d3, s::c4, s::a4}; }
+    else if (isq == static_cast<int>(Square::g7)) { attack_map = {s::h5, s::f5, s::e6, s::e8}; }
+    else if (isq == static_cast<int>(Square::b7)) { attack_map = {s::c5, s::a5, s::d6, s::d8}; }
+        // edge 2's and 7's - 1 square each
+    else if (isq == static_cast<int>(Square::h2)) { attack_map = {s::f1, s::f3, s::g4}; }
+    else if (isq == static_cast<int>(Square::a2)) { attack_map = {s::c1, s::c3, s::b4}; }
+    else if (isq == static_cast<int>(Square::h7)) { attack_map = {s::g5, s::f6, s::f8}; }
+    else if (isq == static_cast<int>(Square::a7)) { attack_map = {s::b5, s::c6, s::c8}; }
+        // edge 1's and 8's - 1 square each
+    else if (isq == static_cast<int>(Square::g1)) { attack_map = {s::e2, s::h3, s::f3}; }
+    else if (isq == static_cast<int>(Square::b1)) { attack_map = {s::d2, s::c3, s::a3}; }
+    else if (isq == static_cast<int>(Square::g8)) { attack_map = {s::h6, s::f6, s::e7}; }
+    else if (isq == static_cast<int>(Square::b8)) { attack_map = {s::c6, s::a6, s::d7}; }
+        // corners - 1 square each
+    else if (isq == static_cast<int>(Square::h1)) { attack_map = {s::f2, s::g3}; }
+    else if (isq == static_cast<int>(Square::a1)) { attack_map = {s::c2, s::b3}; }
+    else if (isq == static_cast<int>(Square::h8)) { attack_map = {s::g6, s::f7}; }
+    else if (isq == static_cast<int>(Square::a8)) { attack_map = {s::b6, s::c7}; }
+
+    return attack_map;
+}
+
+// END attack map knight
+//----------------------------------------------------------------------------------------------------------------------
 // can do attack map and move map simultaneously?
 std::vector<Square> Board::attack_map(Square sq) const
 {
@@ -387,133 +514,7 @@ std::vector<Square> Board::attack_map(Square sq) const
     else if (is_rook(sq)) { attack_map = attack_map_rook(sq); }
     else if (is_bishop(sq)) { attack_map = attack_map_bishop(sq); }
     else if (is_queen(sq)) { attack_map = attack_map_queen(sq); }
-    else if (what_piece(sq) == 'N' || what_piece(sq) == 'n') {
-        // center 4x4
-        int isq = static_cast<int>(sq);
-        if (isq >= 18 && isq <= 21 || isq >= 26 && isq <= 29 || isq >= 34 && isq <= 37 || isq >= 42 && isq <= 45) {
-            attack_map.push_back(sq + (2 * 8 - 1));     // up right
-            attack_map.push_back(sq + (2 * 8 + 1));     // up left
-            attack_map.push_back(sq + (8 - 2));         // right up
-            attack_map.push_back(sq + (8 + 2));         // left up
-            attack_map.push_back(sq - (8 + 2));         // right down
-            attack_map.push_back(sq - (8 - 2));         // left down
-            attack_map.push_back(sq - (2 * 8 + 1));     // down right
-            attack_map.push_back(sq - (2 * 8 - 1));     // down left
-        }
-        else if (isq > 14 && isq < 54 && (isq + 2) % 8 == 0) {
-            attack_map.push_back(sq + (2 * 8 - 1));     // up right
-            attack_map.push_back(sq + (2 * 8 + 1));     // up left
-            attack_map.push_back(sq + (8 - 2));         // right up
-            attack_map.push_back(sq - (8 + 2));         // right down
-            attack_map.push_back(sq - (2 * 8 + 1));     // down right
-            attack_map.push_back(sq - (2 * 8 - 1));     // down left
-        }
-        else if (isq > 9 && isq < 49 && (isq - 1) % 8 == 0) {
-            attack_map.push_back(sq + (2 * 8 - 1));     // up right
-            attack_map.push_back(sq + (2 * 8 + 1));     // up left
-            attack_map.push_back(sq + (8 + 2));         // left up
-            attack_map.push_back(sq - (8 - 2));         // left down
-            attack_map.push_back(sq - (2 * 8 + 1));     // down right
-            attack_map.push_back(sq - (2 * 8 - 1));     // down left
-        }
-        else if (isq >= 50 && isq <= 53) {
-            attack_map.push_back(sq + (8 - 2));         // right up
-            attack_map.push_back(sq + (8 + 2));         // left up
-            attack_map.push_back(sq - (8 + 2));         // right down
-            attack_map.push_back(sq - (8 - 2));         // left down
-            attack_map.push_back(sq - (2 * 8 + 1));     // down right
-            attack_map.push_back(sq - (2 * 8 - 1));     // down left
-        }
-        else if (isq >= 10 && isq <= 13) {
-            attack_map.push_back(sq + (2 * 8 - 1));     // up right
-            attack_map.push_back(sq + (2 * 8 + 1));     // up left
-            attack_map.push_back(sq + (8 - 2));         // right up
-            attack_map.push_back(sq + (8 + 2));         // left up
-            attack_map.push_back(sq - (8 + 2));         // right down
-            attack_map.push_back(sq - (8 - 2));         // left down
-        }
-        else if (isq == 9) {
-            attack_map.push_back(sq + (2 * 8 - 1));     // up right
-            attack_map.push_back(sq + (2 * 8 + 1));     // up left
-            attack_map.push_back(sq + (8 + 2));         // left up
-            attack_map.push_back(sq - (8 - 2));         // left down
-        }
-        else if (isq == static_cast<int>(Square::b2)) {
-            attack_map.push_back(sq + (2 * 8 - 1));     // up right
-            attack_map.push_back(sq + (2 * 8 + 1));     // up left
-            attack_map.push_back(sq + (8 - 2));         // right up
-            attack_map.push_back(sq - (8 + 2));         // right down
-        }
-        else if (isq == static_cast<int>(Square::g7)) {
-            attack_map.push_back(sq + (8 + 2));         // left up
-            attack_map.push_back(sq - (8 - 2));         // left down
-            attack_map.push_back(sq - (2 * 8 + 1));     // down right
-            attack_map.push_back(sq - (2 * 8 - 1));     // down left
-        }
-        else if (isq == static_cast<int>(Square::b7)) {
-            attack_map.push_back(sq + (8 - 2));         // right up
-            attack_map.push_back(sq - (8 + 2));         // right down
-            attack_map.push_back(sq - (2 * 8 + 1));     // down right
-            attack_map.push_back(sq - (2 * 8 - 1));     // down left
-        }
-        else if (isq == static_cast<int>(Square::g1)) {
-            attack_map.push_back(sq + (2 * 8 - 1));     // up right
-            attack_map.push_back(sq + (2 * 8 + 1));     // up left
-            attack_map.push_back(sq + (8 + 2));         // left up
-        }
-        else if (isq == static_cast<int>(Square::b1)) {
-            attack_map.push_back(sq + (2 * 8 - 1));     // up right
-            attack_map.push_back(sq + (2 * 8 + 1));     // up left
-            attack_map.push_back(sq + (8 - 2));         // right up
-        }
-        else if (isq == static_cast<int>(Square::h2)) {
-            attack_map.push_back(sq + (2 * 8 + 1));     // up left
-            attack_map.push_back(sq + (8 + 2));         // left up
-            attack_map.push_back(sq - (8 - 2));         // left down
-        }
-        else if (isq == static_cast<int>(Square::a2)) {
-            attack_map.push_back(sq + (2 * 8 - 1));     // up right
-            attack_map.push_back(sq + (8 - 2));         // right up
-            attack_map.push_back(sq - (8 + 2));         // right down
-        }
-        else if (isq == static_cast<int>(Square::h7)) {
-            attack_map.push_back(sq + (8 + 2));         // left up
-            attack_map.push_back(sq - (8 - 2));         // left down
-            attack_map.push_back(sq - (2 * 8 - 1));     // down left
-        }
-        else if (isq == static_cast<int>(Square::a7)) {
-            attack_map.push_back(sq + (8 - 2));         // right up
-            attack_map.push_back(sq - (8 + 2));         // right down
-            attack_map.push_back(sq - (2 * 8 + 1));     // down right
-        }
-        else if (isq == static_cast<int>(Square::g8)) {
-            attack_map.push_back(sq - (8 - 2));         // left down
-            attack_map.push_back(sq - (2 * 8 + 1));     // down right
-            attack_map.push_back(sq - (2 * 8 - 1));     // down left
-        }
-        else if (isq == static_cast<int>(Square::b8)) {
-            attack_map.push_back(sq - (8 + 2));         // right down
-            attack_map.push_back(sq - (2 * 8 + 1));     // down right
-            attack_map.push_back(sq - (2 * 8 - 1));     // down left
-        }
-            // h1, a1, h8, a8
-        else if (isq == static_cast<int>(Square::h1)) {
-            attack_map.push_back(sq + (2 * 8 + 1));     // up left
-            attack_map.push_back(sq + (8 + 2));         // left up
-        }
-        else if (isq == static_cast<int>(Square::a1)) {
-            attack_map.push_back(sq + (2 * 8 - 1));     // up right
-            attack_map.push_back(sq + (8 - 2));         // right up
-        }
-        else if (isq == static_cast<int>(Square::h8)) {
-            attack_map.push_back(sq - (8 - 2));         // left down
-            attack_map.push_back(sq - (2 * 8 - 1));     // down left
-        }
-        else if (isq == static_cast<int>(Square::a8)) {
-            attack_map.push_back(sq - (8 + 2));         // right down
-            attack_map.push_back(sq - (2 * 8 + 1));     // down right
-        }
-    }
+    else if (is_knight(sq)) { attack_map = attack_map_knight(sq); }
         // might be best to check for discovered checks directly from the king's perspective
         // run out in all directions
         // if there is a friendly piece "blocking" check, that friendly piece is pinned

@@ -124,3 +124,72 @@ TEST_CASE("queen attack map")
     generate_and_sort(board, s::a8, v);
     CHECK(v == std::vector<Square>{s::d5, s::a5, s::c6, s::a6, s::b7, s::a7, s::d8, s::c8, s::b8});
 }
+
+TEST_CASE("attack map knight")
+{
+    import_fen(&board,"NN1N2NN/NN2N1NN/8/N3N1N1/1N5N/8/NN1N2NN/NN2N1NN w - - 0 1");
+    // center 4x4
+    generate_and_sort(board,s::e5,v);
+    CHECK(v==std::vector<Square>{s::f3,s::d3,s::g4,s::c4,s::g6,s::c6,s::f7,s::d7});
+    // b file - 4 squares
+    generate_and_sort(board,s::b4,v);
+    CHECK(v==std::vector<Square>{s::c2,s::a2,s::d3,s::d5,s::c6,s::a6});
+    // g files - 4 squares
+    generate_and_sort(board,s::g5,v);
+    CHECK(v==std::vector<Square>{s::h3,s::f3,s::e4,s::e6,s::h7,s::f7});
+    // 2nd rank - 4 squares
+    generate_and_sort(board,s::d2,v);
+    CHECK(v==std::vector<Square>{s::f1,s::b1,s::f3,s::b3,s::e4,s::c4});
+    // 7th rank - 4 squares
+    generate_and_sort(board,s::e7,v);
+    CHECK(v==std::vector<Square>{s::f5,s::d5,s::g6,s::c6,s::g8,s::c8});
+    // a file - 4 squares
+    generate_and_sort(board,s::a5,v);
+    CHECK(v==std::vector<Square>{s::b3,s::c4,s::c6,s::b7});
+    // h file - 4 squares
+    generate_and_sort(board,s::h4,v);
+    CHECK(v==std::vector<Square>{s::g2,s::f3,s::f5,s::g6});
+    // 1st rank - 4 squares
+    generate_and_sort(board,s::e1,v);
+    CHECK(v==std::vector<Square>{s::g2,s::c2,s::f3,s::d3});
+    // 8th rank - 4 squares
+    generate_and_sort(board,s::d8,v);
+    CHECK(v==std::vector<Square>{s::e6,s::c6,s::f7,s::b7});
+    // corners
+    generate_and_sort(board,s::h1,v);
+    CHECK(v==std::vector<Square>{s::f2,s::g3});
+    generate_and_sort(board,s::a1,v);
+    CHECK(v==std::vector<Square>{s::c2,s::b3});
+    generate_and_sort(board,s::h8,v);
+    CHECK(v==std::vector<Square>{s::g6,s::f7});
+    generate_and_sort(board,s::a8,v);
+    CHECK(v==std::vector<Square>{s::b6,s::c7});
+    // inside 2's and 7's
+    generate_and_sort(board,s::g2,v);
+    CHECK(v==std::vector<Square>{s::e1,s::e3,s::h4,s::f4});
+    generate_and_sort(board,s::b2,v);
+    CHECK(v==std::vector<Square>{s::d1,s::d3,s::c4,s::a4});
+    generate_and_sort(board,s::g7,v);
+    CHECK(v==std::vector<Square>{s::h5,s::f5,s::e6,s::e8});
+    generate_and_sort(board,s::b7,v);
+    CHECK(v==std::vector<Square>{s::c5,s::a5,s::d6,s::d8});
+    // edge 1's and 8's
+    generate_and_sort(board,s::g1,v);
+    CHECK(v==std::vector<Square>{s::e2,s::h3,s::f3});
+    generate_and_sort(board,s::b1,v);
+    CHECK(v==std::vector<Square>{s::d2,s::c3,s::a3});
+    generate_and_sort(board,s::g8,v);
+    CHECK(v==std::vector<Square>{s::h6,s::f6,s::e7});
+    generate_and_sort(board,s::b8,v);
+    CHECK(v==std::vector<Square>{s::c6,s::a6,s::d7});
+    // edge 2's and 7's
+    generate_and_sort(board,s::h2,v);
+    CHECK(v==std::vector<Square>{s::f1,s::f3,s::g4});
+    generate_and_sort(board,s::a2,v);
+    CHECK(v==std::vector<Square>{s::c1,s::c3,s::b4});
+    generate_and_sort(board,s::h7,v);
+    CHECK(v==std::vector<Square>{s::g5,s::f6,s::f8});
+    generate_and_sort(board,s::a7,v);
+    CHECK(v==std::vector<Square>{s::b5,s::c6,s::c8});
+
+}
