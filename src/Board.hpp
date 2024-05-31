@@ -68,7 +68,6 @@ struct Board {
     char what_piece(Square sq) const;
     std::vector<Square> attack_map_rook(Square sq) const;
     bool is_white_rook(Square sq) const;
-    bool is_black_rook(Square sq);
     bool is_black_rook(Square sq) const;
     bool is_rook(Square sq) const;
     bool is_white_bishop(Square sq) const;
@@ -82,7 +81,11 @@ struct Board {
     bool is_white_knight(Square sq) const;
     bool is_black_knight(Square sq) const;
     bool is_knight(Square sq) const;
-    std::vector<Square> attack_map_knight(Square square) const;
+    std::vector<Square> attack_map_knight(Square sq) const;
+    bool is_white_king(Square sq) const;
+    bool is_black_king(Square sq) const;
+    bool is_king(Square sq) const;
+    std::vector<Square> attack_map_king(Square sq) const;
 };
 
 // END Board
@@ -265,6 +268,21 @@ bool Board::is_black_knight(Square sq) const
 bool Board::is_knight(Square sq) const
 {
     return is_white_knight(sq) || is_black_knight(sq);
+}
+
+bool Board::is_white_king(Square sq) const
+{
+    return what_piece(sq) == 'K';
+}
+
+bool Board::is_black_king(Square sq) const
+{
+    return what_piece(sq) == 'k';
+}
+
+bool Board::is_king(Square sq) const
+{
+    return is_white_king(sq) || is_black_king(sq);
 }
 
 // END piece detection
@@ -504,6 +522,30 @@ std::vector<Square> Board::attack_map_knight(Square sq) const
 
 // END attack map knight
 //----------------------------------------------------------------------------------------------------------------------
+// BEGIN attack map king
+
+std::vector<Square> Board::attack_map_king(Square sq) const
+{
+    std::vector<Square> attack_map{};
+
+    // vertical
+    if (!is_upper_vertical_boundary(sq)) { attack_map.push_back(sq + 8); }
+    if (!is_lower_vertical_boundary(sq)) { attack_map.push_back(sq - 8); }
+    // horizontal
+    if (!is_right_horizontal_boundary(sq)) { attack_map.push_back(sq - 1); }
+    if (!is_left_horizontal_boundary(sq)) { attack_map.push_back(sq + 1); }
+    // diagonal
+    if (!is_lower_vertical_boundary(sq) && !is_right_horizontal_boundary(sq)) { attack_map.push_back(sq - 9); }
+    if (!is_lower_vertical_boundary(sq) && !is_left_horizontal_boundary(sq)) { attack_map.push_back(sq - 7); }
+    if (!is_upper_vertical_boundary(sq) && !is_right_horizontal_boundary(sq)) { attack_map.push_back(sq + 7); }
+    if (!is_upper_vertical_boundary(sq) && !is_left_horizontal_boundary(sq)) { attack_map.push_back(sq + 9); }
+
+    return attack_map;
+}
+
+// END attack map king
+//----------------------------------------------------------------------------------------------------------------------
+
 // can do attack map and move map simultaneously?
 std::vector<Square> Board::attack_map(Square sq) const
 {
@@ -515,33 +557,12 @@ std::vector<Square> Board::attack_map(Square sq) const
     else if (is_bishop(sq)) { attack_map = attack_map_bishop(sq); }
     else if (is_queen(sq)) { attack_map = attack_map_queen(sq); }
     else if (is_knight(sq)) { attack_map = attack_map_knight(sq); }
-        // might be best to check for discovered checks directly from the king's perspective
-        // run out in all directions
-        // if there is a friendly piece "blocking" check, that friendly piece is pinned
-    else if (what_piece(sq) == 'K' || what_piece(sq) == 'k') {
-        Square square;
-        if (!is_corner(sq)) {
-            // vertical
-            square = sq + 8;
-            if (!is_vertical_boundary(square - 8)) { attack_map.push_back(square); }
-            square = sq - 8;
-            if (!is_vertical_boundary(square + 8)) { attack_map.push_back(square); }
-            // horizontal
-            square = sq + 1;
-            if (!is_horizontal_boundary(square - 1)) { attack_map.push_back(square); }
-            square = sq - 1;
-            if (!is_horizontal_boundary(square + 1)) { attack_map.push_back(square); }
-            // diagonal
-            square = sq + 9;
-            if (!is_boundary(square - 9)) { attack_map.push_back(square); }
-            square = sq + 7;
-            if (!is_boundary(square - 7)) { attack_map.push_back(square); }
-            square = sq - 7;
-            if (!is_boundary(square + 7)) { attack_map.push_back(square); }
-            square = sq - 9;
-            if (!is_boundary(square + 9)) { attack_map.push_back(square); }
-        }
-    }
+    else if (is_king(sq)) { attack_map = attack_map_king(sq); }
+    // TODO might be best to check for discovered checks directly from the king's perspective
+    // run out in all directions
+    // if there is a friendly piece "blocking" check, that friendly piece is pinned
+
+    // else if is pawn
     return attack_map;
 }
 
