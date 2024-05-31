@@ -71,6 +71,10 @@ struct Board {
     bool is_black_rook(Square sq);
     bool is_black_rook(Square sq) const;
     bool is_rook(Square sq) const;
+    bool is_white_bishop(Square sq) const;
+    bool is_black_bishop(Square sq) const;
+    bool is_bishop(Square sq) const;
+    std::vector<Square> attack_map_bishop(Square sq) const;
 };
 
 // END Board
@@ -210,6 +214,21 @@ bool Board::is_rook(Square sq) const
     return is_white_rook(sq) || is_black_rook(sq);
 }
 
+bool Board::is_white_bishop(Square sq) const
+{
+    return what_piece(sq) == 'B';
+}
+
+bool Board::is_black_bishop(Square sq) const
+{
+    return what_piece(sq) == 'b';
+}
+
+bool Board::is_bishop(Square sq) const
+{
+    return is_white_bishop(sq) || is_black_bishop(sq);
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN boundary checking
 
@@ -285,6 +304,44 @@ std::vector<Square> Board::attack_map_rook(Square sq) const
 
 // END attack map rook
 //----------------------------------------------------------------------------------------------------------------------
+// BEGIN attack map bishop
+
+std::vector<Square> Board::attack_map_bishop(Square sq) const
+{
+    std::vector<Square> attack_map{};
+    // up left
+    for (auto square = sq + 9;
+         !is_upper_vertical_boundary(square - 9) && !is_left_horizontal_boundary(square - 9);
+         square = square + 9) {
+        attack_map.push_back(square);
+        if (what_piece(square) != ' ') { break; }
+    }
+    // up right
+    for (auto square = sq + 7;
+         !is_upper_vertical_boundary(square - 7) && !is_right_horizontal_boundary(square - 7);
+         square = square + 7) {
+        attack_map.push_back(square);
+        if (what_piece(square) != ' ') { break; }
+    }
+    // down right
+    for (auto square = sq - 9;
+         !is_lower_vertical_boundary(square + 9) && !is_right_horizontal_boundary(square + 9);
+         square = square - 9) {
+        attack_map.push_back(square);
+        if (what_piece(square) != ' ') { break; }
+    }
+    // down left
+    for (auto square = sq - 7;
+         !is_lower_vertical_boundary(square + 7) && !is_left_horizontal_boundary(square + 7);
+         square = square - 7) {
+        attack_map.push_back(square);
+        if (what_piece(square) != ' ') { break; }
+    }
+    return attack_map;
+}
+
+// END attack map bishop
+//----------------------------------------------------------------------------------------------------------------------
 
 // can do attack map and move map simultaneously?
 std::vector<Square> Board::attack_map(Square sq) const
@@ -292,55 +349,9 @@ std::vector<Square> Board::attack_map(Square sq) const
     std::vector<Square> attack_map{};
 
     // if the square is empty, there is no influence
-    //TODO might have a bug, check to if downward vertical moves are still found even if the piece sits on the top
-    // vertical boundary. Same goes for the bishop and queen of course. If that is the case, all we need to do is
-    // separate the upper and lower vertical boundary and the left and right horizontal boundary.
     if (what_piece(sq) == ' ') { return attack_map; }
-
     else if (is_rook(sq)) { attack_map = attack_map_rook(sq); }
-    else if (what_piece(sq) == 'B' || what_piece(sq) == 'b') {
-        // check all the bishopy things to do
-        // up right
-        for (auto square = sq + 9; !is_boundary(square - 9); square = square + 9) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-        // up left
-        for (auto square = sq + 7; !is_boundary(square - 7); square = square + 7) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-        // down right
-        for (auto square = sq - 7; !is_boundary(square + 7); square = square - 7) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-        // down left
-        for (auto square = sq - 9; !is_boundary(square + 9); square = square - 9) {
-            if (what_piece(square) == ' ') {
-                attack_map.push_back(square);
-            }
-            else {
-                attack_map.push_back(square);
-                break;
-            }
-        }
-    }
+    else if (is_bishop(sq)) { attack_map = attack_map_bishop(sq); }
     else if (what_piece(sq) == 'Q' || what_piece(sq) == 'q') {
         for (auto square = sq + 8; !is_vertical_boundary(square - 8); square = square + 8) {
             if (what_piece(square) == ' ') {
