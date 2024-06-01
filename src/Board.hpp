@@ -99,6 +99,9 @@ struct Board {
     bool is_opposite_king(Square sq, Color c) const;
     bool is_opposite_pawn(Square sq, Color c) const;
     bool is_opposite_color(Square sq, Color c) const;
+    std::vector<Square> legal_moves(Square sq);
+    std::vector<Square> legal_moves(Square sq) const;
+    std::vector<Square> move_map_pawn(Square sq) const;
 };
 
 // END Board
@@ -642,5 +645,48 @@ std::vector<Square> Board::influence_map(Square sq) const
 
 // END influence map
 //----------------------------------------------------------------------------------------------------------------------
+// BEGIN legal moves
+
+std::vector<Square> Board::move_map_pawn(Square sq) const
+{
+    std::vector<Square> move_map{};
+    if (is_white_pawn(sq)) {
+        int isq = static_cast<int>(sq);
+        bool starting_row = isq <= 15 && isq >= 8;
+        if (is_empty(sq + 8)) { move_map.push_back(sq + 8); }
+        if (starting_row && is_empty(sq + 8) && is_empty(sq + 16)) { move_map.push_back(sq + 16); }
+    }
+    if (is_black_pawn(sq)) {
+        int isq = static_cast<int>(sq);
+        bool starting_row = isq <= 55 && isq >= 48;
+        if (is_empty(sq - 8)) { move_map.push_back(sq - 8); }
+        if (starting_row && is_empty(sq - 8) && is_empty(sq - 16)) { move_map.push_back(sq - 16); }
+    }
+    return move_map;
+}
+// to be quick (coding-wise, not execution wise) use the influence map then go through and remove all the squares of the
+// same color (can't take your own pieces)
+// then, go in and add castling and promotion.
+// the pawn is a special case, where it may have more moves than
+
+std::vector<Square> Board::legal_moves(Square sq) const
+{
+    std::vector<Square> moves{};
+    std::vector<Square> temp = influence_map(sq);
+
+    for (const auto& square : temp) {
+        if (!is_same_color(sq, what_color(square))) { moves.push_back(square); }
+    }
+
+    if (is_pawn(sq)) {
+        std::vector<Square> temp = move_map_pawn(sq);
+        for (const auto& square : temp) {
+            moves.push_back(square);
+        }
+    }
+    return moves;
+}
+
+// END legal moves
 
 #endif  // SRC_BITBOARD_H_
