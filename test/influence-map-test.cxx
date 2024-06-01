@@ -2,7 +2,6 @@
 #include <iostream>
 #include "../src/Board.hpp"
 #include "../src/FEN.hpp"
-#include "../src/Move-and-rules.hpp"
 
 void generate_and_sort(const Board& board, const Square& sq, std::vector<Square>& v)
 {

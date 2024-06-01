@@ -4,14 +4,19 @@ project(ChessEngine)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(general-test general.cxx)
-add_executable(movement-test movement.cxx)
-add_executable(under_attack-test under_attack.cxx)
+
+add_executable(influence-map-test influence-map-test.cxx)
+
+add_executable(legal-moves-test legal-moves-test.cxx)
+
 target_link_libraries(general-test PUBLIC
         /usr/local/lib/libCatch2Maind.a
         /usr/local/lib/libCatch2d.a)
-target_link_libraries(movement-test PUBLIC
+
+target_link_libraries(influence-map-test PUBLIC
         /usr/local/lib/libCatch2Maind.a
         /usr/local/lib/libCatch2d.a)
-target_link_libraries(under_attack-test PUBLIC
+
+target_link_libraries(legal-moves-test PUBLIC
         /usr/local/lib/libCatch2Maind.a
         /usr/local/lib/libCatch2d.a)

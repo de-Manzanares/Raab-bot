@@ -9,8 +9,8 @@
 #include <vector>
 
 #include "Square.hpp"
+#include "boundary-detection.hpp"
 #include "Game_State.hpp"
-#include "Move-and-rules.hpp"
 
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Board
@@ -23,8 +23,6 @@ struct Board {
     uint set_pieces(const std::string& fen);
     // should it return something?
     char what_piece(uint sq) const;
-    std::vector<uint> list_legal_moves(uint square) const;
-    void move(const std::string *s);
     std::vector<Square> influence_map(Square sq) const;
 
     // I think there may need to be three maps?
@@ -64,7 +62,6 @@ struct Board {
     // active color, half-move, etc ..
     Game_State game_state;
 
-    Move_Set move_set;
     char what_piece(Square sq) const;
     std::vector<Square> influence_map_rook(Square sq) const;
     bool is_white_rook(Square sq) const;
@@ -90,7 +87,6 @@ struct Board {
     bool is_black_pawn(Square sq) const;
     bool is_pawn(Square sq) const;
     std::vector<Square> influence_map_pawn(Square sq) const;
-    bool is_under_attack(Square sq, Color color) const;
     bool is_black(Square sq) const;
     bool is_white(Square sq) const;
     Color what_color(Square sq) const;
@@ -208,6 +204,9 @@ uint Board::set_pieces(const std::string& fen)
     return counter;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN piece detection
+
 char Board::what_piece(Square sq) const
 {
     for (const auto& [key, value] : piece_map) {
@@ -223,9 +222,6 @@ char Board::what_piece(uint sq) const
     }
     return ' ';
 }
-
-//----------------------------------------------------------------------------------------------------------------------
-// BEGIN piece detection
 
 bool Board::is_white_rook(Square sq) const
 {
@@ -384,54 +380,6 @@ bool Board::is_opposite_color(Square sq, Color c) const
 }
 
 // END piece detection
-//----------------------------------------------------------------------------------------------------------------------
-// BEGIN boundary checking
-
-bool is_upper_vertical_boundary(Square square)
-{
-    return static_cast<int>(square) > 55;
-}
-
-bool is_lower_vertical_boundary(Square square)
-{
-    return static_cast<int>(square) < 8;
-}
-
-bool is_vertical_boundary(Square sq)
-{
-    return is_upper_vertical_boundary(sq) || is_lower_vertical_boundary(sq);
-}
-
-bool is_left_horizontal_boundary(Square sq)
-{
-    using s = Square;
-    return sq == s::a1 || sq == s::a2 || sq == s::a3 || sq == s::a4 || sq == s::a5 || sq == s::a6 || sq == s::a7
-            || sq == s::a8;
-}
-
-bool is_right_horizontal_boundary(Square sq)
-{
-    using s = Square;
-    return sq == s::h1 || sq == s::h2 || sq == s::h3 || sq == s::h4 || sq == s::h5 || sq == s::h6 || sq == s::h7
-            || sq == s::h8;
-}
-
-bool is_horizontal_boundary(Square sq)
-{
-    return is_left_horizontal_boundary(sq) || is_right_horizontal_boundary(sq);
-}
-
-bool is_boundary(Square sq)
-{
-    return is_vertical_boundary(sq) || is_horizontal_boundary(sq);
-}
-
-bool is_corner(Square sq)
-{
-    return is_vertical_boundary(sq) && is_horizontal_boundary(sq);
-}
-
-// END boundary checking
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN influence map rook
 
@@ -694,160 +642,5 @@ std::vector<Square> Board::influence_map(Square sq) const
 
 // END influence map
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN is under attack
-
-/**
- * @brief Determines if a given square is under attack.
- * @param sq The square to check.
- * @param color The color of the attacking pieces.
- * @return True if the square is under attack, false otherwise.
- */
-bool Board::is_under_attack(Square sq, Color color) const
-{
-    // check vertical, horizontal, diagonal, and knight L's
-    // check if the square is occupied by the appropriate enemy piece
-    // or if the lane is "blocked" by a non-threatening enemy piece, or any friendly piece
-    // or if the lane is empty
-    // break and return true if the square is under attack
-    // otherwise, return false
-
-    // vertical attacks may come from a rook, queen, or king
-    // horizontal attacks may come from a rook, queen, or king
-    // diagonal attacks may come from a bishop, queen, pawn, or king
-    // knight attacks may come from a knight
-
-    // vertical up
-    bool first_iteration = true;
-    for (auto square = sq + 8; !is_upper_vertical_boundary(square - 8); square = square + 8) {
-        if (first_iteration) {
-            if (is_opposite_king(square, color)) { return true; }
-            first_iteration = false;
-        }
-        if (is_opposite_rook(square, color) || is_opposite_queen(square, color)) { return true; }
-        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
-                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
-            break;
-        }
-    }
-    // vertical down
-    first_iteration = true;
-    for (auto square = sq - 8; !is_lower_vertical_boundary(square + 8); square = square - 8) {
-        if (first_iteration) {
-            if (is_opposite_king(square, color)) { return true; }
-            first_iteration = false;
-        }
-        if (is_opposite_rook(square, color) || is_opposite_queen(square, color)) { return true; }
-        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
-                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
-            break;
-        }
-    }
-    // horizontal left
-    first_iteration = true;
-    for (auto square = sq + 1; !is_left_horizontal_boundary(square - 1); square = square + 1) {
-        if (first_iteration) {
-            if (is_opposite_king(square, color)) { return true; }
-            first_iteration = false;
-        }
-        if (is_opposite_rook(square, color) || is_opposite_queen(square, color)) { return true; }
-        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
-                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
-            break;
-        }
-    }
-    // horizontal right
-    first_iteration = true;
-    for (auto square = sq - 1; !is_right_horizontal_boundary(square + 1); square = square - 1) {
-        if (first_iteration) {
-            if (is_opposite_king(square, color)) { return true; }
-            first_iteration = false;
-        }
-        if (is_opposite_rook(square, color) || is_opposite_queen(square, color)) { return true; }
-        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
-                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
-            break;
-        }
-    }
-    // diagonal down right
-    first_iteration = true;
-    for (auto square = sq - 9;
-         !is_right_horizontal_boundary(square + 9) && !is_lower_vertical_boundary(square + 9);
-         square = square - 9) {
-        if (first_iteration) {
-            if (is_opposite_king(square, color)) { return true; }
-            if (color == Color::black) { return is_white_pawn(square); }
-            first_iteration = false;
-        }
-        if (is_opposite_bishop(square, color) || is_opposite_queen(square, color)) { return true; }
-        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
-                || is_opposite_rook(square, color) || is_opposite_knight(square, color)) {
-            break;
-        }
-    }
-    // diagonal down left
-    // TODO really can't figure out why this won't work ...
-    // Branch coverage shows it's not even hit in the tests ...
-    // TODO until this gets fixed, I suppose I could just make the influence map then check to see if the king is in it
-    // while probably slower, it should work.
-    first_iteration = true;
-    for (auto square = sq - 7;
-         !is_left_horizontal_boundary(square + 7) && !is_lower_vertical_boundary(square + 7);
-         square = square - 7) {
-        if (first_iteration) {
-            if (is_opposite_king(square, color)) { return true; }
-            if (color == Color::black) { return is_white_pawn(square); }
-            first_iteration = false;
-        }
-        if (is_opposite_bishop(square, color) || is_opposite_queen(square, color)) { return true; }
-        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
-                || is_opposite_rook(square, color) || is_opposite_knight(square, color)) {
-            break;
-        }
-    }
-    // diagonal up right
-
-    // diagonal up left
-
-    return false;
-}
-
-// END is under attack
-//----------------------------------------------------------------------------------------------------------------------
-
-// scratch
-
-std::vector<uint> Board::list_legal_moves(uint square) const
-{
-    std::vector<uint> legal_moves{};
-
-    // first we find what piece is in that square
-    char piece = what_piece(square);
-
-    // if the square is empty, there are no moves to make.
-    if (piece == ' ') { return legal_moves; }
-
-    // maybe we should start with a check detector ...
-    // we could make a control map sort of thing ... a list of each piece and the squares it is "influencing"
-    // then check if the king is there, for discovered checks, etc.
-
-    if (piece == 'P') {
-        // white pawn
-        // is there a piece in front of it?
-        // move forward one: current square +/- 8
-        // move forward two - must record en passant target: current square +/- 8*2
-        // capture left/right - a piece must occupy the square in question
-        // promote: when entering extreme opposite rank, could promote to any other piece
-    }
-}
-
-void Board::move(const std::string *s)
-{
-    // check to see what kind of piece is in the start square
-    // make a list of all available moves for that piece
-    // if the given move is legal, move the piece, update game state
-    uint from_sq = square_to_uint(s->substr(0, 2));
-    uint to_sq = square_to_uint(s->substr(2, 2));
-    list_legal_moves(from_sq);
-}
 
 #endif  // SRC_BITBOARD_H_
