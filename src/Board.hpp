@@ -786,6 +786,7 @@ bool Board::is_under_attack(Square sq, Color color) const
     }
     // diagonal down left
     // TODO really can't figure out why this won't work ...
+    // Branch coverage shows it's not even hit in the tests ...
     // TODO until this gets fixed, I suppose I could just make the influence map then check to see if the king is in it
     // while probably slower, it should work.
     first_iteration = true;
