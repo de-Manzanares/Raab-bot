@@ -649,6 +649,7 @@ std::vector<Square> Board::influence_map(Square sq) const
 
 std::vector<Square> Board::move_map_pawn(Square sq) const
 {
+    // TODO must remove diagonals if there is no enemy present
     std::vector<Square> move_map{};
     if (is_white_pawn(sq)) {
         int isq = static_cast<int>(sq);
@@ -674,13 +675,17 @@ std::vector<Square> Board::legal_moves(Square sq) const
     std::vector<Square> moves{};
     std::vector<Square> temp = influence_map(sq);
 
-    for (const auto& square : temp) {
-        if (!is_same_color(sq, what_color(square))) { moves.push_back(square); }
-    }
-
-    if (is_pawn(sq)) {
-        std::vector<Square> temp = move_map_pawn(sq);
+    if (!is_pawn(sq)) {
         for (const auto& square : temp) {
+            if (!is_same_color(sq, what_color(square))) { moves.push_back(square); }
+        }
+    }
+    if (is_pawn(sq)) {
+        for (const auto& square : temp) {
+            if (!is_same_color(sq, what_color(square)) && !is_empty(square)) { moves.push_back(square); }
+        }
+        std::vector<Square> temp1 = move_map_pawn(sq);
+        for (const auto& square : temp1) {
             moves.push_back(square);
         }
     }
