@@ -17,7 +17,6 @@ TEST_CASE("vertical up")
     CHECK(board.is_under_attack(s::e1, c::white) == false);
     CHECK(board.is_under_attack(s::g1, c::black) == true);
     CHECK(board.is_under_attack(s::g1, c::white) == false);
-    CHECK(board.is_under_attack(s::c5, c::white) == false);
     CHECK(board.is_under_attack(s::e5, c::white) == true);
     CHECK(board.is_under_attack(s::g3, c::white) == true);
     import_fen(&board, "8/2q1q1q1/8/2b1n1p1/4K3/2K3K1/8/8 w - - 0 1");
@@ -47,7 +46,7 @@ TEST_CASE("horizontal left")
 {
     import_fen(&board, "8/k1K5/q2K4/r3K3/b4K2/n5K1/p6K/7K w - - 0 1");
     CHECK(board.is_under_attack(s::c7, board.what_color(s::c7)) == false);
-    CHECK(board.is_under_attack(s::b7, board.what_color(s::b7)) == true);
+    CHECK(board.is_under_attack(s::b7, c::white) == true);
     CHECK(board.is_under_attack(s::d6, board.what_color(s::d6)) == true);
     CHECK(board.is_under_attack(s::e5, board.what_color(s::e5)) == true);
     CHECK(board.is_under_attack(s::f4, board.what_color(s::f4)) == false);
@@ -80,5 +79,19 @@ TEST_CASE("horizontal right")
 
 TEST_CASE("diagonal")
 {
-
+    import_fen(&board, "8/8/8/2k1k3/3p1P2/8/8/8 w - - 0 1");
+    CHECK(board.is_under_attack(s::c5, board.what_color(s::c5)) == false);
+    CHECK(board.is_under_attack(s::e5, board.what_color(s::e5)) == true);
+    import_fen(&board, "8/8/3k4/2k5/3p1P2/8/8/8 w - - 0 1");
+    CHECK(board.is_under_attack(s::d6, board.what_color(s::d6)) == false);
+    import_fen(&board, "8/8/8/8/3P4/8/8/8 w - - 0 1");
+    CHECK(board.is_under_attack(s::c5, c::black) == true);
+    CHECK(board.is_under_attack(s::b5, c::black) == false);
+    CHECK(board.is_white(s::d4) == true);
+    CHECK(is_left_horizontal_boundary(s::e5) == false);
+    CHECK(is_lower_vertical_boundary(s::e5) == false);
+    CHECK(is_left_horizontal_boundary(s::d4 + 7) == false);
+    CHECK(is_lower_vertical_boundary(s::d4 + 7) == false);
+    CHECK(board.is_under_attack(s::e5, c::black) == true);
+    CHECK(board.is_under_attack(s::f6, c::black) == false);
 }

@@ -404,7 +404,9 @@ bool is_vertical_boundary(Square sq)
 
 bool is_left_horizontal_boundary(Square sq)
 {
-    return (static_cast<int>(sq) + 1) % 8 == 0;
+    using s = Square;
+    return sq == s::a1 || sq == s::a2 || sq == s::a3 || sq == s::a4 || sq == s::a5 || sq == s::a6 || sq == s::a7
+            || sq == s::a8;
 }
 
 bool is_right_horizontal_boundary(Square sq)
@@ -711,7 +713,7 @@ bool Board::is_under_attack(Square sq, Color color) const
 
     // vertical attacks may come from a rook, queen, or king
     // horizontal attacks may come from a rook, queen, or king
-    // diagonal attacks may come from a bishop, queen, or king
+    // diagonal attacks may come from a bishop, queen, pawn, or king
     // knight attacks may come from a knight
 
     // vertical up
@@ -767,68 +769,44 @@ bool Board::is_under_attack(Square sq, Color color) const
         }
     }
     // diagonal down right
-    // TODO
-    // pawn attacks are color sensitive
-    // gotta fix the piece conditionals
     first_iteration = true;
     for (auto square = sq - 9;
          !is_right_horizontal_boundary(square + 9) && !is_lower_vertical_boundary(square + 9);
          square = square - 9) {
         if (first_iteration) {
             if (is_opposite_king(square, color)) { return true; }
+            if (color == Color::black) { return is_white_pawn(square); }
             first_iteration = false;
         }
-        if (is_opposite_bishop(square,color)) { return true; }
+        if (is_opposite_bishop(square, color) || is_opposite_queen(square, color)) { return true; }
         else if (is_same_color(square, color) || is_opposite_pawn(square, color)
-                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
+                || is_opposite_rook(square, color) || is_opposite_knight(square, color)) {
             break;
         }
     }
     // diagonal down left
+    // TODO really can't figure out why this won't work ...
+    // TODO until this gets fixed, I suppose I could just make the influence map then check to see if the king is in it
+    // while probably slower, it should work.
     first_iteration = true;
     for (auto square = sq - 7;
          !is_left_horizontal_boundary(square + 7) && !is_lower_vertical_boundary(square + 7);
          square = square - 7) {
         if (first_iteration) {
             if (is_opposite_king(square, color)) { return true; }
+            if (color == Color::black) { return is_white_pawn(square); }
             first_iteration = false;
         }
-        if (is_opposite_rook(square, color) || is_opposite_queen(square, color)) { return true; }
+        if (is_opposite_bishop(square, color) || is_opposite_queen(square, color)) { return true; }
         else if (is_same_color(square, color) || is_opposite_pawn(square, color)
-                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
+                || is_opposite_rook(square, color) || is_opposite_knight(square, color)) {
             break;
         }
     }
     // diagonal up right
-    first_iteration = true;
-    for (auto square = sq + 7;
-         !is_right_horizontal_boundary(square - 7) && !is_upper_vertical_boundary(square - 7);
-         square = square + 7) {
-        if (first_iteration) {
-            if (is_opposite_king(square, color)) { return true; }
-            first_iteration = false;
-        }
-        if (is_opposite_rook(square, color) || is_opposite_queen(square, color)) { return true; }
-        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
-                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
-            break;
-        }
-    }
+
     // diagonal up left
-    first_iteration = true;
-    for (auto square = sq + 9;
-         !is_right_horizontal_boundary(square - 9) && !is_upper_vertical_boundary(square - 9);
-         square = square + 9) {
-        if (first_iteration) {
-            if (is_opposite_king(square, color)) { return true; }
-            first_iteration = false;
-        }
-        if (is_opposite_rook(square, color) || is_opposite_queen(square, color)) { return true; }
-        else if (is_same_color(square, color) || is_opposite_pawn(square, color)
-                || is_opposite_bishop(square, color) || is_opposite_knight(square, color)) {
-            break;
-        }
-    }
+
     return false;
 }
 
