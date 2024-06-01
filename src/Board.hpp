@@ -665,6 +665,7 @@ std::vector<Square> Board::move_map_pawn(Square sq) const
     }
     return move_map;
 }
+
 // to be quick (coding-wise, not execution wise) use the influence map then go through and remove all the squares of the
 // same color (can't take your own pieces)
 // then, go in and add castling and promotion.
