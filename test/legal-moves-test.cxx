@@ -227,3 +227,10 @@ TEST_CASE("legal moves knight")
     generate_and_sort(board, s::a7, v);
     CHECK(v == std::vector<Square>{s::b5, s::c6, s::c8});
 }
+
+TEST_CASE("legal moves king")
+{
+    SECTION("attack detection") {
+
+    }
+}

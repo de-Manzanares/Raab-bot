@@ -23,7 +23,7 @@ struct Board {
     uint set_pieces(const std::string& fen);
     // should it return something?
     char what_piece(uint sq) const;
-    std::vector<Square> influence_map(Square sq) const;
+    std::vector<Square> influence(Square sq) const;
 
     // I think there may need to be three maps?
     // an "influence" map - influence of the piece
@@ -63,30 +63,30 @@ struct Board {
     Game_State game_state;
 
     char what_piece(Square sq) const;
-    std::vector<Square> influence_map_rook(Square sq) const;
+    std::vector<Square> influence_rook(Square sq) const;
     bool is_white_rook(Square sq) const;
     bool is_black_rook(Square sq) const;
     bool is_rook(Square sq) const;
     bool is_white_bishop(Square sq) const;
     bool is_black_bishop(Square sq) const;
     bool is_bishop(Square sq) const;
-    std::vector<Square> influence_map_bishop(Square sq) const;
+    std::vector<Square> influence_bishop(Square sq) const;
     bool is_white_queen(Square sq) const;
     bool is_black_queen(Square sq) const;
     bool is_queen(Square sq) const;
-    std::vector<Square> influence_map_queen(Square sq) const;
+    std::vector<Square> influence_queen(Square sq) const;
     bool is_white_knight(Square sq) const;
     bool is_black_knight(Square sq) const;
     bool is_knight(Square sq) const;
-    std::vector<Square> influence_map_knight(Square sq) const;
+    std::vector<Square> influence_knight(Square sq) const;
     bool is_white_king(Square sq) const;
     bool is_black_king(Square sq) const;
     bool is_king(Square sq) const;
-    std::vector<Square> influence_map_king(Square sq) const;
+    std::vector<Square> influence_king(Square sq) const;
     bool is_white_pawn(Square sq) const;
     bool is_black_pawn(Square sq) const;
     bool is_pawn(Square sq) const;
-    std::vector<Square> influence_map_pawn(Square sq) const;
+    std::vector<Square> influence_pawn(Square sq) const;
     bool is_black(Square sq) const;
     bool is_white(Square sq) const;
     Color what_color(Square sq) const;
@@ -386,78 +386,78 @@ bool Board::is_opposite_color(Square sq, Color c) const
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN influence map rook
 
-std::vector<Square> Board::influence_map_rook(Square sq) const
+std::vector<Square> Board::influence_rook(Square sq) const
 {
-    std::vector<Square> influence_map{};
+    std::vector<Square> influence{};
     // vertical up
     for (auto square = sq + 8; !is_upper_vertical_boundary(square - 8); square = square + 8) {
-        influence_map.push_back(square);
+        influence.push_back(square);
         if (what_piece(square) != ' ') { break; }
     }
     // vertical down
     for (auto square = sq - 8; !is_lower_vertical_boundary(square + 8); square = square - 8) {
-        influence_map.push_back(square);
+        influence.push_back(square);
         if (what_piece(square) != ' ') { break; }
     }
     // horizontal right
     for (auto square = sq - 1; !is_right_horizontal_boundary(square + 1); square = square - 1) {
-        influence_map.push_back(square);
+        influence.push_back(square);
         if (what_piece(square) != ' ') { break; }
     }
     // horizontal left
     for (auto square = sq + 1; !is_left_horizontal_boundary(square - 1); square = square + 1) {
-        influence_map.push_back(square);
+        influence.push_back(square);
         if (what_piece(square) != ' ') { break; }
     }
-    return influence_map;
+    return influence;
 }
 
 // END influence map rook
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN influence map bishop
 
-std::vector<Square> Board::influence_map_bishop(Square sq) const
+std::vector<Square> Board::influence_bishop(Square sq) const
 {
-    std::vector<Square> influence_map{};
+    std::vector<Square> influence{};
     // up left
     for (auto square = sq + 9;
          !is_upper_vertical_boundary(square - 9) && !is_left_horizontal_boundary(square - 9);
          square = square + 9) {
-        influence_map.push_back(square);
+        influence.push_back(square);
         if (what_piece(square) != ' ') { break; }
     }
     // up right
     for (auto square = sq + 7;
          !is_upper_vertical_boundary(square - 7) && !is_right_horizontal_boundary(square - 7);
          square = square + 7) {
-        influence_map.push_back(square);
+        influence.push_back(square);
         if (what_piece(square) != ' ') { break; }
     }
     // down right
     for (auto square = sq - 9;
          !is_lower_vertical_boundary(square + 9) && !is_right_horizontal_boundary(square + 9);
          square = square - 9) {
-        influence_map.push_back(square);
+        influence.push_back(square);
         if (what_piece(square) != ' ') { break; }
     }
     // down left
     for (auto square = sq - 7;
          !is_lower_vertical_boundary(square + 7) && !is_left_horizontal_boundary(square + 7);
          square = square - 7) {
-        influence_map.push_back(square);
+        influence.push_back(square);
         if (what_piece(square) != ' ') { break; }
     }
-    return influence_map;
+    return influence;
 }
 
 // END influence map bishop
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN influence map queen
 
-std::vector<Square> Board::influence_map_queen(Square sq) const
+std::vector<Square> Board::influence_queen(Square sq) const
 {
-    std::vector<Square> v1 = influence_map_rook(sq);
-    std::vector<Square> v2 = influence_map_bishop(sq);
+    std::vector<Square> v1 = influence_rook(sq);
+    std::vector<Square> v2 = influence_bishop(sq);
 
     v1.insert(v1.end(), v2.begin(), v2.end());
 
@@ -468,151 +468,151 @@ std::vector<Square> Board::influence_map_queen(Square sq) const
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN influence map knight
 
-std::vector<Square> Board::influence_map_knight(Square sq) const
+std::vector<Square> Board::influence_knight(Square sq) const
 {
     using s = Square;
-    std::vector<Square> influence_map{};
+    std::vector<Square> influence{};
     int isq = static_cast<int>(sq);
 
     // center 4x4 - 16 squares
     if (isq >= 18 && isq <= 21 || isq >= 26 && isq <= 29 || isq >= 34 && isq <= 37 || isq >= 42 && isq <= 45) {
-        influence_map.push_back(sq - (2 * 8 + 1));     // down right
-        influence_map.push_back(sq - (2 * 8 - 1));     // down left
-        influence_map.push_back(sq - (8 + 2));         // right down
-        influence_map.push_back(sq - (8 - 2));         // left down
-        influence_map.push_back(sq + (8 - 2));         // right up
-        influence_map.push_back(sq + (8 + 2));         // left up
-        influence_map.push_back(sq + (2 * 8 - 1));     // up right
-        influence_map.push_back(sq + (2 * 8 + 1));     // up left
+        influence.push_back(sq - (2 * 8 + 1));     // down right
+        influence.push_back(sq - (2 * 8 - 1));     // down left
+        influence.push_back(sq - (8 + 2));         // right down
+        influence.push_back(sq - (8 - 2));         // left down
+        influence.push_back(sq + (8 - 2));         // right up
+        influence.push_back(sq + (8 + 2));         // left up
+        influence.push_back(sq + (2 * 8 - 1));     // up right
+        influence.push_back(sq + (2 * 8 + 1));     // up left
     }
         // b file - 4 squares
     else if (sq == Square::b3 || sq == Square::b4 || sq == Square::b5 || sq == Square::b6) {
-        influence_map.push_back(sq - (2 * 8 + 1));     // down right
-        influence_map.push_back(sq - (2 * 8 - 1));     // down left
-        influence_map.push_back(sq - (8 + 2));         // right down
-        influence_map.push_back(sq + (8 - 2));         // right up
-        influence_map.push_back(sq + (2 * 8 - 1));     // up right
-        influence_map.push_back(sq + (2 * 8 + 1));     // up left
+        influence.push_back(sq - (2 * 8 + 1));     // down right
+        influence.push_back(sq - (2 * 8 - 1));     // down left
+        influence.push_back(sq - (8 + 2));         // right down
+        influence.push_back(sq + (8 - 2));         // right up
+        influence.push_back(sq + (2 * 8 - 1));     // up right
+        influence.push_back(sq + (2 * 8 + 1));     // up left
     }
         // g files - 4 squares
     else if (sq == Square::g3 || sq == Square::g4 || sq == Square::g5 || sq == Square::g6) {
-        influence_map.push_back(sq - (2 * 8 + 1));     // down right
-        influence_map.push_back(sq - (2 * 8 - 1));     // down left
-        influence_map.push_back(sq - (8 - 2));         // left down
-        influence_map.push_back(sq + (8 + 2));         // left up
-        influence_map.push_back(sq + (2 * 8 - 1));     // up right
-        influence_map.push_back(sq + (2 * 8 + 1));     // up left
+        influence.push_back(sq - (2 * 8 + 1));     // down right
+        influence.push_back(sq - (2 * 8 - 1));     // down left
+        influence.push_back(sq - (8 - 2));         // left down
+        influence.push_back(sq + (8 + 2));         // left up
+        influence.push_back(sq + (2 * 8 - 1));     // up right
+        influence.push_back(sq + (2 * 8 + 1));     // up left
     }
         // 2nd rank - 4 squares
     else if (isq >= static_cast<int>(Square::f2) && isq <= static_cast<int>(Square::c2)) {
-        influence_map.push_back(sq - (8 + 2));         // right down
-        influence_map.push_back(sq - (8 - 2));         // left down
-        influence_map.push_back(sq + (8 - 2));         // right up
-        influence_map.push_back(sq + (8 + 2));         // left up
-        influence_map.push_back(sq + (2 * 8 - 1));     // up right
-        influence_map.push_back(sq + (2 * 8 + 1));     // up left
+        influence.push_back(sq - (8 + 2));         // right down
+        influence.push_back(sq - (8 - 2));         // left down
+        influence.push_back(sq + (8 - 2));         // right up
+        influence.push_back(sq + (8 + 2));         // left up
+        influence.push_back(sq + (2 * 8 - 1));     // up right
+        influence.push_back(sq + (2 * 8 + 1));     // up left
     }
         // 7th rank - 4 squares
     else if (isq >= static_cast<int>(Square::f7) && isq <= static_cast<int>(Square::c7)) {
-        influence_map.push_back(sq - (2 * 8 + 1));     // down right
-        influence_map.push_back(sq - (2 * 8 - 1));     // down left
-        influence_map.push_back(sq - (8 + 2));         // right down
-        influence_map.push_back(sq - (8 - 2));         // left down
-        influence_map.push_back(sq + (8 - 2));         // right up
-        influence_map.push_back(sq + (8 + 2));         // left up
+        influence.push_back(sq - (2 * 8 + 1));     // down right
+        influence.push_back(sq - (2 * 8 - 1));     // down left
+        influence.push_back(sq - (8 + 2));         // right down
+        influence.push_back(sq - (8 - 2));         // left down
+        influence.push_back(sq + (8 - 2));         // right up
+        influence.push_back(sq + (8 + 2));         // left up
     }
         // a file - 4 squares
     else if (sq == Square::a3 || sq == Square::a4 || sq == Square::a5 || sq == Square::a6) {
-        influence_map.push_back(sq - (2 * 8 + 1));     // down right
-        influence_map.push_back(sq - (8 + 2));         // right down
-        influence_map.push_back(sq + (8 - 2));         // right up
-        influence_map.push_back(sq + (2 * 8 - 1));     // up right
+        influence.push_back(sq - (2 * 8 + 1));     // down right
+        influence.push_back(sq - (8 + 2));         // right down
+        influence.push_back(sq + (8 - 2));         // right up
+        influence.push_back(sq + (2 * 8 - 1));     // up right
     }
         // h file - 4 squares
     else if (sq == Square::h3 || sq == Square::h4 || sq == Square::h5 || sq == Square::h6) {
-        influence_map.push_back(sq - (2 * 8 - 1));     // down left
-        influence_map.push_back(sq - (8 - 2));         // left down
-        influence_map.push_back(sq + (8 + 2));         // left up
-        influence_map.push_back(sq + (2 * 8 + 1));     // up left
+        influence.push_back(sq - (2 * 8 - 1));     // down left
+        influence.push_back(sq - (8 - 2));         // left down
+        influence.push_back(sq + (8 + 2));         // left up
+        influence.push_back(sq + (2 * 8 + 1));     // up left
     }
         // 1st rank - 4 squares
     else if (isq >= static_cast<int>(Square::f1) && isq <= static_cast<int>(Square::c1)) {
-        influence_map.push_back(sq + (8 - 2));         // right up
-        influence_map.push_back(sq + (8 + 2));         // left up
-        influence_map.push_back(sq + (2 * 8 - 1));     // up right
-        influence_map.push_back(sq + (2 * 8 + 1));     // up left
+        influence.push_back(sq + (8 - 2));         // right up
+        influence.push_back(sq + (8 + 2));         // left up
+        influence.push_back(sq + (2 * 8 - 1));     // up right
+        influence.push_back(sq + (2 * 8 + 1));     // up left
     }
         // 8th rank - 4 squares
     else if (isq >= static_cast<int>(Square::f8) && isq <= static_cast<int>(Square::c8)) {
-        influence_map.push_back(sq - (2 * 8 + 1));     // down right
-        influence_map.push_back(sq - (2 * 8 - 1));     // down left
-        influence_map.push_back(sq - (8 + 2));         // right down
-        influence_map.push_back(sq - (8 - 2));         // left down
+        influence.push_back(sq - (2 * 8 + 1));     // down right
+        influence.push_back(sq - (2 * 8 - 1));     // down left
+        influence.push_back(sq - (8 + 2));         // right down
+        influence.push_back(sq - (8 - 2));         // left down
     }
         // inside 2's and 7's - 1 square each
-    else if (isq == static_cast<int>(Square::g2)) { influence_map = {s::e1, s::e3, s::h4, s::f4}; }
-    else if (isq == static_cast<int>(Square::b2)) { influence_map = {s::d1, s::d3, s::c4, s::a4}; }
-    else if (isq == static_cast<int>(Square::g7)) { influence_map = {s::h5, s::f5, s::e6, s::e8}; }
-    else if (isq == static_cast<int>(Square::b7)) { influence_map = {s::c5, s::a5, s::d6, s::d8}; }
+    else if (isq == static_cast<int>(Square::g2)) { influence = {s::e1, s::e3, s::h4, s::f4}; }
+    else if (isq == static_cast<int>(Square::b2)) { influence = {s::d1, s::d3, s::c4, s::a4}; }
+    else if (isq == static_cast<int>(Square::g7)) { influence = {s::h5, s::f5, s::e6, s::e8}; }
+    else if (isq == static_cast<int>(Square::b7)) { influence = {s::c5, s::a5, s::d6, s::d8}; }
         // edge 2's and 7's - 1 square each
-    else if (isq == static_cast<int>(Square::h2)) { influence_map = {s::f1, s::f3, s::g4}; }
-    else if (isq == static_cast<int>(Square::a2)) { influence_map = {s::c1, s::c3, s::b4}; }
-    else if (isq == static_cast<int>(Square::h7)) { influence_map = {s::g5, s::f6, s::f8}; }
-    else if (isq == static_cast<int>(Square::a7)) { influence_map = {s::b5, s::c6, s::c8}; }
+    else if (isq == static_cast<int>(Square::h2)) { influence = {s::f1, s::f3, s::g4}; }
+    else if (isq == static_cast<int>(Square::a2)) { influence = {s::c1, s::c3, s::b4}; }
+    else if (isq == static_cast<int>(Square::h7)) { influence = {s::g5, s::f6, s::f8}; }
+    else if (isq == static_cast<int>(Square::a7)) { influence = {s::b5, s::c6, s::c8}; }
         // edge 1's and 8's - 1 square each
-    else if (isq == static_cast<int>(Square::g1)) { influence_map = {s::e2, s::h3, s::f3}; }
-    else if (isq == static_cast<int>(Square::b1)) { influence_map = {s::d2, s::c3, s::a3}; }
-    else if (isq == static_cast<int>(Square::g8)) { influence_map = {s::h6, s::f6, s::e7}; }
-    else if (isq == static_cast<int>(Square::b8)) { influence_map = {s::c6, s::a6, s::d7}; }
+    else if (isq == static_cast<int>(Square::g1)) { influence = {s::e2, s::h3, s::f3}; }
+    else if (isq == static_cast<int>(Square::b1)) { influence = {s::d2, s::c3, s::a3}; }
+    else if (isq == static_cast<int>(Square::g8)) { influence = {s::h6, s::f6, s::e7}; }
+    else if (isq == static_cast<int>(Square::b8)) { influence = {s::c6, s::a6, s::d7}; }
         // corners - 1 square each
-    else if (isq == static_cast<int>(Square::h1)) { influence_map = {s::f2, s::g3}; }
-    else if (isq == static_cast<int>(Square::a1)) { influence_map = {s::c2, s::b3}; }
-    else if (isq == static_cast<int>(Square::h8)) { influence_map = {s::g6, s::f7}; }
-    else if (isq == static_cast<int>(Square::a8)) { influence_map = {s::b6, s::c7}; }
+    else if (isq == static_cast<int>(Square::h1)) { influence = {s::f2, s::g3}; }
+    else if (isq == static_cast<int>(Square::a1)) { influence = {s::c2, s::b3}; }
+    else if (isq == static_cast<int>(Square::h8)) { influence = {s::g6, s::f7}; }
+    else if (isq == static_cast<int>(Square::a8)) { influence = {s::b6, s::c7}; }
 
-    return influence_map;
+    return influence;
 }
 
 // END influence map knight
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN influence map king
 
-std::vector<Square> Board::influence_map_king(Square sq) const
+std::vector<Square> Board::influence_king(Square sq) const
 {
-    std::vector<Square> influence_map{};
+    std::vector<Square> influence{};
 
     // vertical
-    if (!is_upper_vertical_boundary(sq)) { influence_map.push_back(sq + 8); }
-    if (!is_lower_vertical_boundary(sq)) { influence_map.push_back(sq - 8); }
+    if (!is_upper_vertical_boundary(sq)) { influence.push_back(sq + 8); }
+    if (!is_lower_vertical_boundary(sq)) { influence.push_back(sq - 8); }
     // horizontal
-    if (!is_right_horizontal_boundary(sq)) { influence_map.push_back(sq - 1); }
-    if (!is_left_horizontal_boundary(sq)) { influence_map.push_back(sq + 1); }
+    if (!is_right_horizontal_boundary(sq)) { influence.push_back(sq - 1); }
+    if (!is_left_horizontal_boundary(sq)) { influence.push_back(sq + 1); }
     // diagonal
-    if (!is_lower_vertical_boundary(sq) && !is_right_horizontal_boundary(sq)) { influence_map.push_back(sq - 9); }
-    if (!is_lower_vertical_boundary(sq) && !is_left_horizontal_boundary(sq)) { influence_map.push_back(sq - 7); }
-    if (!is_upper_vertical_boundary(sq) && !is_right_horizontal_boundary(sq)) { influence_map.push_back(sq + 7); }
-    if (!is_upper_vertical_boundary(sq) && !is_left_horizontal_boundary(sq)) { influence_map.push_back(sq + 9); }
+    if (!is_lower_vertical_boundary(sq) && !is_right_horizontal_boundary(sq)) { influence.push_back(sq - 9); }
+    if (!is_lower_vertical_boundary(sq) && !is_left_horizontal_boundary(sq)) { influence.push_back(sq - 7); }
+    if (!is_upper_vertical_boundary(sq) && !is_right_horizontal_boundary(sq)) { influence.push_back(sq + 7); }
+    if (!is_upper_vertical_boundary(sq) && !is_left_horizontal_boundary(sq)) { influence.push_back(sq + 9); }
 
-    return influence_map;
+    return influence;
 }
 
 // END influence map king
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN influence map pawn
 
-std::vector<Square> Board::influence_map_pawn(Square sq) const
+std::vector<Square> Board::influence_pawn(Square sq) const
 {
-    std::vector<Square> influence_map{};
+    std::vector<Square> influence{};
     int front_left = 9;
     int front_right = 7;
 
     if (!is_left_horizontal_boundary(sq)) {
-        is_white_pawn(sq) ? influence_map.push_back(sq + front_left) : influence_map.push_back(sq - front_right);
+        is_white_pawn(sq) ? influence.push_back(sq + front_left) : influence.push_back(sq - front_right);
     }
     if (!is_right_horizontal_boundary(sq)) {
-        is_white_pawn(sq) ? influence_map.push_back(sq + front_right) : influence_map.push_back(sq - front_left);
+        is_white_pawn(sq) ? influence.push_back(sq + front_right) : influence.push_back(sq - front_left);
     }
-    return influence_map;
+    return influence;
 }
 
 // END influence map pawn
@@ -625,26 +625,27 @@ std::vector<Square> Board::influence_map_pawn(Square sq) const
  * @param sq A given square.
  * @return A list of squares that the piece is currently "influencing".
  */
-std::vector<Square> Board::influence_map(Square sq) const
+std::vector<Square> Board::influence(Square sq) const
 {
-    std::vector<Square> influence_map{};
+    std::vector<Square> influence{};
 
     // if the square is empty, there is no influence
-    if (what_piece(sq) == ' ') { return influence_map; }
-    else if (is_rook(sq)) { influence_map = influence_map_rook(sq); }
-    else if (is_bishop(sq)) { influence_map = influence_map_bishop(sq); }
-    else if (is_queen(sq)) { influence_map = influence_map_queen(sq); }
-    else if (is_knight(sq)) { influence_map = influence_map_knight(sq); }
+    if (what_piece(sq) == ' ') { return influence; }
+    else if (is_rook(sq)) { influence = influence_rook(sq); }
+    else if (is_bishop(sq)) { influence = influence_bishop(sq); }
+    else if (is_queen(sq)) { influence = influence_queen(sq); }
+    else if (is_knight(sq)) { influence = influence_knight(sq); }
         // TODO might be best to check for discovered checks directly from the king's perspective
         // run out in all directions
         // if there is a friendly piece "blocking" check, that friendly piece is pinned
-    else if (is_king(sq)) { influence_map = influence_map_king(sq); }
-    else if (is_pawn(sq)) { influence_map = influence_map_pawn(sq); }
-    return influence_map;
+    else if (is_king(sq)) { influence = influence_king(sq); }
+    else if (is_pawn(sq)) { influence = influence_pawn(sq); }
+    return influence;
 }
 
 // END influence map
 //----------------------------------------------------------------------------------------------------------------------
+// BEGIN
 // BEGIN legal moves
 
 std::vector<Square> Board::move_map_pawn(Square sq) const
@@ -674,7 +675,7 @@ std::vector<Square> Board::move_map_pawn(Square sq) const
 std::vector<Square> Board::legal_moves(Square sq) const
 {
     std::vector<Square> moves{};
-    std::vector<Square> temp = influence_map(sq);
+    std::vector<Square> temp = influence(sq);
 
     if (!is_pawn(sq)) {
         for (const auto& square : temp) {
