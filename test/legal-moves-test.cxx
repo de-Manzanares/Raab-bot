@@ -89,3 +89,40 @@ TEST_CASE("legal moves rook")
     generate_and_sort(board, s::a8, v);
     CHECK(v == std::vector<Square>{s::a6, s::a7, s::c8, s::b8});
 }
+
+TEST_CASE("legal moves bishop")
+{
+    import_fen(&board, "b2b3B/3b4/3b4/3bB2B/b2bB3/4B3/4B3/b3B2B w - - 0 1");
+    generate_and_sort(board, s::h1, v);
+    CHECK(v == std::vector<Square>{s::g2, s::f3});
+    generate_and_sort(board, s::e1, v);
+    CHECK(v == std::vector<Square>{s::f2, s::d2, s::g3, s::c3, s::h4, s::b4, s::a5});
+    generate_and_sort(board, s::a1, v);
+    CHECK(v == std::vector<Square>{s::b2, s::c3});
+    generate_and_sort(board, s::e2, v);
+    CHECK(v == std::vector<Square>{s::f1, s::d1, s::f3, s::d3, s::g4, s::c4, s::b5, s::a6});
+    generate_and_sort(board, s::e3, v);
+    CHECK(v == std::vector<Square>{s::g1, s::c1, s::f2, s::d2, s::f4, s::d4, s::g5, s::h6});
+    generate_and_sort(board, s::e4, v);
+    CHECK(v == std::vector<Square>{s::b1, s::g2, s::c2, s::f3, s::d3, s::f5, s::d5, s::g6, s::h7});
+    generate_and_sort(board, s::d4, v);
+    CHECK(v == std::vector<Square>{s::b2, s::e3, s::c3, s::e5, s::c5, s::b6, s::a7});
+    generate_and_sort(board, s::a4, v);
+    CHECK(v == std::vector<Square>{s::d1, s::c2, s::b3, s::b5, s::c6});
+    generate_and_sort(board, s::h5, v);
+    CHECK(v == std::vector<Square>{s::f3, s::g4, s::g6, s::f7, s::e8});
+    generate_and_sort(board, s::e5, v);
+    CHECK(v == std::vector<Square>{s::h2, s::g3, s::f4, s::d4, s::f6, s::d6, s::g7});
+    generate_and_sort(board, s::d5, v);
+    CHECK(v == std::vector<Square>{s::a2, s::b3, s::e4, s::c4, s::e6, s::c6, s::f7, s::b7, s::g8});
+    generate_and_sort(board, s::d6, v);
+    CHECK(v == std::vector<Square>{s::a3, s::b4, s::e5, s::c5, s::e7, s::c7, s::f8, s::b8});
+    generate_and_sort(board, s::d7, v);
+    CHECK(v == std::vector<Square>{s::h3, s::g4, s::f5, s::b5, s::e6, s::c6, s::e8, s::c8});
+    generate_and_sort(board, s::h8, v);
+    CHECK(v == std::vector<Square>{s::f6, s::g7});
+    generate_and_sort(board, s::d8, v);
+    CHECK(v == std::vector<Square>{s::h4, s::g5, s::a5, s::f6, s::b6, s::e7, s::c7});
+    generate_and_sort(board, s::a8, v);
+    CHECK(v == std::vector<Square>{s::c6, s::b7});
+}
