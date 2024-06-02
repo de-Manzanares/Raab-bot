@@ -120,8 +120,8 @@ struct Board {
     void remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color);
     Square assign_from_influence_map_exclude_pawns_and_kings(std::unordered_map<Square, std::vector<Square>> *to,
             std::unordered_map<Square, std::vector<Square>> *from);
-    void update_white_king_moves(Square square_K);
-    void update_black_king_moves(Square square_K);
+    std::vector<Square> update_white_king_moves(Square square_K);
+    std::vector<Square> update_black_king_moves(Square square_K);
     void print_move_map(Color color) const;
     void update_xray_maps();
     std::vector<Square> xray(Square sq) const;
@@ -774,12 +774,14 @@ void Board::update_xray_maps()
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN update king moves
 
+/// @return True if king is in check, false if not in check.
 /// @warning doesn't work with multiple kings on the board as Square_K is assigned to the first king we find
-void Board::update_white_king_moves(Square square_K)
+std::vector<Square> Board::update_white_king_moves(Square square_K)
 {
     using s = Square;
     using c = Color;
 
+    std::vector<Square> giving_check{};
     bool is_in_check;                           // king is in check
     bool under_attack;                          // flags a square as under attack
     std::vector<Square> influence_kings;        // temp vector to create king move list
@@ -800,7 +802,8 @@ void Board::update_white_king_moves(Square square_K)
     for (const auto& pair : influence_map_black) {
         if (std::find(pair.second.begin(), pair.second.end(), square_K) != pair.second.end()) {  // is the king in check
             is_in_check = true;
-            break;
+            // keep track of who is giving check
+            giving_check.push_back(pair.first);
         }
     }
     if (!is_in_check) {     // if not in check, add castling moves (if available)
@@ -841,13 +844,16 @@ void Board::update_white_king_moves(Square square_K)
 
     // add king moves to move map
     move_map_white.insert({square_K, legal_moves_kings});
+
+    return giving_check;
 }
 
-void Board::update_black_king_moves(Square square_K)
+std::vector<Square> Board::update_black_king_moves(Square square_K)
 {
     using s = Square;
     using c = Color;
 
+    std::vector<Square> giving_check{};
     bool is_in_check;                           // king is in check
     bool under_attack;                          // flags a square as under attack
     std::vector<Square> influence_kings;        // temp vector to create king move list
@@ -865,7 +871,7 @@ void Board::update_black_king_moves(Square square_K)
     for (const auto& pair : influence_map_white) {
         if (std::find(pair.second.begin(), pair.second.end(), square_K) != pair.second.end()) {  // is the king in check
             is_in_check = true;
-            break;
+            giving_check.push_back(pair.first);
         }
     }
     if (!is_in_check) {     // if not in check, add castling moves (if available)
@@ -906,6 +912,8 @@ void Board::update_black_king_moves(Square square_K)
 
     // add king moves to move map
     move_map_black.insert({square_K, legal_moves_kings});
+
+    return giving_check;
 }
 // END update king moves
 //----------------------------------------------------------------------------------------------------------------------
@@ -958,8 +966,59 @@ void Board::update_move_maps()
     }
 
     // add king moves
-    update_white_king_moves(square_K);
-    update_black_king_moves(square_k);
+    // if king is in check, go through and "scrub" the move map
+    // TODO can't block if check is given by knight
+    std::vector<Square> giving_check{};
+
+    // white
+    giving_check = update_white_king_moves(square_K);
+    // if one piece is giving check, it can be captured or blocked
+    if (giving_check.size() == 1) {
+        // capture
+        // for every piece in the move map, remove all moves except the square giving check
+        for (auto& pair : move_map_white) {
+            if (!is_king(pair.first)) {
+                if (std::find(pair.second.begin(), pair.second.end(), giving_check[0]) == pair.second.end()) {
+                    pair.second.clear();
+                }
+                else {
+                    pair.second = {giving_check[0]};
+                }
+            }
+        }
+    }
+        // if more than once piece is giving check, the king must be moved
+    else if (giving_check.size() > 1) {
+        // clear all moves except king evasion
+        for (auto& pair : move_map_white) {
+            if (!is_king(pair.first)) { pair.second.clear(); }
+        }
+    }
+
+    // black
+    giving_check = update_black_king_moves(square_k);
+    // if one piece is giving check, it can be captured or blocked
+    if (giving_check.size() == 1) {
+        // capture
+        // for every piece in the move map, remove all moves except the square giving check
+        for (auto& pair : move_map_black) {
+            if (!is_king(pair.first)) {
+                if (std::find(pair.second.begin(), pair.second.end(), giving_check[0]) == pair.second.end()) {
+                    pair.second.clear();
+                }
+                else {
+                    pair.second = {giving_check[0]};
+                }
+            }
+        }
+    }
+        // if more than once piece is giving check, the king must be moved
+    else if (giving_check.size() > 1) {
+        // clear all moves except king evasion
+        for (auto& pair : move_map_black) {
+            if (!is_king(pair.first)) { pair.second.clear(); }
+        }
+    }
 }
 
 // END update move maps
