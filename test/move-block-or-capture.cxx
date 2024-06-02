@@ -275,6 +275,8 @@ TEST_CASE("blocking")
         CHECK(v == std::vector<Square>{s::e5});
         generate_and_sort(board, s::d7, v);
         CHECK(v == std::vector<Square>{s::f5, s::d5, s::b5});
+    }SECTION("diagonal attacks") {
+
     }SECTION("knight attacks") {
 
     }

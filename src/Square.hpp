@@ -10,7 +10,7 @@ enum class Square : int {
     h5, g5, f5, e5, d5, c5, b5, a5,
     h6, g6, f6, e6, d6, c6, b6, a6,
     h7, g7, f7, e7, d7, c7, b7, a7,
-    h8, g8, f8, e8, d8, c8, b8, a8
+    h8, g8, f8, e8, d8, c8, b8, a8,
 };
 
 Square& operator--(Square& square)
