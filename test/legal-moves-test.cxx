@@ -9,6 +9,13 @@ void generate_and_sort(const Board& board, const Square& sq, std::vector<Square>
     std::sort(v.begin(), v.end());
 }
 
+void generate_and_sort_white_king(Board& board, const Square& sq, std::vector<Square>& v)
+{
+    board.update_move_maps();
+    v = board.move_map_white[sq];
+    std::sort(v.begin(), v.end());
+}
+
 using s = Square;
 
 Board board;
@@ -230,7 +237,41 @@ TEST_CASE("legal moves knight")
 
 TEST_CASE("legal moves king")
 {
-    SECTION("attack detection") {
-
-    }
+    import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    generate_and_sort_white_king(board, s::e1, v);
+    CHECK(v == std::vector<Square>{});
+    import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKB1R w KQkq - 0 1");
+    generate_and_sort_white_king(board, s::e1, v);
+    CHECK(v == std::vector<Square>{});
+    import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQK2R w KQkq - 0 1");
+    generate_and_sort_white_king(board, s::e1, v);
+    CHECK(v == std::vector<Square>{s::g1, s::f1});
+    import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQK1NR w KQkq - 0 1");
+    generate_and_sort_white_king(board, s::e1, v);
+    CHECK(v == std::vector<Square>{s::f1});
+    import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RN1QKBNR w KQkq - 0 1");
+    generate_and_sort_white_king(board, s::e1, v);
+    CHECK(v == std::vector<Square>{});
+    import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RN2KBNR w KQkq - 0 1");
+    generate_and_sort_white_king(board, s::e1, v);
+    CHECK(v == std::vector<Square>{s::d1, s::c1});
+    import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNB1KBNR w KQkq - 0 1");
+    generate_and_sort_white_king(board, s::e1, v);
+    CHECK(v == std::vector<Square>{s::d1});
+    import_fen(&board, "rnb1kbnr/ppppqppp/8/8/8/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1");
+    generate_and_sort_white_king(board, s::e1, v);
+    CHECK(v == std::vector<Square>{});
+    import_fen(&board, "rnb1kbnr/pppp1ppp/5q2/8/8/8/PPP4P/RNB1K2R w KQkq - 0 1");
+    generate_and_sort_white_king(board, s::e1, v);
+    CHECK(v == std::vector<Square>{s::d1, s::e2, s::d2});
+    import_fen(&board, "rnb1kbnr/pppp1ppp/6q1/8/8/8/PPP4P/RNB1K2R w KQkq - 0 1");
+    generate_and_sort_white_king(board, s::e1, v);
+    CHECK(v == std::vector<Square>{s::f1, s::d1, s::f2, s::e2, s::d2});
+    import_fen(&board, "rnb1kbnr/pppp1ppp/6q1/8/8/8/PPP4P/RNB1K2R w KQkq - 0 1");
+    generate_and_sort_white_king(board, s::e1, v);
+    CHECK(v == std::vector<Square>{s::f1, s::d1, s::f2, s::e2, s::d2});
+    import_fen(&board, "rnb1kbnr/pppp1ppp/8/8/8/8/PPP4P/RNB1K2R w KQkq - 0 1");
+    generate_and_sort_white_king(board, s::e1, v);
+    CHECK(v == std::vector<Square>{s::g1, s::f1, s::d1, s::f2, s::e2, s::d2});
+    // TODO test pawn moves and pawn influence
 }
