@@ -273,6 +273,24 @@ TEST_CASE("legal moves king")
     import_fen(&board, "rnb1kbnr/pppp1ppp/8/8/8/8/PPP4P/RNB1K2R w KQkq - 0 1");
     generate_and_sort_white_king(board, s::e1, v);
     CHECK(v == std::vector<Square>{s::g1, s::f1, s::d1, s::f2, s::e2, s::d2});
-    // TODO test pawn moves and pawn influence
-    // TODO can't capture piece that is protected
+    import_fen(&board, "8/3p4/1p5r/5p1p/7K/8/8/8 w - - 0 1");
+    generate_and_sort_white_king(board, s::h4, v);
+    CHECK(v == std::vector<Square>{s::h3, s::g3, s::g5});
+    import_fen(&board, "8/3p4/1p5r/5p1p/5K2/8/8/8 w - - 0 1");
+    generate_and_sort_white_king(board, s::f4, v);
+    CHECK(v == std::vector<Square>{s::g3, s::f3, s::e3, s::g5, s::f5, s::e5});
+    import_fen(&board, "8/3p4/1p5r/5p1p/3K4/8/8/8 w - - 0 1");
+    generate_and_sort_white_king(board, s::d4, v);
+    CHECK(v == std::vector<Square>{s::e3, s::d3, s::c3, s::c4, s::e5, s::d5});
+    import_fen(&board, "8/3p4/1p5r/5p1p/1K6/8/8/8 w - - 0 1");
+    generate_and_sort_white_king(board, s::b4, v);
+    CHECK(v == std::vector<Square>{s::c3,s::b3,s::a3,s::c4,s::a4,s::b5});
+
+    for (const auto& pair : board.move_map_white) {
+        std::cout << static_cast<int>(pair.first) << " : ";
+        for (const auto& square : pair.second) {
+            std::cout << static_cast<int>(square) << " ";
+        }
+        std::cout << "\n";
+    }
 }
