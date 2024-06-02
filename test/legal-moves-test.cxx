@@ -353,3 +353,14 @@ TEST_CASE("startpos")
     std::cout << "\n";
     board.print_move_map(Color::black);
 }
+
+TEST_CASE("pinned pieces")
+{
+    SECTION("vertical") {
+
+    }SECTION("horizontal") {
+
+    }SECTION("diagonal") {
+
+    }
+}

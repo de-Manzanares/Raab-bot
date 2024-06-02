@@ -1057,6 +1057,17 @@ void Board::update_move_maps()
 
     // white
     giving_check = update_white_king_moves(square_K);
+
+    // search for pinned pieces
+    // the piece can only move along the line of the pin
+    // if the king is in the same row or column as a rook or queen
+    // if the king is in the same diagonal as a bishop
+    // and there is only one friendly piece sharing that line - that piece is pinned
+    // the pieces movement must be restricted to the line of the pin
+    // there may be multiple lines of pinning
+
+    // find all the rows, columns, and diagonals that the king shares with opposite colored rooks, queens, and bishops
+
     // if one piece is giving check, it can be captured or blocked
     if (giving_check.size() == 1) {
         // capture
