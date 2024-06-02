@@ -13,6 +13,7 @@
 #include "Game_State.hpp"
 
 // TODO make helper methods private for organization
+// TODO pawn promotion
 // TODO inject en passant targets into pawn moves
 // TODO discovered check
 
@@ -772,7 +773,8 @@ void Board::update_xray_maps()
 // END update xray maps
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN update king moves
-/// @warning doesn't work with multiple kings
+
+/// @warning doesn't work with multiple kings on the board as Square_K is assigned to the first king we find
 void Board::update_white_king_moves(Square square_K)
 {
     using s = Square;

@@ -344,3 +344,12 @@ TEST_CASE("legal moves king")
         CHECK(v == std::vector<Square>{s::b3, s::a3, s::c5, s::b5, s::a5});
     }
 }
+
+TEST_CASE("startpos")
+{
+    import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    board.update_move_maps();
+    board.print_move_map(Color::white);
+    std::cout << "\n";
+    board.print_move_map(Color::black);
+}
