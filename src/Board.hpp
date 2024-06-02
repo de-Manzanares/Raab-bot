@@ -13,7 +13,6 @@
 #include "Game_State.hpp"
 
 // TODO make helper methods private for organization
-// TODO fix valgrind warnings
 
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Board
@@ -877,7 +876,7 @@ void Board::update_black_king_moves(Square square_K)
 Square Board::assign_from_influence_map_exclude_pawns_and_kings(std::unordered_map<Square, std::vector<Square>> *to,
         std::unordered_map<Square, std::vector<Square>> *from)
 {
-    Square square_king;
+    Square square_king{};
     to->clear();
     for (const auto& pair : *from) {
         if (!is_pawn(pair.first) && !is_king(pair.first)) { to->insert(pair); }
