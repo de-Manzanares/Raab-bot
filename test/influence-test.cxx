@@ -3,9 +3,12 @@
 #include "../src/Board.hpp"
 #include "../src/FEN.hpp"
 
-void generate_and_sort(const Board& board, const Square& sq, std::vector<Square>& v)
+void generate_and_sort(Board& board, const Square& sq, std::vector<Square>& v)
 {
-    v = board.influence(sq);
+    board.update_influence_maps();
+    Color c = board.what_color(sq);
+    if (c == Color::white) { v = board.influence_map_white[sq]; }
+    if (c == Color::black) { v = board.influence_map_black[sq]; }
     std::sort(v.begin(), v.end());
 }
 
