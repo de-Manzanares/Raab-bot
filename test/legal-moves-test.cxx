@@ -11,7 +11,7 @@ void generate_and_sort(const Board& board, const Square& sq, std::vector<Square>
 
 void generate_and_sort_white_king(Board& board, const Square& sq, std::vector<Square>& v)
 {
-    board.update_move_maps_old();
+    board.update_move_maps();
     v = board.move_map_white[sq];
     std::sort(v.begin(), v.end());
 }

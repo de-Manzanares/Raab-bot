@@ -114,11 +114,12 @@ struct Board {
     bool is_opposite_color(Square sq, Color c) const;
     std::vector<Square> legal_moves(Square sq) const;
     std::vector<Square> legal_moves_pawn(Square sq) const;
-    void update_white_king_moves(Square square_K);
+    void update_white_king_moves_old(Square square_K);
     void update_move_maps();
     void remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color);
-    void assign_from_influence_map_exclude_pawns(std::unordered_map<Square, std::vector<Square>> *to,
+    Square assign_from_influence_map_exclude_pawns_and_kings(std::unordered_map<Square, std::vector<Square>> *to,
             std::unordered_map<Square, std::vector<Square>> *from);
+    void update_white_king_moves(Square square_K);
 };
 
 // END Board
@@ -717,7 +718,7 @@ std::vector<Square> Board::legal_moves(Square sq) const
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN update white king moves
 
-void Board::update_white_king_moves(Square square_K)
+void Board::update_white_king_moves_old(Square square_K)
 {
     using s = Square;
     using c = Color;
@@ -867,15 +868,98 @@ void Board::update_influence_maps()
 
 // END update influence maps
 //----------------------------------------------------------------------------------------------------------------------
+// BEGIN update king moves
+void Board::update_white_king_moves(Square square_K)
+{
+    using s = Square;
+    using c = Color;
+
+    // TODO a king cannot capture a piece that is protected. Instead of using the move maps to restrict king moves,
+    // we should be using influence maps
+    bool is_in_check;                           // king is in check
+    bool under_attack;                          // flags a square as under attack
+    std::vector<Square> influence_kings;        // temp vector to create king move list
+    std::vector<Square> safe_squares;           // temp vector to create king move list
+    std::vector<Square> legal_moves_kings;      // temp vector to create king move list
+
+    // add castle squares if castling is still valid. Must be done before cleaning the list because while castling
+    // ability may be present, is may not always be legal to do so, because enemy pieces could be attacking those
+    // squares, or friendly pieces may be blocking them.
+    // TODO if a king is in check, the only moves allowed are to 1) move out of check, 2) block check, 3) capture the
+    // piece giving check
+
+    // get started
+    influence_kings = influence(square_K);
+
+    // detect whether king is in check
+    is_in_check = false;
+    for (const auto& pair : influence_map_black) {
+        if (std::find(pair.second.begin(), pair.second.end(), square_K) != pair.second.end()) {    // is the king in check
+            is_in_check = true;
+            break;
+        }
+    }
+    if (!is_in_check) {     // if not in check, add castling moves (if available)
+        if (game_state.castle_K) { influence_kings.push_back(s::g1); }
+        if (game_state.castle_Q) { influence_kings.push_back(s::c1); }
+    }
+
+    // remove square that are under attack
+    // don't forget the pawns!
+    for (const auto& s : influence_kings) {
+        under_attack = false;   // reset search flag
+        for (const auto& pair : influence_map_black) {
+            if (std::find(pair.second.begin(), pair.second.end(), s) != pair.second.end()) {
+                under_attack = true;
+                break;
+            }
+        }
+        for (const auto& key : pawn_influence_black) {
+            if (std::find(key.second.begin(), key.second.end(), s) != key.second.end()) {
+                under_attack = true;
+                break;
+            }
+        }
+        if (!under_attack) { safe_squares.push_back(s); }
+    }
+    // clean list of same color squares (cannot take own pieces)
+    for (const auto& s : safe_squares) { if (!is_same_color(s, c::white)) { legal_moves_kings.push_back(s); }}
+
+    // if the legal moves contain a castling square, but not the adjacent square necessary to legally castle
+    // remove the castling square
+    if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::g1) != legal_moves_kings.end()) {
+        if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::f1) == legal_moves_kings.end()) {
+            // remove g1
+            auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::g1);
+            legal_moves_kings.erase(it, legal_moves_kings.end());
+        }
+    }
+    if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::c1) != legal_moves_kings.end()) {
+        if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::d1) == legal_moves_kings.end()) {
+            // remove c1
+            auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::c1);
+            legal_moves_kings.erase(it, legal_moves_kings.end());
+        }
+    }
+
+    // add king moves to move map
+    move_map_white.insert({square_K, legal_moves_kings});
+
+}
+// END update king moves
+//----------------------------------------------------------------------------------------------------------------------
 // BEGIN update move maps
 
-void Board::assign_from_influence_map_exclude_pawns(std::unordered_map<Square, std::vector<Square>> *to,
+Square Board::assign_from_influence_map_exclude_pawns_and_kings(std::unordered_map<Square, std::vector<Square>> *to,
         std::unordered_map<Square, std::vector<Square>> *from)
 {
+    Square square_king;
     to->clear();
     for (const auto& pair : *from) {
-        if (!is_pawn(pair.first)) { to->insert(pair); }
+        if (!is_pawn(pair.first) && !is_king(pair.first)) { to->insert(pair); }
+        else if (is_king(pair.first)) { square_king = pair.first; }
     }
+    return square_king;
 }
 
 void Board::remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color)
@@ -890,9 +974,9 @@ void Board::remove_same_color_squares(std::unordered_map<Square, std::vector<Squ
 
 void Board::update_move_maps()
 {
-    // assign from influence maps exclude pawns
-    assign_from_influence_map_exclude_pawns(&move_map_white, &influence_map_white);
-    assign_from_influence_map_exclude_pawns(&move_map_black, &influence_map_black);
+    // assign from influence maps exclude pawns and kings
+    Square square_K = assign_from_influence_map_exclude_pawns_and_kings(&move_map_white, &influence_map_white);
+    Square square_k = assign_from_influence_map_exclude_pawns_and_kings(&move_map_black, &influence_map_black);
 
     // remove same colored squares (can't capture own pieces)
     remove_same_color_squares(&move_map_white, Color::white);
@@ -904,6 +988,9 @@ void Board::update_move_maps()
         if (is_white_pawn(sq)) { move_map_white.insert({sq, legal_moves(sq)}); }
         if (is_black_pawn(sq)) { move_map_black.insert({sq, legal_moves(sq)}); }
     }
+
+    // add king moves
+    update_white_king_moves(square_K);
 }
 
 // END update move maps
