@@ -13,6 +13,8 @@
 #include "Game_State.hpp"
 
 // TODO make helper methods private for organization
+// TODO inject en passant targets into pawn moves
+// TODO discovered check
 
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Board
@@ -68,6 +70,9 @@ struct Board {
     std::unordered_map<Square, std::vector<Square>> move_map_black{};
     std::unordered_map<Square, std::vector<Square>> influence_map_white{};
     std::unordered_map<Square, std::vector<Square>> influence_map_black{};
+    std::unordered_map<Square, std::vector<Square>> xray_map_white{};
+    std::unordered_map<Square, std::vector<Square>> xray_map_black{};
+
     void update_influence_maps();
 
     char what_piece(Square sq) const;
@@ -117,6 +122,8 @@ struct Board {
     void update_white_king_moves(Square square_K);
     void update_black_king_moves(Square square_K);
     void print_move_map(Color color) const;
+    void update_xray_maps();
+    std::vector<Square> xray(Square sq) const;
 };
 
 // END Board
@@ -407,22 +414,22 @@ std::vector<Square> Board::influence_rook(Square sq) const
     // vertical up
     for (auto square = sq + 8; !is_upper_vertical_boundary(square - 8); square = square + 8) {
         influence.push_back(square);
-        if (what_piece(square) != ' ') { break; }
+        if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
     }
     // vertical down
     for (auto square = sq - 8; !is_lower_vertical_boundary(square + 8); square = square - 8) {
         influence.push_back(square);
-        if (what_piece(square) != ' ') { break; }
+        if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
     }
     // horizontal right
     for (auto square = sq - 1; !is_right_horizontal_boundary(square + 1); square = square - 1) {
         influence.push_back(square);
-        if (what_piece(square) != ' ') { break; }
+        if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
     }
     // horizontal left
     for (auto square = sq + 1; !is_left_horizontal_boundary(square - 1); square = square + 1) {
         influence.push_back(square);
-        if (what_piece(square) != ' ') { break; }
+        if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
     }
     return influence;
 }
@@ -439,28 +446,28 @@ std::vector<Square> Board::influence_bishop(Square sq) const
          !is_upper_vertical_boundary(square - 9) && !is_left_horizontal_boundary(square - 9);
          square = square + 9) {
         influence.push_back(square);
-        if (what_piece(square) != ' ') { break; }
+        if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
     }
     // up right
     for (auto square = sq + 7;
          !is_upper_vertical_boundary(square - 7) && !is_right_horizontal_boundary(square - 7);
          square = square + 7) {
         influence.push_back(square);
-        if (what_piece(square) != ' ') { break; }
+        if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
     }
     // down right
     for (auto square = sq - 9;
          !is_lower_vertical_boundary(square + 9) && !is_right_horizontal_boundary(square + 9);
          square = square - 9) {
         influence.push_back(square);
-        if (what_piece(square) != ' ') { break; }
+        if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
     }
     // down left
     for (auto square = sq - 7;
          !is_lower_vertical_boundary(square + 7) && !is_left_horizontal_boundary(square + 7);
          square = square - 7) {
         influence.push_back(square);
-        if (what_piece(square) != ' ') { break; }
+        if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
     }
     return influence;
 }
@@ -640,6 +647,7 @@ std::vector<Square> Board::influence_pawn(Square sq) const
  * @param sq A given square.
  * @return A list of squares that the piece is currently "influencing".
  */
+// TODO update influence to "xray" through opposing king
 std::vector<Square> Board::influence(Square sq) const
 {
     std::vector<Square> influence{};
@@ -664,7 +672,6 @@ std::vector<Square> Board::influence(Square sq) const
 
 std::vector<Square> Board::legal_moves_pawn(Square sq) const
 {
-    // TODO must remove diagonals if there is no enemy present
     std::vector<Square> pawn_moves{};
     if (is_white_pawn(sq)) {
         int isq = static_cast<int>(sq);
@@ -735,8 +742,37 @@ void Board::update_influence_maps()
 
 // END update influence maps
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN update king moves
+// BEGIN update xray maps
 
+std::vector<Square> Board::xray(Square sq) const
+{
+    std::vector<Square> x{};
+
+    return x;
+}
+
+void Board::update_xray_maps()
+{
+    // reset the maps
+    xray_map_white.clear();
+    xray_map_black.clear();
+
+    for (Square square = Square::a8; square >= Square::h1; --square) {
+        // white moves
+        if (is_white(square)) {
+            xray_map_white.insert({square, xray(square)});
+        }
+        // black moves
+        if (is_black(square)) {
+            xray_map_black.insert({square, xray(square)});
+        }
+    }
+}
+
+// END update xray maps
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN update king moves
+/// @warning doesn't work with multiple kings
 void Board::update_white_king_moves(Square square_K)
 {
     using s = Square;
@@ -899,9 +935,6 @@ void Board::remove_same_color_squares(std::unordered_map<Square, std::vector<Squ
     *map = temp;                                            // reassign original map
 }
 
-// TODO fix this shit
-/** @warning something doesn't work correctly if there are multiple kings on the board. no prob lol.
- **/
 void Board::update_move_maps()
 {
     // update influence maps
@@ -929,6 +962,7 @@ void Board::update_move_maps()
 
 // END update move maps
 //----------------------------------------------------------------------------------------------------------------------
+
 void Board::print_move_map(Color color) const
 {
     auto map = color == Color::white ? move_map_white : move_map_black;
