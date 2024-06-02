@@ -221,6 +221,28 @@ TEST_CASE("capture with another piece")
 TEST_CASE("blocking")
 {
     SECTION("vertical attacks") {
+        import_fen(&board, "8/4r3/8/2R5/3Q1BN1/8/4K3/8 w - - 0 1");          // white king
+        generate_and_sort(board, s::e2, v);
+        CHECK(v == std::vector<Square>{s::f1, s::d1, s::f2, s::d2, s::f3, s::d3});
+        generate_and_sort(board, s::g4, v);
+        CHECK(v == std::vector<Square>{s::e3, s::e5});
+        generate_and_sort(board, s::f4, v);
+        CHECK(v == std::vector<Square>{s::e3, s::e5});
+        generate_and_sort(board, s::d4, v);
+        CHECK(v == std::vector<Square>{s::e3, s::e4, s::e5});
+        generate_and_sort(board, s::c5, v);
+        CHECK(v == std::vector<Square>{s::e5});
+        import_fen(&board, "8/4k3/8/2r5/3q1bn1/8/4R3/8 w - - 0 1");          // black king
+        generate_and_sort(board, s::e7, v);
+        CHECK(v == std::vector<Square>{s::f6, s::d6, s::f7, s::d7, s::f8, s::d8});
+        generate_and_sort(board, s::g4, v);
+        CHECK(v == std::vector<Square>{s::e3, s::e5});
+        generate_and_sort(board, s::f4, v);
+        CHECK(v == std::vector<Square>{s::e3, s::e5});
+        generate_and_sort(board, s::d4, v);
+        CHECK(v == std::vector<Square>{s::e3, s::e4, s::e5});
+        generate_and_sort(board, s::c5, v);
+        CHECK(v == std::vector<Square>{s::e5});
 
     }SECTION("horizontal attacks") {
         import_fen(&board, "8/8/3NB3/8/r6K/5P2/3QR1P1/8 w - - 0 1");        // white king

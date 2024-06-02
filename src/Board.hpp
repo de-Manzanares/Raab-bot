@@ -1045,7 +1045,11 @@ void Board::update_move_maps()
                 blocking_squares.push_back(sq);
             }
         }
-        else if (is_in_same_column(giving_check[0], square_K)) { }
+        else if (is_in_same_column(giving_check[0], square_K)) {
+            for (auto sq = square_K; sq != giving_check[0]; square_K > giving_check[0] ? sq = sq - 8 : sq = sq + 8) {
+                blocking_squares.push_back(sq);
+            }
+        }
         else if (is_in_same_diagonal(giving_check[0], square_K)) { }
 
         for (auto& pair : move_map_white) {
@@ -1079,7 +1083,11 @@ void Board::update_move_maps()
                 blocking_squares.push_back(sq);
             }
         }
-        else if (is_in_same_column(giving_check[0], square_k)) { }
+        else if (is_in_same_column(giving_check[0], square_k)) {
+            for (auto sq = square_k; sq != giving_check[0]; square_k > giving_check[0] ? sq = sq - 8 : sq = sq + 8) {
+                blocking_squares.push_back(sq);
+            }
+        }
         else if (is_in_same_diagonal(giving_check[0], square_k)) { }
 
         for (auto& pair : move_map_black) {
