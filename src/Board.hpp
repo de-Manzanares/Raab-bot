@@ -887,19 +887,26 @@ Square Board::assign_from_influence_map_exclude_pawns_and_kings(std::unordered_m
 
 void Board::remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color)
 {
-    std::unordered_map<Square, std::vector<Square>> temp;    // to reassign original after cleaning
+    std::unordered_map<Square, std::vector<Square>> temp;   // to reassign original after cleaning
+    std::vector<Square> temp_squares{};                     // to store non-same-colored squares
 
     for (const auto& pair : *map) {
-        if (!is_same_color(pair.first, color)) { temp.insert(pair); }
+        temp_squares.clear();                               // reset temp vector
+        // record every non-same-colored square
+        for (const auto& square : pair.second) { if (!is_same_color(square, color)) { temp_squares.push_back(square); }}
+        temp.insert({pair.first, temp_squares});            // insert into "scrubbed" map
     }
-    *map = temp;
+    *map = temp;                                            // reassign original map
 }
 
+// TODO fix this shit
 /** @warning something doesn't work correctly if there are multiple kings on the board. no prob lol.
  **/
 void Board::update_move_maps()
 {
+    // update influence maps
     update_influence_maps();
+
     // assign from influence maps exclude pawns and kings
     Square square_K = assign_from_influence_map_exclude_pawns_and_kings(&move_map_white, &influence_map_white);
     Square square_k = assign_from_influence_map_exclude_pawns_and_kings(&move_map_black, &influence_map_black);
