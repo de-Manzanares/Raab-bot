@@ -13,6 +13,7 @@
 #include "Game_State.hpp"
 
 // TODO make helper methods private for organization
+// TODO fix valgrind warnings
 
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Board
@@ -65,12 +66,7 @@ struct Board {
     Game_State game_state;
 
     std::unordered_map<Square, std::vector<Square>> move_map_white{};
-    std::unordered_map<Square, std::vector<Square>> move_map_white_pawns{};
-    std::unordered_map<Square, std::vector<Square>> pawn_influence_white{};
     std::unordered_map<Square, std::vector<Square>> move_map_black{};
-    std::unordered_map<Square, std::vector<Square>> move_map_black_pawns{};
-    std::unordered_map<Square, std::vector<Square>> pawn_influence_black{};
-    void update_move_maps_old();
     std::unordered_map<Square, std::vector<Square>> influence_map_white{};
     std::unordered_map<Square, std::vector<Square>> influence_map_black{};
     void update_influence_maps();
@@ -120,6 +116,8 @@ struct Board {
     Square assign_from_influence_map_exclude_pawns_and_kings(std::unordered_map<Square, std::vector<Square>> *to,
             std::unordered_map<Square, std::vector<Square>> *from);
     void update_white_king_moves(Square square_K);
+    void update_black_king_moves(Square square_K);
+    void print_move_map(Color color) const;
 };
 
 // END Board
@@ -739,13 +737,12 @@ void Board::update_influence_maps()
 // END update influence maps
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN update king moves
+
 void Board::update_white_king_moves(Square square_K)
 {
     using s = Square;
     using c = Color;
 
-    // TODO a king cannot capture a piece that is protected. Instead of using the move maps to restrict king moves,
-    // we should be using influence maps
     bool is_in_check;                           // king is in check
     bool under_attack;                          // flags a square as under attack
     std::vector<Square> influence_kings;        // temp vector to create king move list
@@ -808,6 +805,71 @@ void Board::update_white_king_moves(Square square_K)
     // add king moves to move map
     move_map_white.insert({square_K, legal_moves_kings});
 }
+
+void Board::update_black_king_moves(Square square_K)
+{
+    using s = Square;
+    using c = Color;
+
+    bool is_in_check;                           // king is in check
+    bool under_attack;                          // flags a square as under attack
+    std::vector<Square> influence_kings;        // temp vector to create king move list
+    std::vector<Square> safe_squares;           // temp vector to create king move list
+    std::vector<Square> legal_moves_kings;      // temp vector to create king move list
+
+    // TODO if a king is in check, the only moves allowed are to 1) move out of check, 2) block check, 3) capture the
+    // piece giving check
+
+    // get started
+    influence_kings = influence(square_K);
+
+    // detect whether king is in check
+    is_in_check = false;
+    for (const auto& pair : influence_map_white) {
+        if (std::find(pair.second.begin(), pair.second.end(), square_K) != pair.second.end()) {  // is the king in check
+            is_in_check = true;
+            break;
+        }
+    }
+    if (!is_in_check) {     // if not in check, add castling moves (if available)
+        if (game_state.castle_K) { influence_kings.push_back(s::g8); }
+        if (game_state.castle_Q) { influence_kings.push_back(s::c8); }
+    }
+
+    // remove square that are under attack
+    for (const auto& s : influence_kings) {
+        under_attack = false;   // reset search flag
+        for (const auto& pair : influence_map_white) {
+            if (std::find(pair.second.begin(), pair.second.end(), s) != pair.second.end()) {
+                under_attack = true;
+                break;
+            }
+        }
+        if (!under_attack) { safe_squares.push_back(s); }
+    }
+    // clean list of same color squares (cannot take own pieces)
+    for (const auto& s : safe_squares) { if (!is_same_color(s, c::black)) { legal_moves_kings.push_back(s); }}
+
+    // if the legal moves contain a castling square, but not the adjacent square necessary to legally castle
+    // remove the castling square
+    if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::g8) != legal_moves_kings.end()) {
+        if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::f8) == legal_moves_kings.end()) {
+            // remove g8
+            auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::g8);
+            legal_moves_kings.erase(it, legal_moves_kings.end());
+        }
+    }
+    if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::c8) != legal_moves_kings.end()) {
+        if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::d8) == legal_moves_kings.end()) {
+            // remove c1
+            auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::c8);
+            legal_moves_kings.erase(it, legal_moves_kings.end());
+        }
+    }
+
+    // add king moves to move map
+    move_map_black.insert({square_K, legal_moves_kings});
+}
 // END update king moves
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN update move maps
@@ -856,9 +918,21 @@ void Board::update_move_maps()
 
     // add king moves
     update_white_king_moves(square_K);
+    update_black_king_moves(square_k);
 }
 
 // END update move maps
 //----------------------------------------------------------------------------------------------------------------------
+void Board::print_move_map(Color color) const
+{
+    auto map = color == Color::white ? move_map_white : move_map_black;
+    for (const auto& pair : map) {
+        std::cout << static_cast<int>(pair.first) << " : ";
+        for (const auto& square : pair.second) {
+            std::cout << static_cast<int>(square) << " ";
+        }
+        std::cout << "\n";
+    }
+}
 
 #endif  // SRC_BITBOARD_H_
