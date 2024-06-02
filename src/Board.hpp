@@ -12,6 +12,8 @@
 #include "boundary-detection.hpp"
 #include "Game_State.hpp"
 
+// TODO make helper methods private for organization
+
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Board
 
@@ -68,7 +70,10 @@ struct Board {
     std::unordered_map<Square, std::vector<Square>> move_map_black{};
     std::unordered_map<Square, std::vector<Square>> move_map_black_pawns{};
     std::unordered_map<Square, std::vector<Square>> pawn_influence_black{};
-    void update_move_maps();
+    void update_move_maps_old();
+    std::unordered_map<Square, std::vector<Square>> influence_map_white{};
+    std::unordered_map<Square, std::vector<Square>> influence_map_black{};
+    void update_influence_maps();
 
     char what_piece(Square sq) const;
     std::vector<Square> influence_rook(Square sq) const;
@@ -110,6 +115,10 @@ struct Board {
     std::vector<Square> legal_moves(Square sq) const;
     std::vector<Square> legal_moves_pawn(Square sq) const;
     void update_white_king_moves(Square square_K);
+    void update_move_maps();
+    void remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color);
+    void assign_from_influence_map_exclude_pawns(std::unordered_map<Square, std::vector<Square>> *to,
+            std::unordered_map<Square, std::vector<Square>> *from);
 };
 
 // END Board
@@ -787,9 +796,9 @@ void Board::update_white_king_moves(Square square_K)
 }
 // END update white king moves
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN update_move_maps()
+// BEGIN update_move_maps_old()
 
-void Board::update_move_maps()
+void Board::update_move_maps_old()
 {
     using s = Square;
     using c = Color;
@@ -836,4 +845,68 @@ void Board::update_move_maps()
 
 // END update move maps
 //----------------------------------------------------------------------------------------------------------------------
+// BEGIN update influence maps
+
+void Board::update_influence_maps()
+{
+    // reset the maps
+    influence_map_white.clear();
+    influence_map_black.clear();
+
+    for (Square square = Square::a8; square >= Square::h1; --square) {
+        // white moves
+        if (is_white(square)) {
+            influence_map_white.insert({square, influence(square)});
+        }
+        // black moves
+        if (is_black(square)) {
+            influence_map_black.insert({square, influence(square)});
+        }
+    }
+}
+
+// END update influence maps
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN update move maps
+
+void Board::assign_from_influence_map_exclude_pawns(std::unordered_map<Square, std::vector<Square>> *to,
+        std::unordered_map<Square, std::vector<Square>> *from)
+{
+    to->clear();
+    for (const auto& pair : *from) {
+        if (!is_pawn(pair.first)) { to->insert(pair); }
+    }
+}
+
+void Board::remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color)
+{
+    std::unordered_map<Square, std::vector<Square>> temp;    // to reassign original after cleaning
+
+    for (const auto& pair : *map) {
+        if (!is_same_color(pair.first, color)) { temp.insert(pair); }
+    }
+    *map = temp;
+}
+
+void Board::update_move_maps()
+{
+    // assign from influence maps exclude pawns
+    assign_from_influence_map_exclude_pawns(&move_map_white, &influence_map_white);
+    assign_from_influence_map_exclude_pawns(&move_map_black, &influence_map_black);
+
+    // remove same colored squares (can't capture own pieces)
+    remove_same_color_squares(&move_map_white, Color::white);
+    remove_same_color_squares(&move_map_black, Color::black);
+
+    // add pawn moves directly
+    // TODO we know where the pawns are already. Can we access the uint64_t directly?
+    for (auto sq = Square::a8; sq >= Square::h1; --sq) {
+        if (is_white_pawn(sq)) { move_map_white.insert({sq, legal_moves(sq)}); }
+        if (is_black_pawn(sq)) { move_map_black.insert({sq, legal_moves(sq)}); }
+    }
+}
+
+// END update move maps
+//----------------------------------------------------------------------------------------------------------------------
+
 #endif  // SRC_BITBOARD_H_

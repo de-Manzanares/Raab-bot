@@ -11,7 +11,7 @@ void generate_and_sort(const Board& board, const Square& sq, std::vector<Square>
 
 void generate_and_sort_white_king(Board& board, const Square& sq, std::vector<Square>& v)
 {
-    board.update_move_maps();
+    board.update_move_maps_old();
     v = board.move_map_white[sq];
     std::sort(v.begin(), v.end());
 }
@@ -274,4 +274,5 @@ TEST_CASE("legal moves king")
     generate_and_sort_white_king(board, s::e1, v);
     CHECK(v == std::vector<Square>{s::g1, s::f1, s::d1, s::f2, s::e2, s::d2});
     // TODO test pawn moves and pawn influence
+    // TODO can't capture piece that is protected
 }
