@@ -125,6 +125,12 @@ struct Board {
     void print_move_map(Color color) const;
     void update_xray_maps();
     std::vector<Square> xray(Square sq) const;
+    int is_in_row(Square sq);
+    int is_in_column(Square sq);
+    bool is_in_same_row(Square sq1, Square sq2);
+    bool is_in_same_column(Square sq1, Square sq2);
+    int is_in_diagonal(Square sq);
+    bool is_in_same_diagonal(Square sq1, Square sq2);
 };
 
 // END Board
@@ -405,6 +411,51 @@ bool Board::is_opposite_color(Square sq, Color c) const
     return c == Color::white ? is_black(sq) : is_white(sq);
 }
 
+int Board::is_in_row(Square sq)
+{
+    using s = Square;
+    if (sq >= s::h1 && sq <= s::a1) { return 1; }
+    if (sq >= s::h2 && sq <= s::a2) { return 2; }
+    if (sq >= s::h3 && sq <= s::a3) { return 3; }
+    if (sq >= s::h4 && sq <= s::a4) { return 4; }
+    if (sq >= s::h5 && sq <= s::a5) { return 5; }
+    if (sq >= s::h6 && sq <= s::a6) { return 6; }
+    if (sq >= s::h7 && sq <= s::a7) { return 7; }
+    if (sq >= s::h8 && sq <= s::a8) { return 8; }
+}
+
+int Board::is_in_column(Square sq)
+{
+    using s = Square;
+    if (static_cast<int>(sq) % 8 == 0) { return 8; }
+    if (static_cast<int>(sq) % 8 == 1) { return 7; }
+    if (static_cast<int>(sq) % 8 == 2) { return 6; }
+    if (static_cast<int>(sq) % 8 == 3) { return 5; }
+    if (static_cast<int>(sq) % 8 == 4) { return 4; }
+    if (static_cast<int>(sq) % 8 == 5) { return 3; }
+    if (static_cast<int>(sq) % 8 == 6) { return 2; }
+    if (static_cast<int>(sq) % 8 == 7) { return 1; }
+}
+
+bool Board::is_in_same_row(Square sq1, Square sq2)
+{
+    return is_in_row(sq1) == is_in_row(sq2);
+}
+
+bool Board::is_in_same_column(Square sq1, Square sq2)
+{
+    return is_in_column(sq1) == is_in_column(sq2);
+}
+
+int Board::is_in_diagonal(Square sq)
+{
+
+}
+
+bool Board::is_in_same_diagonal(Square sq1, Square sq2)
+{
+    return is_in_diagonal(sq1) == is_in_diagonal(sq2);
+}
 // END piece detection
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN influence map rook
@@ -945,6 +996,7 @@ void Board::remove_same_color_squares(std::unordered_map<Square, std::vector<Squ
     *map = temp;                                            // reassign original map
 }
 
+// TODO remove moves that would result in discovered check
 void Board::update_move_maps()
 {
     // update influence maps
@@ -969,6 +1021,7 @@ void Board::update_move_maps()
     // if king is in check, go through and "scrub" the move map
     // TODO can't block if check is given by knight
     std::vector<Square> giving_check{};
+    std::vector<Square> blocking_squares{};
 
     // white
     giving_check = update_white_king_moves(square_K);
@@ -976,14 +1029,35 @@ void Board::update_move_maps()
     if (giving_check.size() == 1) {
         // capture
         // for every piece in the move map, remove all moves except the square giving check
+
+        // blocking is not possible when the attack is from a knight
+        // blocking vertical attacks    :   +- 8
+        // blocking horizontal attacks  :   +- 1
+        // blocking diagonal attacks    :   +-7, +-9
+        // maybe we need to do the blocking before the capturing?
+        // make a list of the blocking squares
+
+        // make list of blocking squares for horizontal attacks
+        // detect if attack is horizontal?
+        // make list of all squares between attacking and king
+        if (is_in_same_row(giving_check[0], square_K)) {
+            for (auto sq = square_K; sq != giving_check[0]; square_K > giving_check[0] ? --sq : ++sq) {
+                blocking_squares.push_back(sq);
+            }
+        }
+        else if (is_in_same_column(giving_check[0], square_K)) { }
+        else if (is_in_same_diagonal(giving_check[0], square_K)) { }
+
         for (auto& pair : move_map_white) {
             if (!is_king(pair.first)) {
-                if (std::find(pair.second.begin(), pair.second.end(), giving_check[0]) == pair.second.end()) {
-                    pair.second.clear();
+                std::vector<Square> temp{};
+                for (const auto& sq : pair.second) {
+                    for (const auto& block_sq : blocking_squares) {
+                        if (sq == block_sq) { temp.push_back(sq); }
+                    }
+                    if (sq == giving_check[0]) { temp.push_back(sq); }
                 }
-                else {
-                    pair.second = {giving_check[0]};
-                }
+                pair.second = temp;
             }
         }
     }
@@ -997,18 +1071,27 @@ void Board::update_move_maps()
 
     // black
     giving_check = update_black_king_moves(square_k);
+    blocking_squares.clear();   // reset
     // if one piece is giving check, it can be captured or blocked
     if (giving_check.size() == 1) {
-        // capture
-        // for every piece in the move map, remove all moves except the square giving check
+        if (is_in_same_row(giving_check[0], square_k)) {
+            for (auto sq = square_k; sq != giving_check[0]; square_k > giving_check[0] ? --sq : ++sq) {
+                blocking_squares.push_back(sq);
+            }
+        }
+        else if (is_in_same_column(giving_check[0], square_k)) { }
+        else if (is_in_same_diagonal(giving_check[0], square_k)) { }
+
         for (auto& pair : move_map_black) {
             if (!is_king(pair.first)) {
-                if (std::find(pair.second.begin(), pair.second.end(), giving_check[0]) == pair.second.end()) {
-                    pair.second.clear();
+                std::vector<Square> temp{};
+                for (const auto& sq : pair.second) {
+                    for (const auto& block_sq : blocking_squares) {
+                        if (sq == block_sq) { temp.push_back(sq); }
+                    }
+                    if (sq == giving_check[0]) { temp.push_back(sq); }
                 }
-                else {
-                    pair.second = {giving_check[0]};
-                }
+                pair.second = temp;
             }
         }
     }
