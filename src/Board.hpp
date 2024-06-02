@@ -751,9 +751,6 @@ std::vector<Square> Board::influence(Square sq) const
     else if (is_bishop(sq)) { influence = influence_bishop(sq); }
     else if (is_queen(sq)) { influence = influence_queen(sq); }
     else if (is_knight(sq)) { influence = influence_knight(sq); }
-        // TODO might be best to check for discovered checks directly from the king's perspective
-        // run out in all directions
-        // if there is a friendly piece "blocking" check, that friendly piece is pinned
     else if (is_king(sq)) { influence = influence_king(sq); }
     else if (is_pawn(sq)) { influence = influence_pawn(sq); }
     return influence;

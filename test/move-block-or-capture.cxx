@@ -304,9 +304,39 @@ TEST_CASE("blocking")
         CHECK(v == std::vector<Square>{s::c5});
         generate_and_sort(board, s::c7, v);
         CHECK(v == std::vector<Square>{s::c5});
-    }SECTION("knight attacks") {
-
     }
 }
 
-// TODO test multiple checks, evasion only
+TEST_CASE("multiple checks")
+{
+    import_fen(&board, "8/5b2/2QR4/1r6/3P1N2/1K1B4/2P5/1n6 w - - 0 1");         // white king
+    generate_and_sort(board, s::b3, v);
+    CHECK(v == std::vector<Square>{s::a4});
+    generate_and_sort(board, s::c2, v);
+    CHECK(v == std::vector<Square>{});
+    generate_and_sort(board, s::d3, v);
+    CHECK(v == std::vector<Square>{});
+    generate_and_sort(board, s::f4, v);
+    CHECK(v == std::vector<Square>{});
+    generate_and_sort(board, s::d4, v);
+    CHECK(v == std::vector<Square>{});
+    generate_and_sort(board, s::d6, v);
+    CHECK(v == std::vector<Square>{});
+    generate_and_sort(board, s::c6, v);
+    CHECK(v == std::vector<Square>{});
+    import_fen(&board, "1N6/2p5/1k1b4/3p1n2/8/1Rqr4/5B2/8 w - - 0 1");             // black king
+    generate_and_sort(board, s::b6, v);
+    CHECK(v == std::vector<Square>{s::a5});
+    generate_and_sort(board, s::c3, v);
+    CHECK(v == std::vector<Square>{});
+    generate_and_sort(board, s::d3, v);
+    CHECK(v == std::vector<Square>{});
+    generate_and_sort(board, s::f5, v);
+    CHECK(v == std::vector<Square>{});
+    generate_and_sort(board, s::d5, v);
+    CHECK(v == std::vector<Square>{});
+    generate_and_sort(board, s::d6, v);
+    CHECK(v == std::vector<Square>{});
+    generate_and_sort(board, s::c7, v);
+    CHECK(v == std::vector<Square>{});
+}
