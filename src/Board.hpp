@@ -15,7 +15,6 @@
 // TODO make helper methods private for organization
 // TODO pawn promotion
 // TODO inject en passant targets into pawn moves
-// TODO discovered check
 
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Board
@@ -129,8 +128,8 @@ struct Board {
     int is_in_column(Square sq);
     bool is_in_same_row(Square sq1, Square sq2);
     bool is_in_same_column(Square sq1, Square sq2);
-    int is_in_diagonal(Square sq);
-    bool is_in_same_diagonal(Square sq1, Square sq2);
+    bool is_in_same_diagonal_left_right(Square sq1, Square sq2);
+    bool is_in_same_diagonal_right_left(Square sq1, Square sq2);
 };
 
 // END Board
@@ -447,15 +446,58 @@ bool Board::is_in_same_column(Square sq1, Square sq2)
     return is_in_column(sq1) == is_in_column(sq2);
 }
 
-int Board::is_in_diagonal(Square sq)
+bool Board::is_in_same_diagonal_left_right(Square sq1, Square sq2)
 {
-
+    using s = Square;
+    std::vector<std::vector<Square>> diagonals = {
+            {s::a6, s::b7, s::c8},
+            {s::a5, s::b6, s::c7, s::d8},
+            {s::a4, s::b5, s::c6, s::d7, s::e8},
+            {s::a3, s::b4, s::c5, s::d6, s::e7, s::f8},
+            {s::a2, s::b3, s::c4, s::d5, s::e6, s::f7, s::g8},
+            {s::a1, s::b2, s::c3, s::d4, s::e5, s::f6, s::g7, s::h8},
+            {s::b1, s::c2, s::d3, s::e4, s::f5, s::g6, s::h7},
+            {s::c1, s::d2, s::e3, s::f4, s::g5, s::h6},
+            {s::d1, s::e2, s::f3, s::g4, s::h5},
+            {s::e1, s::f2, s::g3, s::h4},
+            {s::f1, s::g2, s::h3},
+    };
+    for (const auto& v : diagonals) {
+        for (const auto& e : v) {
+            if (sq1 == e) {
+                for (const auto& e2 : v) { if (sq2 == e2) { return true; }}
+            }
+        }
+    }
+    return false;
 }
 
-bool Board::is_in_same_diagonal(Square sq1, Square sq2)
+bool Board::is_in_same_diagonal_right_left(Square sq1, Square sq2)
 {
-    return is_in_diagonal(sq1) == is_in_diagonal(sq2);
+    using s = Square;
+    std::vector<std::vector<Square>> diagonals = {
+            {s::h6, s::g7, s::f8},
+            {s::h5, s::g6, s::f7, s::e8},
+            {s::h4, s::g5, s::f6, s::e7, s::d8},
+            {s::h3, s::g4, s::f5, s::e6, s::d7, s::c8},
+            {s::h2, s::g3, s::f4, s::e5, s::d6, s::c7, s::b8},
+            {s::h1, s::g2, s::f3, s::e4, s::d5, s::c6, s::b7, s::a8},
+            {s::g1, s::f2, s::e3, s::d4, s::c5, s::b6, s::a7},
+            {s::f1, s::e2, s::d3, s::c4, s::b5, s::a6},
+            {s::e1, s::d2, s::c3, s::b4, s::a5},
+            {s::d1, s::c2, s::b3, s::a4},
+            {s::c1, s::b2, s::a3}
+    };
+    for (const auto& v : diagonals) {
+        for (const auto& e : v) {
+            if (sq1 == e) {
+                for (const auto& e2 : v) { if (sq2 == e2) { return true; }}
+            }
+        }
+    }
+    return false;
 }
+
 // END piece detection
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN influence map rook
@@ -699,7 +741,6 @@ std::vector<Square> Board::influence_pawn(Square sq) const
  * @param sq A given square.
  * @return A list of squares that the piece is currently "influencing".
  */
-// TODO update influence to "xray" through opposing king
 std::vector<Square> Board::influence(Square sq) const
 {
     std::vector<Square> influence{};
@@ -842,7 +883,6 @@ std::vector<Square> Board::update_white_king_moves(Square square_K)
     // add castle squares if castling is still valid. Must be done before cleaning the list because while castling
     // ability may be present, is may not always be legal to do so, because enemy pieces could be attacking those
     // squares, or friendly pieces may be blocking them.
-    // TODO if a king is in check, the only moves allowed are to 1) move out of check, 2) block check, 3) capture the
     // piece giving check
 
     // get started
@@ -910,9 +950,6 @@ std::vector<Square> Board::update_black_king_moves(Square square_k)
     std::vector<Square> influence_kings;        // temp vector to create king move list
     std::vector<Square> safe_squares;           // temp vector to create king move list
     std::vector<Square> legal_moves_kings;      // temp vector to create king move list
-
-    // TODO if a king is in check, the only moves allowed are to 1) move out of check, 2) block check, 3) capture the
-    // piece giving check
 
     // get started
     influence_kings = influence(square_k);
@@ -1011,7 +1048,6 @@ void Board::update_move_maps()
     remove_same_color_squares(&move_map_black, Color::black);
 
     // add pawn moves directly
-    // TODO we know where the pawns are already. Can we access the uint64_t directly?
     for (auto sq = Square::a8; sq >= Square::h1; --sq) {
         if (is_white_pawn(sq)) { move_map_white.insert({sq, legal_moves(sq)}); }
         if (is_black_pawn(sq)) { move_map_black.insert({sq, legal_moves(sq)}); }
@@ -1019,7 +1055,6 @@ void Board::update_move_maps()
 
     // add king moves
     // if king is in check, go through and "scrub" the move map
-    // TODO can't block if check is given by knight
     std::vector<Square> giving_check{};
     std::vector<Square> blocking_squares{};
 
@@ -1055,7 +1090,20 @@ void Board::update_move_maps()
                     blocking_squares.push_back(sq);
                 }
             }
-            else if (is_in_same_diagonal(giving_check[0], square_K)) { }
+            else if (is_in_same_diagonal_left_right(giving_check[0], square_K)) {
+                for (auto sq = square_K;
+                     sq != giving_check[0];
+                     square_K > giving_check[0] ? sq = sq - 7 : sq = sq + 7) {
+                    blocking_squares.push_back(sq);
+                }
+            }
+            else if (is_in_same_diagonal_right_left(giving_check[0], square_K)) {
+                for (auto sq = square_K;
+                     sq != giving_check[0];
+                     square_K > giving_check[0] ? sq = sq - 9 : sq = sq + 9) {
+                    blocking_squares.push_back(sq);
+                }
+            }
         }
         for (auto& pair : move_map_white) {
             if (!is_king(pair.first)) {
@@ -1097,7 +1145,20 @@ void Board::update_move_maps()
                     blocking_squares.push_back(sq);
                 }
             }
-            else if (is_in_same_diagonal(giving_check[0], square_k)) { }
+            else if (is_in_same_diagonal_left_right(giving_check[0], square_k)) {
+                for (auto sq = square_k;
+                     sq != giving_check[0];
+                     square_k > giving_check[0] ? sq = sq - 7 : sq = sq + 7) {
+                    blocking_squares.push_back(sq);
+                }
+            }
+            else if (is_in_same_diagonal_right_left(giving_check[0], square_k)) {
+                for (auto sq = square_k;
+                     sq != giving_check[0];
+                     square_k > giving_check[0] ? sq = sq - 9 : sq = sq + 9) {
+                    blocking_squares.push_back(sq);
+                }
+            }
         }
         for (auto& pair : move_map_black) {
             if (!is_king(pair.first)) {
