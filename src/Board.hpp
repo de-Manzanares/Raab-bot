@@ -460,7 +460,7 @@ struct Board {
 
     // pinned pieces
     Square pinned_piece_rook(Square sq) const;
-    Square pinned_pieces_bishop(Square sq) const;
+    Square pinned_piece_bishop(Square sq) const;
     Square pinned_pieces_queen(Square sq) const;
     Square pinned_pieces(Square sq) const;
     void update_pinned_pieces();
@@ -1322,7 +1322,6 @@ void Board::update_influence_maps()
 // TODO write helper function
 Square Board::pinned_piece_rook(Square sq) const
 {
-    // xray
     Square pinned;                  // potentially pinned piece
     bool found_one;                 // xray through ONE enemy piece
     Color c = what_color(sq);
@@ -1404,21 +1403,113 @@ Square Board::pinned_piece_rook(Square sq) const
 
 // END pinned pieces rook
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN pinned pieces bishop
+// BEGIN pinned piece bishop
 
-Square Board::pinned_pieces_bishop(Square sq) const
+/**
+ * @brief Find the potentially pinned piece on the board from the given bishop
+ * @details This function searches the diagonal directions outward from a given bishop to see if the bishop is pinning
+ * any enemy pieces.
+ * @param sq The square to start the search from.
+ * @return The square of the pinned piece, or the square of the bishop if no piece is pinned.
+ */
+Square Board::pinned_piece_bishop(Square sq) const
 {
+    Square pinned;                  // potentially pinned piece
+    bool found_one{};                 // xray through ONE enemy piece
+    Color c = what_color(sq);
+
+    // up left
+    found_one = false;
+    for (auto square = sq + 9;
+         !is_upper_vertical_boundary(square - 9) && !is_left_horizontal_boundary(square - 9);
+         square = square + 9) {
+        if (!is_empty(square) && is_same_color(square, c)) { break; }
+        else if (found_one) {
+            // after the first non-king opponent has been found, if we find another, end searching in this direction
+            if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) { break; }
+            // after the first ... if we find the opposing king, that first piece is pinned.  YAY
+            if (is_opposite_king(square, c)) {
+                return pinned;
+            }
+        }
+            // if it is occupied by an opponent that is not a king
+        else if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) {
+            pinned = square;    // possible pinned piece
+            found_one = true;
+        }
+    }
+    // up right
+    found_one = false;
+    for (auto square = sq + 7;
+         !is_upper_vertical_boundary(square - 7) && !is_right_horizontal_boundary(square - 7);
+         square = square + 7) {
+        if (!is_empty(square) && is_same_color(square, c)) { break; }
+        else if (found_one) {
+            // after the first non-king opponent has been found, if we find another, end searching in this direction
+            if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) { break; }
+            // after the first ... if we find the opposing king, that first piece is pinned.  YAY
+            if (is_opposite_king(square, c)) {
+                return pinned;
+            }
+        }
+            // if it is occupied by an opponent that is not a king
+        else if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) {
+            pinned = square;    // possible pinned piece
+            found_one = true;
+        }
+    }
+    // down right
+    found_one = false;
+    for (auto square = sq - 9;
+         !is_lower_vertical_boundary(square + 9) && !is_right_horizontal_boundary(square + 9);
+         square = square - 9) {
+        if (!is_empty(square) && is_same_color(square, c)) { break; }
+        else if (found_one) {
+            // after the first non-king opponent has been found, if we find another, end searching in this direction
+            if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) { break; }
+            // after the first ... if we find the opposing king, that first piece is pinned.  YAY
+            if (is_opposite_king(square, c)) {
+                return pinned;
+            }
+        }
+            // if it is occupied by an opponent that is not a king
+        else if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) {
+            pinned = square;    // possible pinned piece
+            found_one = true;
+        }
+    }
+    // down left
+    found_one = false;
+    for (auto square = sq - 7;
+         !is_lower_vertical_boundary(square + 7) && !is_left_horizontal_boundary(square + 7);
+         square = square - 7) {
+        if (!is_empty(square) && is_same_color(square, c)) { break; }
+        else if (found_one) {
+            // after the first non-king opponent has been found, if we find another, end searching in this direction
+            if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) { break; }
+            // after the first ... if we find the opposing king, that first piece is pinned.  YAY
+            if (is_opposite_king(square, c)) {
+                return pinned;
+            }
+        }
+            // if it is occupied by an opponent that is not a king
+        else if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) {
+            pinned = square;    // possible pinned piece
+            found_one = true;
+        }
+    }
+    return sq;
 }
 
-// END pinned pieces bishop
+// END pinned piece bishop
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN pinned pieces queen
+// BEGIN pinned piece queen
 
 Square Board::pinned_pieces_queen(Square sq) const
 {
 }
 
-// END pinned pieces queen
+// END pinned piece queen
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN pinned pieces
 

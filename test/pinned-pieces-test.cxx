@@ -30,5 +30,22 @@ TEST_CASE("pinned pieces rook")
 
 TEST_CASE("pinned pieces bishop")
 {
+    board.import_fen("6k1/8/5p2/8/8/2B5/1K6/8 w - - 0 1");      // not pinned
+    CHECK(board.pinned_piece_bishop(s::c3) == s::c3);
+    board.import_fen("8/6k1/5b2/8/8/2P5/K7/8 w - - 0 1");
+    CHECK(board.pinned_piece_bishop(s::f6) == s::f6);
+    board.import_fen("8/1K6/2B5/8/8/5p1k/8/8 w - - 0 1");
+    CHECK(board.pinned_piece_bishop(s::c6) == s::c6);
+    board.import_fen("8/K7/2P5/8/8/5b2/6k1/8 w - - 0 1");
+    CHECK(board.pinned_piece_bishop(s::f3) == s::f3);
+
+    board.import_fen("8/6k1/5p2/8/8/2B5/1K6/8 w - - 0 1");      // pinned
+    CHECK(board.pinned_piece_bishop(s::c3) == s::f6);
+    board.import_fen("8/6k1/5b2/8/8/2P5/1K6/8 w - - 0 1");
+    CHECK(board.pinned_piece_bishop(s::f6) == s::c3);
+    board.import_fen("8/1K6/2B5/8/8/5p2/6k1/8 w - - 0 1");
+    CHECK(board.pinned_piece_bishop(s::c6) == s::f3);
+    board.import_fen("8/1K6/2P5/8/8/5b2/6k1/8 w - - 0 1");
+    CHECK(board.pinned_piece_bishop(s::f3) == s::c6);
 
 }
