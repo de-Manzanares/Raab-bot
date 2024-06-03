@@ -394,21 +394,12 @@ struct Board {
             {'Q', w_Queen},
             {'K', w_King}};
 
-    // fen
-    // fen in
-    void import_fen(const std::string& fen);
-    uint set_pieces(const std::string& fen);
-    // fen out
-    std::string export_fen();
-    [[nodiscard]] std::string fen_piece_placement() const;
-
-    // movement
-    void place_piece(Square square, const char& ch);
-    std::vector<Square> legal_moves_pawn(Square sq) const;
-    std::vector<Square> legal_moves(Square sq);
-
     // utility
     void clear();
+
+    // bitwise movement
+    void place_piece(Square square, const char& ch);
+
     // piece detection
     char what_piece(Square sq) const;
     char what_piece(uint sq) const;
@@ -441,10 +432,22 @@ struct Board {
     int is_in_column(Square sq);
     bool is_in_same_row(Square sq1, Square sq2);
     bool is_in_same_column(Square sq1, Square sq2);
-    bool is_in_same_diagonal_left_right(Square sq1, Square sq2);
-    bool is_in_same_diagonal_right_left(Square sq1, Square sq2);
+    static bool is_in_same_diagonal_left_right(Square sq1, Square sq2);
+    static bool is_in_same_diagonal_right_left(Square sq1, Square sq2);
+
+    // fen
+    // fen out
+    [[nodiscard]] std::string fen_piece_placement() const;
+    std::string export_fen();
+    // fen in
+    uint set_pieces(const std::string& fen);
+    void import_fen(const std::string& fen);
 
     // move generation
+    // auxiliary // TODO rename and trim these two functions
+    std::vector<Square> legal_moves_pawn(Square sq) const;
+    std::vector<Square> legal_moves(Square sq);
+    // influence
     std::vector<Square> influence_rook(Square sq);
     std::vector<Square> influence_bishop(Square sq) const;
     std::vector<Square> influence_queen(Square sq);
@@ -453,7 +456,7 @@ struct Board {
     std::vector<Square> influence_pawn(Square sq) const;
     std::vector<Square> influence(Square sq);;
     void update_influence_maps();
-
+    // influence reduction
     Square assign_from_influence_map_exclude_pawns_and_kings(std::unordered_map<Square, std::vector<Square>> *to,
             std::unordered_map<Square, std::vector<Square>> *from) const;
     void remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color) const;
@@ -461,60 +464,13 @@ struct Board {
     std::vector<Square> update_black_king_moves(Square square_k);
     void update_move_maps();
 
+    // diagnostic
     void print_move_map(Color color) const;
 };
 
 // END Board
 //----------------------------------------------------------------------------------------------------------------------
-
-bool isBitSet(uint64_t n, Square sq)
-{
-    return n & (1ULL << static_cast<int>(sq));
-}
-
-/**
- * @brief Returns the FEN representation of the piece placement on the board.
- * @return The FEN representation of the piece placement on the board.
- */
-std::string Board::fen_piece_placement() const
-{
-    std::string piece_placement;
-    int emptySquares = 0;   // to count empty squares
-    for (Square sq = Square::a8; sq >= Square::h1; --sq) {
-        bool pieceFound = false;
-        // search the square for each type of piece
-        for (const auto& piece : piece_map) {
-            if (isBitSet(piece.second, sq)) {
-                if (emptySquares > 0) {
-                    piece_placement += std::to_string(emptySquares);
-                    emptySquares = 0;
-                }
-                piece_placement += piece.first;
-                pieceFound = true;
-                break;
-            }
-        }
-        // count empty squares
-        if (!pieceFound) {
-            emptySquares++;
-            // to flush last empty squares
-            if (sq == Square::h1) {
-                piece_placement += std::to_string(emptySquares);
-                emptySquares = 0;
-            }
-        }
-        // slash for each new row (excluding an eighth slash)
-        if (sq != Square::h1 && static_cast<int>(sq) % 8 == 0) {
-            // include empty square count
-            if (emptySquares > 0) {
-                piece_placement += std::to_string(emptySquares);
-                emptySquares = 0;
-            }
-            piece_placement += '/';
-        }
-    }
-    return piece_placement;
-}
+// BEGIN clear
 
 /**
  * @brief Remove all pieces and clear the game state.
@@ -527,6 +483,9 @@ void Board::clear()
     // clear the game state
     game_state.clear();
 }
+
+// END clear
+//----------------------------------------------------------------------------------------------------------------------
 
 /**
  * @brief Place a piece on the chessboard
@@ -551,33 +510,7 @@ bool is_piece(const char& ch)
             ch == 'P' || ch == 'N' || ch == 'B' || ch == 'R' || ch == 'Q' || ch == 'K';
 }
 
-/**
- * Sets the pieces on the chessboard based on the given FEN string
- * @param fen The FEN string representing the piece placement
- * @return The number of characters processed in the FEN string
- */
-uint Board::set_pieces(const std::string& fen)
-{
-    Square square = Square::a8;
-    uint counter{};
-    for (const auto& ch : fen) {
-        if (is_piece(ch)) {
-            this->place_piece(square, ch);
-            --square;
-        }
-        if (std::isdigit(ch)) {
-            for (auto i = 0; i < ch - '0'; i++) {
-                --square;
-            }
-        }
-        if (ch == ' ') {
-            counter++;
-            break;
-        }
-        counter++;
-    }
-    return counter;
-}
+
 
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN piece detection
@@ -837,7 +770,159 @@ bool Board::is_in_same_diagonal_right_left(Square sq1, Square sq2)
 
 // END piece detection
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN influence map rook
+// BEGIN FEN
+
+bool isBitSet(uint64_t n, Square sq)
+{
+    return n & (1ULL << static_cast<int>(sq));
+}
+
+/**
+ * @brief Returns the FEN representation of the piece placement on the board.
+ * @return The FEN representation of the piece placement on the board.
+ */
+std::string Board::fen_piece_placement() const
+{
+    std::string piece_placement;
+    int emptySquares = 0;   // to count empty squares
+    for (Square sq = Square::a8; sq >= Square::h1; --sq) {
+        bool pieceFound = false;
+        // search the square for each type of piece
+        for (const auto& piece : piece_map) {
+            if (isBitSet(piece.second, sq)) {
+                if (emptySquares > 0) {
+                    piece_placement += std::to_string(emptySquares);
+                    emptySquares = 0;
+                }
+                piece_placement += piece.first;
+                pieceFound = true;
+                break;
+            }
+        }
+        // count empty squares
+        if (!pieceFound) {
+            emptySquares++;
+            // to flush last empty squares
+            if (sq == Square::h1) {
+                piece_placement += std::to_string(emptySquares);
+                emptySquares = 0;
+            }
+        }
+        // slash for each new row (excluding an eighth slash)
+        if (sq != Square::h1 && static_cast<int>(sq) % 8 == 0) {
+            // include empty square count
+            if (emptySquares > 0) {
+                piece_placement += std::to_string(emptySquares);
+                emptySquares = 0;
+            }
+            piece_placement += '/';
+        }
+    }
+    return piece_placement;
+}
+
+/**
+ * @brief Export the current state of the board as FEN (Forsyth–Edwards Notation) string.
+ * @details
+ * 1. piece placement \n
+ * 2. active color \n
+ * 3. castling ability '-' if neither side has the ability \n
+ * 4. en passant target squares '-' if there are no target squares \n
+ * 5. half move clock, for fifty move rule
+ * 6. full move number
+ * @param board Pointer to the board object.
+ * @return std::string Returns the FEN string representing the board state.
+ */
+std::string Board::export_fen()
+{
+    std::string fen;    // string to be exported
+    fen += fen_piece_placement();
+    fen += ' ';
+    fen += game_state.fen_active_color();
+    fen += ' ';
+    fen += game_state.fen_castling_ability();
+    fen += ' ';
+    fen += game_state.fen_en_passant_targets();
+    fen += ' ';
+    fen += game_state.fen_half_move_clock();
+    fen += ' ';
+    fen += game_state.fen_full_move_number();
+    return fen;
+}
+
+/**
+ * Sets the pieces on the chessboard based on the given FEN string
+ * @param fen The FEN string representing the piece placement
+ * @return The number of characters processed in the FEN string
+ */
+uint Board::set_pieces(const std::string& fen)
+{
+    Square square = Square::a8;
+    uint counter{};
+    for (const auto& ch : fen) {
+        if (is_piece(ch)) {
+            this->place_piece(square, ch);
+            --square;
+        }
+        if (std::isdigit(ch)) {
+            for (auto i = 0; i < ch - '0'; i++) {
+                --square;
+            }
+        }
+        if (ch == ' ') {
+            counter++;
+            break;
+        }
+        counter++;
+    }
+    return counter;
+}
+
+/**
+ * Sets the board from a given FEN string.
+ * @param board  A pointer to the Board object.
+ * @param fen    The FEN string to import.
+ */
+// TODO check if fen is valid before/during import
+void Board::import_fen(const std::string& fen)
+{
+    std::string game_state_string;
+    std::string temp;
+
+    // clear the board
+    clear();
+
+    // set pieces and create game state string
+    game_state_string = fen.substr(set_pieces(fen));
+
+    // set games state variables
+    std::istringstream iss(game_state_string);
+
+    // create variables
+    char active_color;
+    std::string castling_ability;
+    std::string en_passant_target;
+    uint half_move_clock;
+    uint full_move_number;
+
+    // gather data
+    iss >> active_color >> castling_ability >> en_passant_target >> half_move_clock >> full_move_number;
+
+    // assign to board variables
+    // active color
+    active_color == 'w' ?
+            game_state.active_color_clock = 0 : game_state.active_color_clock = 1;
+
+    // castling ability
+    game_state.set_castling_ability(castling_ability);
+    game_state.en_passant_target = en_passant_target;
+    game_state.half_move_clock = half_move_clock;
+    game_state.full_move_number = full_move_number;
+}
+
+// END FEN
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN influence rook
 
 // TODO move pinned logic out
 /**
@@ -1161,7 +1246,7 @@ std::vector<Square> Board::influence(Square sq)
     return influence;
 }
 
-// END influence map
+// END influence
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN legal_moves_pawn
 
@@ -1230,6 +1315,11 @@ std::vector<Square> Board::legal_moves(Square sq)
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN update influence maps
 
+/**
+ * @brief Update the influence maps for white and black pieces
+ * This function resets the influence_map_white and influence_map_black maps, and then calculates the influence of each
+ * white and black piece on the board. The influence is the set of squares that a piece can attack or control.
+ */
 void Board::update_influence_maps()
 {
     // reset the maps
@@ -1253,7 +1343,7 @@ void Board::update_influence_maps()
 // BEGIN update king moves
 
 /**
- * @brief Update the allowed moves for the white king and check if it is in check.
+ * @brief Detects if the king is in check and updates the legal moves
  * @details This function detects if the king is in check and updates the legal moves.
  * It returns a vector of squares from which the king is giving check. It works with a single king on the board.
  * @param square_K The current position of the white king.
@@ -1589,81 +1679,7 @@ void Board::update_move_maps()
 
 // END update move maps
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN FEN
-
-/**
- * @brief Export the current state of the board as FEN (Forsyth–Edwards Notation) string.
- * @details
- * 1. piece placement \n
- * 2. active color \n
- * 3. castling ability '-' if neither side has the ability \n
- * 4. en passant target squares '-' if there are no target squares \n
- * 5. half move clock, for fifty move rule
- * 6. full move number
- * @param board Pointer to the board object.
- * @return std::string Returns the FEN string representing the board state.
- */
-std::string Board::export_fen()
-{
-    std::string fen;    // string to be exported
-    fen += fen_piece_placement();
-    fen += ' ';
-    fen += game_state.fen_active_color();
-    fen += ' ';
-    fen += game_state.fen_castling_ability();
-    fen += ' ';
-    fen += game_state.fen_en_passant_targets();
-    fen += ' ';
-    fen += game_state.fen_half_move_clock();
-    fen += ' ';
-    fen += game_state.fen_full_move_number();
-    return fen;
-}
-
-/**
- * Sets the board from a given FEN string.
- * @param board  A pointer to the Board object.
- * @param fen    The FEN string to import.
- */
-// TODO check if fen is valid before/during import
-void Board::import_fen(const std::string& fen)
-{
-    std::string game_state_string;
-    std::string temp;
-
-    // clear the board
-    clear();
-
-    // set pieces and create game state string
-    game_state_string = fen.substr(set_pieces(fen));
-
-    // set games state variables
-    std::istringstream iss(game_state_string);
-
-    // create variables
-    char active_color;
-    std::string castling_ability;
-    std::string en_passant_target;
-    uint half_move_clock;
-    uint full_move_number;
-
-    // gather data
-    iss >> active_color >> castling_ability >> en_passant_target >> half_move_clock >> full_move_number;
-
-    // assign to board variables
-    // active color
-    active_color == 'w' ?
-            game_state.active_color_clock = 0 : game_state.active_color_clock = 1;
-
-    // castling ability
-    game_state.set_castling_ability(castling_ability);
-    game_state.en_passant_target = en_passant_target;
-    game_state.half_move_clock = half_move_clock;
-    game_state.full_move_number = full_move_number;
-}
-
-// END FEN
-//----------------------------------------------------------------------------------------------------------------------
+// BEGIN diagnostic
 
 void Board::print_move_map(Color color) const
 {
