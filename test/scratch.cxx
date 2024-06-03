@@ -112,3 +112,22 @@ TEST_CASE("sample game")
     board.move(s::c3, s::e4);
     CHECK(board.export_fen() == "rn1qkb1r/pp1b1ppp/2p1p3/8/P1BPN2N/7P/1P3PP1/R1BQK2R b KQkq - 0 10");
 }
+
+TEST_CASE("moving rooks updating castling rights")
+{
+    board.import_fen("r3k2r/pp1bbppp/nqp1p3/8/P1BPN2N/3QBP1P/1P4P1/R3K2R b KQkq - 4 13");
+    board.move(s::h8, s::g8);
+    CHECK(board.export_fen() == "r3k1r1/pp1bbppp/nqp1p3/8/P1BPN2N/3QBP1P/1P4P1/R3K2R w KQq - 5 14");
+
+    board.import_fen("r3k2r/pp1bbppp/nqp1p3/8/P1BPN2N/3QBP1P/1P4P1/R3K2R b KQkq - 4 13");
+    board.move(s::a8, s::b8);
+    CHECK(board.export_fen() == "1r2k2r/pp1bbppp/nqp1p3/8/P1BPN2N/3QBP1P/1P4P1/R3K2R w KQk - 5 14");
+
+    board.import_fen("r3k2r/pp1bb1pp/nqp1pp2/8/P1BPN2N/3QBP1P/1P4P1/R3K2R w KQkq - 0 14");
+    board.move(s::a1, s::b1);
+    CHECK(board.export_fen() == "r3k2r/pp1bb1pp/nqp1pp2/8/P1BPN2N/3QBP1P/1P4P1/1R2K2R b Kkq - 1 14");
+
+    board.import_fen("r3k2r/pp1bb1pp/nqp1pp2/8/P1BPN2N/3QBP1P/1P4P1/R3K2R w KQkq - 0 14");
+    board.move(s::h1, s::g1);
+    CHECK(board.export_fen() == "r3k2r/pp1bb1pp/nqp1pp2/8/P1BPN2N/3QBP1P/1P4P1/R3K1R1 b Qkq - 1 14");
+}

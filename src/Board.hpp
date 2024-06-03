@@ -2032,7 +2032,16 @@ void Board::move_king(Square from, Square to)
 
 void Board::move_rook(Square from, Square to)
 {
+    // update castling rights
+    if (from == Square::a8 && is_black_rook(from) && game_state.castle_q) { game_state.castle_q = false; }
+    else if (from == Square::h8 && is_black_rook(from) && game_state.castle_k) { game_state.castle_k = false; }
+    else if (from == Square::a1 && is_white_rook(from) && game_state.castle_Q) { game_state.castle_Q = false; }
+    else if (from == Square::h1 && is_white_rook(from) && game_state.castle_K) { game_state.castle_K = false; }
 
+    // move piece
+    remove_piece(to);
+    place_piece(to, what_piece(from));
+    remove_piece(from);
 }
 
 void Board::move_piece(Square from, Square to)
