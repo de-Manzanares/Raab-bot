@@ -13,5 +13,6 @@ TEST_CASE("sample game")
     board.move(s::d2,s::d4);
     CHECK(board.export_fen()=="rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1");
     CHECK(board.nodes_at_depth_1(Color::black) == 20);
-    
+    board.move(s::g8,s::f6);
+    CHECK(board.export_fen()=="rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 1 2");
 }

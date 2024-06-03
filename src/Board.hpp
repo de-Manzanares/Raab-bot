@@ -512,6 +512,7 @@ struct Board {
     void move(Square from, Square to);
     void move_pawn(Square from, Square to);
     void remove_piece(Square square);
+    void move_knight(Square from, Square to);
 };
 
 // END Board
@@ -2021,6 +2022,13 @@ void Board::move_pawn(Square from, Square to)
     remove_piece(from);
 }
 
+void Board::move_knight(Square from, Square to)
+{
+    remove_piece(to);
+    place_piece(to, what_piece(from));
+    remove_piece(from);
+}
+
 void Board::move(Square from, Square to)
 {
     // TODO deal with old en passant target ... hmmmmm
@@ -2040,7 +2048,7 @@ void Board::move(Square from, Square to)
 
     // move piece
     if (is_pawn(from)) { move_pawn(from, to); }
-
+    if (is_knight(from)) { move_knight(from, to); }
 
 }
 // END move
