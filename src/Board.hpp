@@ -376,8 +376,8 @@ struct Board {
     std::unordered_map<Square, std::vector<Square>> move_map_black{};           // all black moves
     std::unordered_map<Square, std::vector<Square>> influence_map_white{};      // all white influence
     std::unordered_map<Square, std::vector<Square>> influence_map_black{};      // all black influence
-    std::vector<std::vector<Square>> pinned_pieces_white{};                     // {pinned piece, pinning piece}
-    std::vector<std::vector<Square>> pinned_pieces_black{};                     // {pinned piece, pinning piece}
+    std::unordered_map<Square, Square> pinned_pieces_white{};                     // {pinned piece, pinning piece}
+    std::unordered_map<Square, Square> pinned_pieces_black{};                     // {pinned piece, pinning piece}
 
     // map character code to bitboard
     std::unordered_map<char, uint64_t&> piece_map = {
@@ -451,18 +451,18 @@ struct Board {
     // influence
     std::vector<Square> influence_rook(Square sq) const;
     std::vector<Square> influence_bishop(Square sq) const;
-    std::vector<Square> influence_queen(Square sq);
+    std::vector<Square> influence_queen(Square sq) const;
     static std::vector<Square> influence_knight(Square sq);
     static std::vector<Square> influence_king(Square sq);
     std::vector<Square> influence_pawn(Square sq) const;
-    std::vector<Square> influence(Square sq);;
+    std::vector<Square> influence(Square sq) const;;
     void update_influence_maps();
 
     // pinned pieces
-    std::vector<std::vector<Square>> pinned_pieces_rook(Square sq) const;
-    std::vector<Square> pinned_pieces_bishop(Square sq) const;
-    std::vector<Square> pinned_pieces_queen(Square sq) const;
-    std::vector<Square> pinned_pieces(Square sq) const;
+    Square pinned_piece_rook(Square sq) const;
+    Square pinned_pieces_bishop(Square sq) const;
+    Square pinned_pieces_queen(Square sq) const;
+    Square pinned_pieces(Square sq) const;
     void update_pinned_pieces();
 
     // influence reduction
@@ -1081,7 +1081,7 @@ std::vector<Square> Board::influence_bishop(Square sq) const
  * @param sq The square where the queen is located
  * @return std::vector<Square> The squares influenced by the queen
  */
-std::vector<Square> Board::influence_queen(Square sq)
+std::vector<Square> Board::influence_queen(Square sq) const
 {
     std::vector<Square> v1 = influence_rook(sq);
     std::vector<Square> v2 = influence_bishop(sq);
@@ -1266,7 +1266,7 @@ std::vector<Square> Board::influence_pawn(Square sq) const
  * @param sq A given square.
  * @return A list of squares that the piece on the given square is currently "influencing".
  */
-std::vector<Square> Board::influence(Square sq)
+std::vector<Square> Board::influence(Square sq) const
 {
     std::vector<Square> influence{};
 
@@ -1310,33 +1310,77 @@ void Board::update_influence_maps()
 
 // END update influence maps
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN pinned pieces rook
+// BEGIN pinned piece rook
 
-std::vector<std::vector<Square>> Board::pinned_pieces_rook(Square sq) const
+/**
+ * @brief Finds the piece pinned by a given rook
+ * @details This function searches in the vertical and horizontal directions from the given square to find
+ * any potentially pinned pieces
+ * @param sq The square of the rook.
+ * @return The square of the pinned piece, or the square of the given rook if there is no pinned piece
+ */
+// TODO write helper function
+Square Board::pinned_piece_rook(Square sq) const
 {
     // xray
     Square pinned;                  // potentially pinned piece
     bool found_one;                 // xray through ONE enemy piece
-    std::vector<std::vector<Square>> temp{};
     Color c = what_color(sq);
 
-    // vertical up
-    // found_one = false;
-    // for (auto square = sq + 8; !is_upSquareper_vertical_boundary(square - 8); square = square + 8) {
-    //     influence.push_back(square);
-    //     if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
-    // }
-    // // vertical down
-    // for (auto square = sq - 8; !is_lower_vertical_boundary(square + 8); square = square - 8) {
-    //     influence.push_back(square);
-    //     if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
-    // }
-    // // horizontal right
-    // for (auto square = sq - 1; !is_right_horizontal_boundary(square + 1); square = square - 1) {
-    //     influence.push_back(square);
-    //     if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
-    // }
-
+    //vertical up
+    found_one = false;
+    for (auto square = sq + 8; !is_upper_vertical_boundary(square - 8); square = square + 8) {
+        if (!is_empty(square) && is_same_color(square, c)) { break; }
+        else if (found_one) {
+            // after the first non-king opponent has been found, if we find another, end searching in this direction
+            if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) { break; }
+            // after the first ... if we find the opposing king, that first piece is pinned.  YAY
+            if (is_opposite_king(square, c)) {
+                return pinned;
+            }
+        }
+            // if it is occupied by an opponent that is not a king
+        else if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) {
+            pinned = square;    // possible pinned piece
+            found_one = true;
+        }
+    }
+    // vertical down
+    found_one = false;
+    for (auto square = sq - 8; !is_lower_vertical_boundary(square + 8); square = square - 8) {
+        if (!is_empty(square) && is_same_color(square, c)) { break; }
+        else if (found_one) {
+            // after the first non-king opponent has been found, if we find another, end searching in this direction
+            if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) { break; }
+            // after the first ... if we find the opposing king, that first piece is pinned.  YAY
+            if (is_opposite_king(square, c)) {
+                return pinned;
+            }
+        }
+            // if it is occupied by an opponent that is not a king
+        else if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) {
+            pinned = square;    // possible pinned piece
+            found_one = true;
+        }
+    }
+    // horizontal right
+    found_one = false;
+    for (auto square = sq - 1; !is_right_horizontal_boundary(square + 1); square = square - 1) {
+        if (!is_empty(square) && is_same_color(square, c)) { break; }
+        else if (found_one) {
+            // after the first non-king opponent has been found, if we find another, end searching in this direction
+            if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) { break; }
+            // after the first ... if we find the opposing king, that first piece is pinned.  YAY
+            if (is_opposite_king(square, c)) {
+                return pinned;
+            }
+        }
+            // if it is occupied by an opponent that is not a king
+        else if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) {
+            pinned = square;    // possible pinned piece
+            found_one = true;
+        }
+    }
     // horizontal left
     found_one = false;
     for (auto square = sq + 1; !is_left_horizontal_boundary(square - 1); square = square + 1) {
@@ -1346,9 +1390,7 @@ std::vector<std::vector<Square>> Board::pinned_pieces_rook(Square sq) const
             if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) { break; }
             // after the first ... if we find the opposing king, that first piece is pinned.  YAY
             if (is_opposite_king(square, c)) {
-                if (c == Color::white) { temp.push_back({pinned, sq}); }
-                if (c == Color::black) { temp.push_back({pinned, sq}); }
-                break;
+                return pinned;
             }
         }
             // if it is occupied by an opponent that is not a king
@@ -1357,10 +1399,57 @@ std::vector<std::vector<Square>> Board::pinned_pieces_rook(Square sq) const
             found_one = true;
         }
     }
-    return temp;
+    return sq;
 }
 
 // END pinned pieces rook
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN pinned pieces bishop
+
+Square Board::pinned_pieces_bishop(Square sq) const
+{
+}
+
+// END pinned pieces bishop
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN pinned pieces queen
+
+Square Board::pinned_pieces_queen(Square sq) const
+{
+}
+
+// END pinned pieces queen
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN pinned pieces
+
+Square Board::pinned_pieces(Square sq) const
+{
+}
+
+// END pinned pieces
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN update pinned pieces
+
+void Board::update_pinned_pieces()
+{
+    // reset the maps
+    pinned_pieces_white.clear();
+    pinned_pieces_black.clear();
+    std::vector<std::vector<Square>> temp{};
+    for (Square square = Square::a8; square >= Square::h1; --square) {
+        // white moves
+        temp.clear();
+        if (is_white(square)) {
+
+        }
+        // black moves
+        if (is_black(square)) {
+
+        }
+    }
+}
+
+// END update pinned pieces
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN update king moves
 
@@ -1552,11 +1641,14 @@ void Board::remove_same_color_squares(std::unordered_map<Square, std::vector<Squ
     *map = temp;                                            // reassign original map
 }
 
-// TODO remove moves that would result in discovered check
 void Board::update_move_maps()
 {
     // update influence maps
     update_influence_maps();
+
+    // TODO remove moves that would result in discovered check
+    // update pinned pieces
+    update_pinned_pieces();
 
     // assign from influence maps exclude pawns and kings
     Square square_K = assign_from_influence_map_exclude_pawns_and_kings(&move_map_white, &influence_map_white);
