@@ -8,17 +8,224 @@
 #include <utility>
 #include <vector>
 
-#include "Square.hpp"
-#include "boundary-detection.hpp"
 #include "Game_State.hpp"
 
 // TODO make helper methods private for organization
 // TODO pawn promotion
+// TODO movement
 
+// BEGIN Square
+//----------------------------------------------------------------------------------------------------------------------
+
+/**
+ * @enum Square
+ * @brief Represents a square on a chessboard.
+ *
+ * The Square enumeration represents the 64 squares on a chessboard. Each square is identified by its file
+ * (a-h) and rank (1-8). The underlying type of Square is int.
+ *
+ * The squares are defined in the following order:
+ *   - From h1 to a1
+ *   - From h2 to a2
+ *   - From h3 to a3
+ *   - ...
+ *   - From h8 to a8
+ *
+ * The values of the squares are consecutive integers from 0 to 63.
+ */
+// do not make underlying uint8_t
+enum class Square : int {
+    h1, g1, f1, e1, d1, c1, b1, a1,
+    h2, g2, f2, e2, d2, c2, b2, a2,
+    h3, g3, f3, e3, d3, c3, b3, a3,
+    h4, g4, f4, e4, d4, c4, b4, a4,
+    h5, g5, f5, e5, d5, c5, b5, a5,
+    h6, g6, f6, e6, d6, c6, b6, a6,
+    h7, g7, f7, e7, d7, c7, b7, a7,
+    h8, g8, f8, e8, d8, c8, b8, a8,
+};
+
+Square& operator--(Square& square)
+{
+    square = static_cast<Square>(static_cast<int>(square) - 1);
+    return square;
+}
+
+Square& operator++(Square& square)
+{
+    square = static_cast<Square>(static_cast<int>(square) + 1);
+    return square;
+}
+
+template<class T>
+Square operator+(Square lhs, T rhs)
+{
+    static_assert(std::is_integral<T>::value);
+    Square copy = lhs;
+    for (auto i = 0; i < rhs; i++) {
+        rhs > 0 ? ++copy : --copy;
+    }
+    return copy;
+}
+
+template<class T>
+Square operator-(Square lhs, T rhs)
+{
+    static_assert(std::is_integral<T>::value);
+    Square copy = lhs;
+    for (auto i = 0; i < rhs; i++) {
+        rhs > 0 ? --copy : ++copy;
+    }
+    return copy;
+}
+
+Square string_to_square(const std::string& string)
+{
+    Square square{};
+    std::unordered_map<std::string, Square> stosq = {
+            {"h1", Square::h1},
+            {"g1", Square::g1},
+            {"f1", Square::f1},
+            {"e1", Square::e1},
+            {"d1", Square::d1},
+            {"c1", Square::c1},
+            {"b1", Square::b1},
+            {"a1", Square::a1},
+            {"h2", Square::h2},
+            {"g2", Square::g2},
+            {"f2", Square::f2},
+            {"e2", Square::e2},
+            {"d2", Square::d2},
+            {"c2", Square::c2},
+            {"b2", Square::b2},
+            {"a2", Square::a2},
+            {"h3", Square::h3},
+            {"g3", Square::g3},
+            {"f3", Square::f3},
+            {"e3", Square::e3},
+            {"d3", Square::d3},
+            {"c3", Square::c3},
+            {"b3", Square::b3},
+            {"a3", Square::a3},
+            {"h4", Square::h4},
+            {"g4", Square::g4},
+            {"f4", Square::f4},
+            {"e4", Square::e4},
+            {"d4", Square::d4},
+            {"c4", Square::c4},
+            {"b4", Square::b4},
+            {"a4", Square::a4},
+            {"h5", Square::h5},
+            {"g5", Square::g5},
+            {"f5", Square::f5},
+            {"e5", Square::e5},
+            {"d5", Square::d5},
+            {"c5", Square::c5},
+            {"b5", Square::b5},
+            {"a5", Square::a5},
+            {"h6", Square::h6},
+            {"g6", Square::g6},
+            {"f6", Square::f6},
+            {"e6", Square::e6},
+            {"d6", Square::d6},
+            {"c6", Square::c6},
+            {"b6", Square::b6},
+            {"a6", Square::a6},
+            {"h7", Square::h7},
+            {"g7", Square::g7},
+            {"f7", Square::f7},
+            {"e7", Square::e7},
+            {"d7", Square::d7},
+            {"c7", Square::c7},
+            {"b7", Square::b7},
+            {"a7", Square::a7},
+            {"h8", Square::h8},
+            {"g8", Square::g8},
+            {"f8", Square::f8},
+            {"e8", Square::e8},
+            {"d8", Square::d8},
+            {"c8", Square::c8},
+            {"b8", Square::b8},
+            {"a8", Square::a8}
+    };
+    for (const auto& [s, sq] : stosq) {
+        if (string == s) {
+            square = sq;
+            break;
+        }
+    }
+    return square;
+}
+
+// END Square
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN Boundary detection
+
+bool is_upper_vertical_boundary(Square square)
+{
+    return static_cast<int>(square) > 55;
+}
+
+bool is_lower_vertical_boundary(Square square)
+{
+    return static_cast<int>(square) < 8;
+}
+
+bool is_vertical_boundary(Square sq)
+{
+    return is_upper_vertical_boundary(sq) || is_lower_vertical_boundary(sq);
+}
+
+bool is_left_horizontal_boundary(Square sq)
+{
+    using s = Square;
+    return sq == s::a1 || sq == s::a2 || sq == s::a3 || sq == s::a4 || sq == s::a5 || sq == s::a6 || sq == s::a7
+            || sq == s::a8;
+}
+
+bool is_right_horizontal_boundary(Square sq)
+{
+    using s = Square;
+    return sq == s::h1 || sq == s::h2 || sq == s::h3 || sq == s::h4 || sq == s::h5 || sq == s::h6 || sq == s::h7
+            || sq == s::h8;
+}
+
+bool is_horizontal_boundary(Square sq)
+{
+    return is_left_horizontal_boundary(sq) || is_right_horizontal_boundary(sq);
+}
+
+bool is_boundary(Square sq)
+{
+    return is_vertical_boundary(sq) || is_horizontal_boundary(sq);
+}
+
+bool is_corner(Square sq)
+{
+    return is_vertical_boundary(sq) && is_horizontal_boundary(sq);
+}
+
+// END Boundary detection
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN Color
+
+enum class Color {
+    white, black, none
+};
+
+Color operator!(Color color)
+{
+    return color == Color::white ? Color::black : Color::white;
+}
+
+// END Color
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Board
 
-// bits are in standard starting position
+/**
+ * @brief Represents the chessboard
+ * @details Stores all relevant game-state data and enforces rules
+ */
 struct Board {
     [[nodiscard]] std::string fen_piece_placement() const;
     void clear();
@@ -27,11 +234,6 @@ struct Board {
     // should it return something?
     char what_piece(uint sq) const;
     std::vector<Square> influence(Square sq);
-
-    // I think there may need to be three maps?
-    // an "influence" map - influence of the piece
-    // a "move" map - where the piece can actually move
-    // an xray map - where the piece could move if there were no pieces in the way
 
     uint64_t b_pawn = 0b00000000'11111111'00000000'00000000'00000000'00000000'00000000'00000000;
     uint64_t b_night = 0b01000010'00000000'00000000'00000000'00000000'00000000'00000000'00000000;
