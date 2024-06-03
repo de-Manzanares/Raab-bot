@@ -443,10 +443,11 @@ struct Board {
     uint set_pieces(const std::string& fen);
     void import_fen(const std::string& fen);
 
-    // move generation
+    // begin move generation     ----------------------------------------
     // auxiliary // TODO rename and trim these two functions
     std::vector<Square> legal_moves_pawn(Square sq) const;
     std::vector<Square> legal_moves(Square sq);
+
     // influence
     std::vector<Square> influence_rook(Square sq);
     std::vector<Square> influence_bishop(Square sq) const;
@@ -456,13 +457,23 @@ struct Board {
     std::vector<Square> influence_pawn(Square sq) const;
     std::vector<Square> influence(Square sq);;
     void update_influence_maps();
+
+    // pinned pieces
+    std::vector<Square> pinned_pieces_rook(Square sq) const;
+    std::vector<Square> pinned_pieces_bishop(Square sq) const;
+    std::vector<Square> pinned_pieces_queen(Square sq) const;
+    std::vector<Square> pinned_pieces(Square sq) const;
+    void update_pinned_pieces();
+
     // influence reduction
+    std::vector<Square> update_white_king_moves(Square square_K);
+    std::vector<Square> update_black_king_moves(Square square_k);
     Square assign_from_influence_map_exclude_pawns_and_kings(std::unordered_map<Square, std::vector<Square>> *to,
             std::unordered_map<Square, std::vector<Square>> *from) const;
     void remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color) const;
-    std::vector<Square> update_white_king_moves(Square square_K);
-    std::vector<Square> update_black_king_moves(Square square_k);
     void update_move_maps();
+
+    // end move generation     ----------------------------------------
 
     // diagnostic
     void print_move_map(Color color) const;
@@ -922,6 +933,68 @@ void Board::import_fen(const std::string& fen)
 
 // END FEN
 //----------------------------------------------------------------------------------------------------------------------
+// BEGIN legal moves
+
+/**
+ * @brief Calculates the legal moves for a pawn on the board
+ * @param sq The square on which the pawn is located
+ * @return A vector of squares representing the legal moves for the pawn
+ */
+std::vector<Square> Board::legal_moves_pawn(Square sq) const
+{
+    std::vector<Square> pawn_moves{};
+    if (is_white_pawn(sq)) {
+        int isq = static_cast<int>(sq);
+        bool starting_row = isq <= 15 && isq >= 8;
+        if (is_empty(sq + 8)) { pawn_moves.push_back(sq + 8); }
+        if (starting_row && is_empty(sq + 8) && is_empty(sq + 16)) { pawn_moves.push_back(sq + 16); }
+    }
+    if (is_black_pawn(sq)) {
+        int isq = static_cast<int>(sq);
+        bool starting_row = isq <= 55 && isq >= 48;
+        if (is_empty(sq - 8)) { pawn_moves.push_back(sq - 8); }
+        if (starting_row && is_empty(sq - 8) && is_empty(sq - 16)) { pawn_moves.push_back(sq - 16); }
+    }
+    return pawn_moves;
+}
+
+/**
+ * @brief Get the legal moves for the piece in a given square on the chessboard
+ * @param sq The square for which to calculate the legal moves
+ * @return A vector of Squares representing the legal moves
+ */
+std::vector<Square> Board::legal_moves(Square sq)
+{
+    std::vector<Square> moves{};
+    std::vector<Square> temp = influence(sq);
+
+    if (!is_pawn(sq)) {
+        for (const auto& square : temp) {
+            if (!is_same_color(sq, what_color(square))) { moves.push_back(square); }
+        }
+    }
+    if (is_pawn(sq)) {
+        Square ept{};
+        bool en_passant = false;
+        if (!game_state.en_passant_target.empty()) {
+            ept = string_to_square(game_state.en_passant_target);
+            en_passant = true;
+        }
+        for (const auto& square : temp) {
+            if (!is_same_color(sq, what_color(square)) && !is_empty(square)) { moves.push_back(square); }
+            if (en_passant && square == ept) { if (is_in_row(ept) == 3 && is_black_pawn(sq)) { moves.push_back(ept); }}
+            if (en_passant && square == ept) { if (is_in_row(ept) == 6 && is_white_pawn(sq)) { moves.push_back(ept); }}
+        }
+        std::vector<Square> temp1 = legal_moves_pawn(sq);
+        for (const auto& square : temp1) {
+            moves.push_back(square);
+        }
+    }
+    return moves;
+}
+
+// END legal moves
+//----------------------------------------------------------------------------------------------------------------------
 // BEGIN influence rook
 
 // TODO move pinned logic out
@@ -952,43 +1025,6 @@ std::vector<Square> Board::influence_rook(Square sq)
     for (auto square = sq + 1; !is_left_horizontal_boundary(square - 1); square = square + 1) {
         influence.push_back(square);
         if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
-    }
-
-    // xray
-    Square pinned;                  // potentially pinned piece
-    bool found_one;                 // xray through ONE enemy piece
-    std::vector<Square> temp{};     // to hold xray influence
-    // vertical up
-    // found_one = false;
-    // for (auto square = sq + 8; !is_upSquareper_vertical_boundary(square - 8); square = square + 8) {
-    //     influence.push_back(square);
-    //     if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
-    // }
-    // // vertical down
-    // for (auto square = sq - 8; !is_lower_vertical_boundary(square + 8); square = square - 8) {
-    //     influence.push_back(square);
-    //     if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
-    // }
-    // // horizontal right
-    // for (auto square = sq - 1; !is_right_horizontal_boundary(square + 1); square = square - 1) {
-    //     influence.push_back(square);
-    //     if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
-    // }
-    // horizontal left
-    found_one = false;
-    for (auto square = sq + 1; !is_left_horizontal_boundary(square - 1); square = square + 1) {
-        Color c = what_color(sq);
-        if (!is_empty(square) && is_same_color(square, c)) { break; }
-        else if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) {
-            pinned = square;
-            found_one = true;
-        }
-        else if (found_one) {
-            if (is_opposite_king(square, c)) {
-                if (c == Color::white) { pinned_pieces_black.push_back({pinned, sq}); }
-                if (c == Color::black) { pinned_pieces_white.push_back({pinned, sq}); }
-            }
-        }
     }
 
     return influence;
@@ -1248,71 +1284,6 @@ std::vector<Square> Board::influence(Square sq)
 
 // END influence
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN legal_moves_pawn
-
-/**
- * @brief Calculates the legal moves for a pawn on the board
- * @param sq The square on which the pawn is located
- * @return A vector of squares representing the legal moves for the pawn
- */
-std::vector<Square> Board::legal_moves_pawn(Square sq) const
-{
-    std::vector<Square> pawn_moves{};
-    if (is_white_pawn(sq)) {
-        int isq = static_cast<int>(sq);
-        bool starting_row = isq <= 15 && isq >= 8;
-        if (is_empty(sq + 8)) { pawn_moves.push_back(sq + 8); }
-        if (starting_row && is_empty(sq + 8) && is_empty(sq + 16)) { pawn_moves.push_back(sq + 16); }
-    }
-    if (is_black_pawn(sq)) {
-        int isq = static_cast<int>(sq);
-        bool starting_row = isq <= 55 && isq >= 48;
-        if (is_empty(sq - 8)) { pawn_moves.push_back(sq - 8); }
-        if (starting_row && is_empty(sq - 8) && is_empty(sq - 16)) { pawn_moves.push_back(sq - 16); }
-    }
-    return pawn_moves;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// BEGIN legal moves
-
-/**
- * @brief Get the legal moves for the piece in a given square on the chessboard
- * @param sq The square for which to calculate the legal moves
- * @return A vector of Squares representing the legal moves
- */
-std::vector<Square> Board::legal_moves(Square sq)
-{
-    std::vector<Square> moves{};
-    std::vector<Square> temp = influence(sq);
-
-    if (!is_pawn(sq)) {
-        for (const auto& square : temp) {
-            if (!is_same_color(sq, what_color(square))) { moves.push_back(square); }
-        }
-    }
-    if (is_pawn(sq)) {
-        Square ept{};
-        bool en_passant = false;
-        if (!game_state.en_passant_target.empty()) {
-            ept = string_to_square(game_state.en_passant_target);
-            en_passant = true;
-        }
-        for (const auto& square : temp) {
-            if (!is_same_color(sq, what_color(square)) && !is_empty(square)) { moves.push_back(square); }
-            if (en_passant && square == ept) { if (is_in_row(ept) == 3 && is_black_pawn(sq)) { moves.push_back(ept); }}
-            if (en_passant && square == ept) { if (is_in_row(ept) == 6 && is_white_pawn(sq)) { moves.push_back(ept); }}
-        }
-        std::vector<Square> temp1 = legal_moves_pawn(sq);
-        for (const auto& square : temp1) {
-            moves.push_back(square);
-        }
-    }
-    return moves;
-}
-
-// END legal moves
-//----------------------------------------------------------------------------------------------------------------------
 // BEGIN update influence maps
 
 /**
@@ -1339,6 +1310,16 @@ void Board::update_influence_maps()
 }
 
 // END update influence maps
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN pinned pieces rook
+
+std::vector<Square> Board::pinned_pieces_rook(Square sq) const
+{
+
+}
+
+
+// END pinned pieces rook
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN update king moves
 
