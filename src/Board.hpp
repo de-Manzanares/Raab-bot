@@ -2027,7 +2027,16 @@ void Board::move_pawn(Square from, Square to)
 
 void Board::move_king(Square from, Square to)
 {
+    // update castling rights
+    if (is_white_king(from)) { game_state.castle_K = game_state.castle_Q = false; }
+    else if (is_black_king(from)) { game_state.castle_k = game_state.castle_q = false; }
 
+    // TODO castling
+
+    // move piece
+    remove_piece(to);
+    place_piece(to, what_piece(from));
+    remove_piece(from);
 }
 
 void Board::move_rook(Square from, Square to)
