@@ -513,6 +513,9 @@ struct Board {
     void move_pawn(Square from, Square to);
     void remove_piece(Square square);
     void move_knight(Square from, Square to);
+    void move_piece(Square from, Square to);
+    void move_king(Square from, Square to);
+    void move_rook(Square from, Square to);
 };
 
 // END Board
@@ -2022,7 +2025,17 @@ void Board::move_pawn(Square from, Square to)
     remove_piece(from);
 }
 
-void Board::move_knight(Square from, Square to)
+void Board::move_king(Square from, Square to)
+{
+
+}
+
+void Board::move_rook(Square from, Square to)
+{
+
+}
+
+void Board::move_piece(Square from, Square to)
 {
     remove_piece(to);
     place_piece(to, what_piece(from));
@@ -2041,14 +2054,16 @@ void Board::move(Square from, Square to)
     if (is_black(from)) { game_state.full_move_number++; }  // increment full move every time black moves
 
     // 50 move rule: draw if no pawn move or capture for 50 moves
-    if (!is_pawn(from) || (what_color(to) != Color::none && !is_same_color(from, what_color(to)))) {
-        game_state.half_move_clock++;
+    if (is_pawn(from) || ((what_color(to) != Color::none && !is_same_color(from, what_color(to))))) {
+        game_state.half_move_clock = 0;
     }
-    else { game_state.half_move_clock = 0; }
+    else { game_state.half_move_clock++; }
 
     // move piece
     if (is_pawn(from)) { move_pawn(from, to); }
-    if (is_knight(from)) { move_knight(from, to); }
+    if (is_king(from)) { move_king(from, to); }
+    if (is_rook(from)) { move_rook(from, to); }
+    else if (!is_empty(from)) { move_piece(from, to); }    // for knights, bishops, queens
 
 }
 // END move
