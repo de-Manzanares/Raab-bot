@@ -1,8 +1,10 @@
 #ifndef CHESSENGINE_FEN_HPP
 #define CHESSENGINE_FEN_HPP
 
-#include <string>
 #include "Board.hpp"
+#include <string>
+
+class Board;
 
 /**
  * @brief Export the current state of the board as FEN (Forsyth–Edwards Notation) string.

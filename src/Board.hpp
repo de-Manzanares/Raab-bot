@@ -14,7 +14,6 @@
 
 // TODO make helper methods private for organization
 // TODO pawn promotion
-// TODO inject en passant targets into pawn moves
 
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Board
@@ -130,6 +129,7 @@ struct Board {
     bool is_in_same_column(Square sq1, Square sq2);
     bool is_in_same_diagonal_left_right(Square sq1, Square sq2);
     bool is_in_same_diagonal_right_left(Square sq1, Square sq2);
+    int is_in_row(Square sq) const;
 };
 
 // END Board
@@ -422,7 +422,18 @@ int Board::is_in_row(Square sq)
     if (sq >= s::h7 && sq <= s::a7) { return 7; }
     if (sq >= s::h8 && sq <= s::a8) { return 8; }
 }
-
+int Board::is_in_row(Square sq) const
+{
+    using s = Square;
+    if (sq >= s::h1 && sq <= s::a1) { return 1; }
+    if (sq >= s::h2 && sq <= s::a2) { return 2; }
+    if (sq >= s::h3 && sq <= s::a3) { return 3; }
+    if (sq >= s::h4 && sq <= s::a4) { return 4; }
+    if (sq >= s::h5 && sq <= s::a5) { return 5; }
+    if (sq >= s::h6 && sq <= s::a6) { return 6; }
+    if (sq >= s::h7 && sq <= s::a7) { return 7; }
+    if (sq >= s::h8 && sq <= s::a8) { return 8; }
+}
 int Board::is_in_column(Square sq)
 {
     using s = Square;
@@ -797,8 +808,16 @@ std::vector<Square> Board::legal_moves(Square sq) const
         }
     }
     if (is_pawn(sq)) {
+        Square ept{};
+        bool en_passant = false;
+        if (!game_state.en_passant_target.empty()) {
+            ept = string_to_square(game_state.en_passant_target);
+            en_passant = true;
+        }
         for (const auto& square : temp) {
             if (!is_same_color(sq, what_color(square)) && !is_empty(square)) { moves.push_back(square); }
+            if (en_passant && square == ept) { if (is_in_row(ept) == 3 && is_black_pawn(sq)) { moves.push_back(ept); }}
+            if (en_passant && square == ept) { if (is_in_row(ept) == 6 && is_white_pawn(sq)) { moves.push_back(ept); }}
         }
         std::vector<Square> temp1 = legal_moves_pawn(sq);
         for (const auto& square : temp1) {
