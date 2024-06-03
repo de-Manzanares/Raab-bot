@@ -33,6 +33,9 @@ int main()
             if (in.find("moves") != std::string::npos) {
                 // get moves from the string and perform them
             }
+            if (in.find("fen") != std::string::npos) {
+                // import fen
+            }
         }
 
         if (in.find("go") != std::string::npos) {

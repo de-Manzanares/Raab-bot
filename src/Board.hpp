@@ -78,83 +78,83 @@ Square operator-(Square lhs, T rhs)
     return copy;
 }
 
+std::unordered_map<std::string, Square> string_square = {
+        {"h1", Square::h1},
+        {"g1", Square::g1},
+        {"f1", Square::f1},
+        {"e1", Square::e1},
+        {"d1", Square::d1},
+        {"c1", Square::c1},
+        {"b1", Square::b1},
+        {"a1", Square::a1},
+        {"h2", Square::h2},
+        {"g2", Square::g2},
+        {"f2", Square::f2},
+        {"e2", Square::e2},
+        {"d2", Square::d2},
+        {"c2", Square::c2},
+        {"b2", Square::b2},
+        {"a2", Square::a2},
+        {"h3", Square::h3},
+        {"g3", Square::g3},
+        {"f3", Square::f3},
+        {"e3", Square::e3},
+        {"d3", Square::d3},
+        {"c3", Square::c3},
+        {"b3", Square::b3},
+        {"a3", Square::a3},
+        {"h4", Square::h4},
+        {"g4", Square::g4},
+        {"f4", Square::f4},
+        {"e4", Square::e4},
+        {"d4", Square::d4},
+        {"c4", Square::c4},
+        {"b4", Square::b4},
+        {"a4", Square::a4},
+        {"h5", Square::h5},
+        {"g5", Square::g5},
+        {"f5", Square::f5},
+        {"e5", Square::e5},
+        {"d5", Square::d5},
+        {"c5", Square::c5},
+        {"b5", Square::b5},
+        {"a5", Square::a5},
+        {"h6", Square::h6},
+        {"g6", Square::g6},
+        {"f6", Square::f6},
+        {"e6", Square::e6},
+        {"d6", Square::d6},
+        {"c6", Square::c6},
+        {"b6", Square::b6},
+        {"a6", Square::a6},
+        {"h7", Square::h7},
+        {"g7", Square::g7},
+        {"f7", Square::f7},
+        {"e7", Square::e7},
+        {"d7", Square::d7},
+        {"c7", Square::c7},
+        {"b7", Square::b7},
+        {"a7", Square::a7},
+        {"h8", Square::h8},
+        {"g8", Square::g8},
+        {"f8", Square::f8},
+        {"e8", Square::e8},
+        {"d8", Square::d8},
+        {"c8", Square::c8},
+        {"b8", Square::b8},
+        {"a8", Square::a8}
+};
+
 /**
  * @brief Convert a string representation of a square to a Square enum value.
- * This function takes a string representation of a chessboard square and converts it to the corresponding value of the
- * Square enum class.
  * @param string The string representation of the square.
  * @return The corresponding Square enum value.
  */
 Square string_to_square(const std::string& string)
 {
     Square square{};
-    std::unordered_map<std::string, Square> stosq = {
-            {"h1", Square::h1},
-            {"g1", Square::g1},
-            {"f1", Square::f1},
-            {"e1", Square::e1},
-            {"d1", Square::d1},
-            {"c1", Square::c1},
-            {"b1", Square::b1},
-            {"a1", Square::a1},
-            {"h2", Square::h2},
-            {"g2", Square::g2},
-            {"f2", Square::f2},
-            {"e2", Square::e2},
-            {"d2", Square::d2},
-            {"c2", Square::c2},
-            {"b2", Square::b2},
-            {"a2", Square::a2},
-            {"h3", Square::h3},
-            {"g3", Square::g3},
-            {"f3", Square::f3},
-            {"e3", Square::e3},
-            {"d3", Square::d3},
-            {"c3", Square::c3},
-            {"b3", Square::b3},
-            {"a3", Square::a3},
-            {"h4", Square::h4},
-            {"g4", Square::g4},
-            {"f4", Square::f4},
-            {"e4", Square::e4},
-            {"d4", Square::d4},
-            {"c4", Square::c4},
-            {"b4", Square::b4},
-            {"a4", Square::a4},
-            {"h5", Square::h5},
-            {"g5", Square::g5},
-            {"f5", Square::f5},
-            {"e5", Square::e5},
-            {"d5", Square::d5},
-            {"c5", Square::c5},
-            {"b5", Square::b5},
-            {"a5", Square::a5},
-            {"h6", Square::h6},
-            {"g6", Square::g6},
-            {"f6", Square::f6},
-            {"e6", Square::e6},
-            {"d6", Square::d6},
-            {"c6", Square::c6},
-            {"b6", Square::b6},
-            {"a6", Square::a6},
-            {"h7", Square::h7},
-            {"g7", Square::g7},
-            {"f7", Square::f7},
-            {"e7", Square::e7},
-            {"d7", Square::d7},
-            {"c7", Square::c7},
-            {"b7", Square::b7},
-            {"a7", Square::a7},
-            {"h8", Square::h8},
-            {"g8", Square::g8},
-            {"f8", Square::f8},
-            {"e8", Square::e8},
-            {"d8", Square::d8},
-            {"c8", Square::c8},
-            {"b8", Square::b8},
-            {"a8", Square::a8}
-    };
-    for (const auto& [s, sq] : stosq) {
+
+    for (const auto& [s, sq] : string_square) {
         if (string == s) {
             square = sq;
             break;
@@ -162,6 +162,25 @@ Square string_to_square(const std::string& string)
     }
     return square;
 }
+
+/**
+ * @brief Converts a Square enum value to its corresponding string representation.
+ * @param square The Square enum value to convert.
+ * @return std::string The string representation of the Square enum value.
+ */
+std::string square_to_string(const Square& square)
+{
+    std::string string{};
+
+    for (const auto& [s, sq] : string_square) {
+        if (square == sq) {
+            string = s;
+            break;
+        }
+    }
+    return string;
+}
+
 
 // END Square
 //----------------------------------------------------------------------------------------------------------------------
@@ -492,6 +511,7 @@ struct Board {
     ulong nodes_at_depth_1(Color color);
     void move(Square from, Square to);
     void move_pawn(Square from, Square to);
+    void remove_piece(Square square);
 };
 
 // END Board
@@ -513,6 +533,21 @@ void Board::clear()
 // END clear
 //----------------------------------------------------------------------------------------------------------------------
 
+
+/**
+ * @brief Removes a piece from the chessboard at the given square.
+ * @details This function updates the bitboards for each piece type by clearing the bit corresponding to the given
+ * square. The piece_map is then updated to reflect the new bitmaps.
+ * @param square The square to remove the piece from
+ */
+void Board::remove_piece(Square square)
+{
+    uint64_t mask = ~(1ULL << static_cast<uint>(square));
+    for (auto& [ch, bits] : piece_map) {
+        bits &= mask;
+    }
+}
+
 /**
  * @brief Place a piece on the chessboard
  * @details This function places the specified piece on the given square of the chessboard.
@@ -529,7 +564,6 @@ void Board::place_piece(Square square, const char& ch)
         }
     }
 }
-
 
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN piece detection
@@ -1966,14 +2000,48 @@ void Board::update_move_maps()
 
 void Board::move_pawn(Square from, Square to)
 {
+    // TODO pawn promotion
 
+    // update en passant square
+    // comes first because 'from' will be emptied after the move
+    if (is_white_pawn(from)) {
+        if (static_cast<int>(to) - static_cast<int>(from) == 16) {
+            game_state.en_passant_target = square_to_string(from + 8);
+        }
+    }
+    else if (is_black_pawn(from)) {
+        if (static_cast<int>(from) - static_cast<int>(to) == 16) {
+            game_state.en_passant_target = square_to_string(from - 8);
+        }
+    }
+
+    // move piece
+    remove_piece(to);
+    place_piece(to, what_piece(from));
+    remove_piece(from);
 }
 
 void Board::move(Square from, Square to)
 {
+    // TODO deal with old en passant target ... hmmmmm
+    // en passant expires
+    if (!game_state.en_passant_target.empty()) { game_state.en_passant_target.clear(); }
+
+    // game state updates
+    // comes first becuase from and to will change occupants after the move
+    !game_state.active_color;                               // swap active color
+    if (is_black(from)) { game_state.full_move_number++; }  // increment full move every time black moves
+
+    // 50 move rule: draw if no pawn move or capture for 50 moves
+    if (!is_pawn(from) || (what_color(to) != Color::none && !is_same_color(from, what_color(to)))) {
+        game_state.half_move_clock++;
+    }
+    else { game_state.half_move_clock = 0; }
+
+    // move piece
     if (is_pawn(from)) { move_pawn(from, to); }
 
-    !game_state.active_color;
+
 }
 // END move
 //----------------------------------------------------------------------------------------------------------------------
