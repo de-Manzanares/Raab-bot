@@ -134,7 +134,6 @@ TEST_CASE("moving rooks updating castling rights")
 
 TEST_CASE("moving kings update castling rights")
 {
-
     board.import_fen("r3k2r/pp1bb1pp/nqp1pp2/8/P1BPN2N/3QBP1P/1P4P1/R3K2R w KQkq - 0 14");
     board.move(s::e1, s::e2);
     CHECK(board.export_fen() == "r3k2r/pp1bb1pp/nqp1pp2/8/P1BPN2N/3QBP1P/1P2K1P1/R6R b kq - 1 14");
@@ -142,4 +141,21 @@ TEST_CASE("moving kings update castling rights")
     board.import_fen("r3k2r/pp1bbppp/nqp1p3/8/P1BPN2N/3QBP1P/1P4P1/R3K2R b KQkq - 4 13");
     board.move(s::e8, s::d8);
     CHECK(board.export_fen() == "r2k3r/pp1bbppp/nqp1p3/8/P1BPN2N/3QBP1P/1P4P1/R3K2R w KQ - 5 14");
+}
+
+TEST_CASE("castle")
+{
+    board.import_fen("r3k2r/pp1bbppp/nqp1p3/8/P1BPN2N/3QBP1P/1P4P1/R3K2R b KQkq - 4 13");
+    board.move(s::e8, s::g8);
+    CHECK(board.export_fen() == "r4rk1/pp1bbppp/nqp1p3/8/P1BPN2N/3QBP1P/1P4P1/R3K2R w KQ - 5 14");
+    board.import_fen("r3k2r/pp1bbppp/nqp1p3/8/P1BPN2N/3QBP1P/1P4P1/R3K2R b KQkq - 4 13");
+    board.move(s::e8, s::c8);
+    CHECK(board.export_fen() == "2kr3r/pp1bbppp/nqp1p3/8/P1BPN2N/3QBP1P/1P4P1/R3K2R w KQ - 5 14");
+
+    board.move(s::e1, s::g1);
+    CHECK(board.export_fen() == "2kr3r/pp1bbppp/nqp1p3/8/P1BPN2N/3QBP1P/1P4P1/R4RK1 b - - 6 14");
+    board.import_fen("2kr3r/pp1bbppp/nqp1p3/8/P1BPN2N/3QBP1P/1P4P1/R3K2R w KQ - 5 14");
+    board.move(s::e1, s::c1);
+    CHECK(board.export_fen() == "2kr3r/pp1bbppp/nqp1p3/8/P1BPN2N/3QBP1P/1P4P1/2KR3R b - - 6 14");
+
 }

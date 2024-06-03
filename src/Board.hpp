@@ -2027,16 +2027,53 @@ void Board::move_pawn(Square from, Square to)
 
 void Board::move_king(Square from, Square to)
 {
+    bool castled = false;
+    if (is_black_king(from) && from == Square::e8) {
+        if (to == Square::g8 && game_state.castle_k && is_black_rook(Square::h8)) {
+            remove_piece(to);
+            place_piece(to, what_piece(from));
+            remove_piece(from);
+            move_rook(Square::h8, Square::f8);
+            castled = true;
+            game_state.castle_k = game_state.castle_q = false;
+        }
+        else if (to == Square::c8 && game_state.castle_q && is_black_rook(Square::a8)) {
+            remove_piece(to);
+            place_piece(to, what_piece(from));
+            remove_piece(from);
+            move_rook(Square::a8, Square::d8);
+            castled = true;
+            game_state.castle_k = game_state.castle_q = false;
+        }
+    }
+    if (is_white_king(from) && from == Square::e1) {
+        if (to == Square::g1 && game_state.castle_K && is_white_rook(Square::h1)) {
+            remove_piece(to);
+            place_piece(to, what_piece(from));
+            remove_piece(from);
+            move_rook(Square::h1, Square::f1);
+            castled = true;
+            game_state.castle_K = game_state.castle_Q = false;
+        }
+        else if (to == Square::c1 && game_state.castle_Q && is_white_rook(Square::a1)) {
+            remove_piece(to);
+            place_piece(to, what_piece(from));
+            remove_piece(from);
+            move_rook(Square::a1, Square::d1);
+            castled = true;
+            game_state.castle_K = game_state.castle_Q = false;
+        }
+    }
     // update castling rights
     if (is_white_king(from)) { game_state.castle_K = game_state.castle_Q = false; }
     else if (is_black_king(from)) { game_state.castle_k = game_state.castle_q = false; }
 
-    // TODO castling
-
     // move piece
-    remove_piece(to);
-    place_piece(to, what_piece(from));
-    remove_piece(from);
+    if (!castled) {
+        remove_piece(to);
+        place_piece(to, what_piece(from));
+        remove_piece(from);
+    }
 }
 
 void Board::move_rook(Square from, Square to)
@@ -2062,7 +2099,6 @@ void Board::move_piece(Square from, Square to)
 
 void Board::move(Square from, Square to)
 {
-    // TODO deal with old en passant target ... hmmmmm
     // en passant expires
     if (!game_state.en_passant_target.empty()) { game_state.en_passant_target.clear(); }
 
