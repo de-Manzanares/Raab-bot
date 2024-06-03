@@ -509,8 +509,8 @@ struct Board {
     // diagnostic
     void print_move_map(Color color) const;
     ulong nodes_at_depth_1(Color color);
-    void move(Square from, Square to);
-    void move_pawn(Square from, Square to);
+    void move(Square from, Square to, char ch);
+    void move_pawn(Square from, Square to, char ch);
     void remove_piece(Square square);
     void move_knight(Square from, Square to);
     void move_piece(Square from, Square to);
@@ -2002,27 +2002,40 @@ void Board::update_move_maps()
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN move
 
-void Board::move_pawn(Square from, Square to)
+void Board::move_pawn(Square from, Square to, char ch)
 {
     // TODO pawn promotion
+    bool promoted = false;
 
-    // update en passant square
-    // comes first because 'from' will be emptied after the move
-    if (is_white_pawn(from)) {
-        if (static_cast<int>(to) - static_cast<int>(from) == 16) {
-            game_state.en_passant_target = square_to_string(from + 8);
+    if (ch == 'q' || ch == 'r' || ch == 'b' || ch == 'n') {
+        Color c = what_color(from);
+        if (is_white_pawn(from) && is_in_row(to) == 8) { promoted = true; }
+        else if (is_black_pawn(from) && is_in_row(to) == 1) { promoted = true; }
+        if (promoted) {
+            remove_piece(to);
+            place_piece(to, c == Color::white ? static_cast<char>(std::toupper(ch)) : static_cast<char>(ch));
+            remove_piece(from);
         }
     }
-    else if (is_black_pawn(from)) {
-        if (static_cast<int>(from) - static_cast<int>(to) == 16) {
-            game_state.en_passant_target = square_to_string(from - 8);
+        // update en passant square
+        // comes first because 'from' will be emptied after the move
+    else if (!promoted) {
+        if (is_white_pawn(from)) {
+            if (static_cast<int>(to) - static_cast<int>(from) == 16) {
+                game_state.en_passant_target = square_to_string(from + 8);
+            }
         }
-    }
+        else if (is_black_pawn(from)) {
+            if (static_cast<int>(from) - static_cast<int>(to) == 16) {
+                game_state.en_passant_target = square_to_string(from - 8);
+            }
+        }
 
-    // move piece
-    remove_piece(to);
-    place_piece(to, what_piece(from));
-    remove_piece(from);
+        // move piece
+        remove_piece(to);
+        place_piece(to, what_piece(from));
+        remove_piece(from);
+    }
 }
 
 void Board::move_king(Square from, Square to)
@@ -2097,13 +2110,13 @@ void Board::move_piece(Square from, Square to)
     remove_piece(from);
 }
 
-void Board::move(Square from, Square to)
+void Board::move(Square from, Square to, char ch)
 {
     // en passant expires
     if (!game_state.en_passant_target.empty()) { game_state.en_passant_target.clear(); }
 
     // game state updates
-    // comes first becuase from and to will change occupants after the move
+    // comes first because from and to will change occupants after the move
     !game_state.active_color;                               // swap active color
     if (is_black(from)) { game_state.full_move_number++; }  // increment full move every time black moves
 
@@ -2114,7 +2127,7 @@ void Board::move(Square from, Square to)
     else { game_state.half_move_clock++; }
 
     // move piece
-    if (is_pawn(from)) { move_pawn(from, to); }
+    if (is_pawn(from)) { move_pawn(from, to, ch); }
     if (is_king(from)) { move_king(from, to); }
     if (is_rook(from)) { move_rook(from, to); }
     else if (!is_empty(from)) { move_piece(from, to); }    // for knights, bishops, queens
