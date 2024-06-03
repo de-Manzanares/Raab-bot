@@ -77,6 +77,13 @@ Square operator-(Square lhs, T rhs)
     return copy;
 }
 
+/**
+ * @brief Convert a string representation of a square to a Square enum value.
+ * This function takes a string representation of a chessboard square and converts it to the corresponding value of the
+ * Square enum class.
+ * @param string The string representation of the square.
+ * @return The corresponding Square enum value.
+ */
 Square string_to_square(const std::string& string)
 {
     Square square{};
@@ -226,6 +233,7 @@ Color operator!(Color color)
  * half move clock, and full move number.
  */
 struct Game_State {
+
     [[nodiscard]] char fen_active_color() const { return active_color_clock % 2 == 0 ? 'w' : 'b'; }
 
     [[nodiscard]] std::string fen_castling_ability() const;
@@ -306,6 +314,14 @@ void Game_State::clear()
     en_passant_target.clear();
 }
 
+/**
+ * @brief Sets the castling ability based on the given string.
+ * If the input string is "-", all castling abilities are set to false. Otherwise,
+ * each character in the string represents a castling ability. The characters 'K', 'Q', 'k', 'q'
+ * correspond to castle_K, castle_Q, castle_k, castle_q respectively. If a character is present
+ * in the string, the corresponding castling ability is set to true.
+ * @param s The input string representing the castling ability.
+ */
 void Game_State::set_castling_ability(const std::string& s)
 {
     if (s == "-") {
@@ -331,8 +347,6 @@ void Game_State::set_castling_ability(const std::string& s)
 
 // END Game_State
 //----------------------------------------------------------------------------------------------------------------------
-
-//----------------------------------------------------------------------------------------------------------------------
 // BEGIN Board
 
 /**
@@ -340,17 +354,8 @@ void Game_State::set_castling_ability(const std::string& s)
  * @details Stores all relevant game-state data and enforces rules
  */
 struct Board {
-    [[nodiscard]] std::string fen_piece_placement() const;
-    void clear();
-    void place_piece(Square square, const char& ch);
-    uint set_pieces(const std::string& fen);
-    // should it return something?
-    char what_piece(uint sq) const;
-    std::vector<Square> influence(Square sq);
 
-    void import_fen(const std::string& fen);
-    std::string export_fen();
-
+    // bitboards
     uint64_t b_pawn = 0b00000000'11111111'00000000'00000000'00000000'00000000'00000000'00000000;
     uint64_t b_night = 0b01000010'00000000'00000000'00000000'00000000'00000000'00000000'00000000;
     uint64_t b_bishop = 0b00100100'00000000'00000000'00000000'00000000'00000000'00000000'00000000;
@@ -364,8 +369,17 @@ struct Board {
     uint64_t w_Queen = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'00010000;
     uint64_t w_King = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'00001000;
 
-    // can we have three wide?
+    // game conditions aside from piece placement
+    Game_State game_state;
 
+    std::unordered_map<Square, std::vector<Square>> move_map_white{};           // all white moves
+    std::unordered_map<Square, std::vector<Square>> move_map_black{};           // all black moves
+    std::unordered_map<Square, std::vector<Square>> influence_map_white{};      // all white influence
+    std::unordered_map<Square, std::vector<Square>> influence_map_black{};      // all black influence
+    std::vector<std::vector<Square>> pinned_pieces_white{};                     // {pinned piece, pinning piece}
+    std::vector<std::vector<Square>> pinned_pieces_black{};                     // {pinned piece, pinning piece}
+
+    // map character code to bitboard
     std::unordered_map<char, uint64_t&> piece_map = {
             {'p', b_pawn},
             {'n', b_night},
@@ -380,77 +394,74 @@ struct Board {
             {'Q', w_Queen},
             {'K', w_King}};
 
-    // active color, half-move, etc ..
-    Game_State game_state;
+    // fen
+    // fen in
+    void import_fen(const std::string& fen);
+    uint set_pieces(const std::string& fen);
+    // fen out
+    std::string export_fen();
+    [[nodiscard]] std::string fen_piece_placement() const;
 
-    std::unordered_map<Square, std::vector<Square>> move_map_white{};
-    std::unordered_map<Square, std::vector<Square>> move_map_black{};
-    std::unordered_map<Square, std::vector<Square>> influence_map_white{};
-    std::unordered_map<Square, std::vector<Square>> influence_map_black{};
-    std::unordered_map<Square, std::vector<Square>> xray_map_white{};
-    std::unordered_map<Square, std::vector<Square>> xray_map_black{};
-    std::vector<std::vector<Square>> pinned_pieces_white{};
-    std::vector<std::vector<Square>> pinned_pieces_black{};
+    // movement
+    void place_piece(Square square, const char& ch);
+    std::vector<Square> legal_moves_pawn(Square sq) const;
+    std::vector<Square> legal_moves(Square sq);
 
-    void update_influence_maps();
-
+    // utility
+    void clear();
+    // piece detection
     char what_piece(Square sq) const;
-    std::vector<Square> influence_rook(Square sq);
+    char what_piece(uint sq) const;
     bool is_white_rook(Square sq) const;
     bool is_black_rook(Square sq) const;
     bool is_rook(Square sq) const;
     bool is_white_bishop(Square sq) const;
     bool is_black_bishop(Square sq) const;
     bool is_bishop(Square sq) const;
-    std::vector<Square> influence_bishop(Square sq) const;
     bool is_white_queen(Square sq) const;
     bool is_black_queen(Square sq) const;
     bool is_queen(Square sq) const;
-    std::vector<Square> influence_queen(Square sq);
     bool is_white_knight(Square sq) const;
     bool is_black_knight(Square sq) const;
     bool is_knight(Square sq) const;
-    std::vector<Square> influence_knight(Square sq) const;
     bool is_white_king(Square sq) const;
     bool is_black_king(Square sq) const;
     bool is_king(Square sq) const;
-    std::vector<Square> influence_king(Square sq) const;
     bool is_white_pawn(Square sq) const;
     bool is_black_pawn(Square sq) const;
     bool is_pawn(Square sq) const;
-    std::vector<Square> influence_pawn(Square sq) const;
     bool is_black(Square sq) const;
     bool is_white(Square sq) const;
+    bool is_empty(Square sq) const;
     Color what_color(Square sq) const;
     bool is_same_color(Square sq, Color color) const;
-    bool is_empty(Square sq) const;
-    bool is_opposite_rook(Square sq, Color c) const;
-    bool is_opposite_bishop(Square sq, Color c) const;
-    bool is_opposite_queen(Square sq, Color c) const;
-    bool is_opposite_knight(Square sq, Color c) const;
     bool is_opposite_king(Square sq, Color c) const;
-    bool is_opposite_pawn(Square sq, Color c) const;
-    bool is_opposite_color(Square sq, Color c) const;
-    std::vector<Square> legal_moves(Square sq);
-    std::vector<Square> legal_moves_pawn(Square sq) const;
-    void update_white_king_moves_old(Square square_K);
-    void update_move_maps();
-    void remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color);
-    Square assign_from_influence_map_exclude_pawns_and_kings(std::unordered_map<Square, std::vector<Square>> *to,
-            std::unordered_map<Square, std::vector<Square>> *from);
-    std::vector<Square> update_white_king_moves(Square square_K);
-    std::vector<Square> update_black_king_moves(Square square_k);
-    void print_move_map(Color color) const;
-    void update_xray_maps();
-    std::vector<Square> xray(Square sq) const;
     int is_in_row(Square sq);
+    int is_in_row(Square sq) const;
     int is_in_column(Square sq);
     bool is_in_same_row(Square sq1, Square sq2);
     bool is_in_same_column(Square sq1, Square sq2);
     bool is_in_same_diagonal_left_right(Square sq1, Square sq2);
     bool is_in_same_diagonal_right_left(Square sq1, Square sq2);
-    int is_in_row(Square sq) const;
-    std::vector<Square> xray_rook(Square sq) const;
+
+    // move generation
+    std::vector<Square> influence_rook(Square sq);
+    std::vector<Square> influence_bishop(Square sq) const;
+    std::vector<Square> influence_queen(Square sq);
+    static std::vector<Square> influence_knight(Square sq);
+    static std::vector<Square> influence_king(Square sq);
+    std::vector<Square> influence_pawn(Square sq) const;
+    std::vector<Square> influence(Square sq);;
+    void update_influence_maps();
+
+    Square assign_from_influence_map_exclude_pawns_and_kings(std::unordered_map<Square, std::vector<Square>> *to,
+            std::unordered_map<Square, std::vector<Square>> *from) const;
+    void remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color) const;
+    std::vector<Square> update_white_king_moves(Square square_K);
+    std::vector<Square> update_black_king_moves(Square square_k);
+    void update_move_maps();
+
+    void print_move_map(Color color) const;
 };
 
 // END Board
@@ -517,9 +528,16 @@ void Board::clear()
     game_state.clear();
 }
 
+/**
+ * @brief Place a piece on the chessboard
+ * @details This function places the specified piece on the given square of the chessboard.
+ * The piece is identified by a character, and the square is specified by a value from the Square enum.
+ * @param square The square on the chessboard where the piece should be placed
+ * @param ch The character representing the piece to be placed
+ * @warning assumes the given square is empty
+ */
 void Board::place_piece(Square square, const char& ch)
 {
-    // assumes the given square is empty
     for (auto& piece : piece_map) {
         if (ch == piece.first) {
             piece.second |= 1ULL << static_cast<uint>(square);
@@ -533,6 +551,11 @@ bool is_piece(const char& ch)
             ch == 'P' || ch == 'N' || ch == 'B' || ch == 'R' || ch == 'Q' || ch == 'K';
 }
 
+/**
+ * Sets the pieces on the chessboard based on the given FEN string
+ * @param fen The FEN string representing the piece placement
+ * @return The number of characters processed in the FEN string
+ */
 uint Board::set_pieces(const std::string& fen)
 {
     Square square = Square::a8;
@@ -559,6 +582,11 @@ uint Board::set_pieces(const std::string& fen)
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN piece detection
 
+/**
+ * @brief Retrieves the piece on the specified square
+ * @param sq The square on the chessboard
+ * @return The character representing the piece on the square, or ' ' if the square is empty
+ */
 char Board::what_piece(Square sq) const
 {
     for (const auto& [key, value] : piece_map) {
@@ -567,6 +595,11 @@ char Board::what_piece(Square sq) const
     return ' ';
 }
 
+/**
+ * @brief Get the piece on the specified square
+ * @param sq The square to check
+ * @return char The piece on the square, ' ' if empty
+ */
 char Board::what_piece(uint sq) const
 {
     for (const auto& [key, value] : piece_map) {
@@ -696,39 +729,9 @@ bool Board::is_empty(Square sq) const
     return what_piece(sq) == ' ';
 }
 
-bool Board::is_opposite_rook(Square sq, Color c) const
-{
-    return c == Color::white ? is_black_rook(sq) : is_white_rook(sq);
-}
-
-bool Board::is_opposite_bishop(Square sq, Color c) const
-{
-    return c == Color::white ? is_black_bishop(sq) : is_white_bishop(sq);
-}
-
-bool Board::is_opposite_queen(Square sq, Color c) const
-{
-    return c == Color::white ? is_black_queen(sq) : is_white_queen(sq);
-}
-
-bool Board::is_opposite_knight(Square sq, Color c) const
-{
-    return c == Color::white ? is_black_knight(sq) : is_white_knight(sq);
-}
-
 bool Board::is_opposite_king(Square sq, Color c) const
 {
     return c == Color::white ? is_black_king(sq) : is_white_king(sq);
-}
-
-bool Board::is_opposite_pawn(Square sq, Color c) const
-{
-    return c == Color::white ? is_black_pawn(sq) : is_white_pawn(sq);
-}
-
-bool Board::is_opposite_color(Square sq, Color c) const
-{
-    return c == Color::white ? is_black(sq) : is_white(sq);
 }
 
 int Board::is_in_row(Square sq)
@@ -836,6 +839,12 @@ bool Board::is_in_same_diagonal_right_left(Square sq1, Square sq2)
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN influence map rook
 
+// TODO move pinned logic out
+/**
+ * @brief Computes the influence of a rook on the board, given a specific square.
+ * @param sq The square to compute the influence for.
+ * @return std::vector<Square> A vector of squares representing the influence of the rook.
+ */
 std::vector<Square> Board::influence_rook(Square sq)
 {
     std::vector<Square> influence{};
@@ -900,10 +909,15 @@ std::vector<Square> Board::influence_rook(Square sq)
     return influence;
 }
 
-// END influence map rook
+// END influence rook
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN influence map bishop
+// BEGIN influence bishop
 
+/**
+ * @brief Calculate the squares influenced by a bishop piece on the chessboard.
+ * @param sq The square where the bishop is located.
+ * @return std::vector<Square> A vector containing all the squares influenced by the bishop.
+ */
 std::vector<Square> Board::influence_bishop(Square sq) const
 {
     std::vector<Square> influence{};
@@ -938,10 +952,15 @@ std::vector<Square> Board::influence_bishop(Square sq) const
     return influence;
 }
 
-// END influence map bishop
+// END influence bishop
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN influence map queen
+// BEGIN influence queen
 
+/**
+ * @brief Calculate the squares influenced by a queen on the chessboard
+ * @param sq The square where the queen is located
+ * @return std::vector<Square> The squares influenced by the queen
+ */
 std::vector<Square> Board::influence_queen(Square sq)
 {
     std::vector<Square> v1 = influence_rook(sq);
@@ -952,11 +971,16 @@ std::vector<Square> Board::influence_queen(Square sq)
     return v1;
 }
 
-// END influence map queen
+// END influence queen
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN influence map knight
+// BEGIN influence knight
 
-std::vector<Square> Board::influence_knight(Square sq) const
+/**
+ * @brief Calculates the squares influenced by a knight on a given square.
+ * @param sq The square where the knight is located.
+ * @return A vector of squares influenced by the knight.
+ */
+std::vector<Square> Board::influence_knight(Square sq)
 {
     using s = Square;
     std::vector<Square> influence{};
@@ -1061,11 +1085,16 @@ std::vector<Square> Board::influence_knight(Square sq) const
     return influence;
 }
 
-// END influence map knight
+// END influence knight
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN influence map king
+// BEGIN influence king
 
-std::vector<Square> Board::influence_king(Square sq) const
+/**
+ * @brief Calculates the squares that are influenced by the king at a given square.
+ * @param sq The square where the king is located.
+ * @return A vector of squares that are influenced by the king.
+ */
+std::vector<Square> Board::influence_king(Square sq)
 {
     std::vector<Square> influence{};
 
@@ -1084,10 +1113,15 @@ std::vector<Square> Board::influence_king(Square sq) const
     return influence;
 }
 
-// END influence map king
+// END influence king
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN influence map pawn
+// BEGIN influence pawn
 
+/**
+ * @brief Calculates the squares influenced by a pawn on the chessboard
+ * @param sq The square where the pawn is located
+ * @return A vector of squares influenced by the pawn
+ */
 std::vector<Square> Board::influence_pawn(Square sq) const
 {
     std::vector<Square> influence{};
@@ -1103,15 +1137,14 @@ std::vector<Square> Board::influence_pawn(Square sq) const
     return influence;
 }
 
-// END influence map pawn
+// END influence pawn
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN influence map
-// can do influence map and move map simultaneously?
+// BEGIN influence
 
 /**
  * @brief Creates a list of squares that a given piece is currently "influencing".
  * @param sq A given square.
- * @return A list of squares that the piece is currently "influencing".
+ * @return A list of squares that the piece on the given square is currently "influencing".
  */
 std::vector<Square> Board::influence(Square sq)
 {
@@ -1132,6 +1165,11 @@ std::vector<Square> Board::influence(Square sq)
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN legal_moves_pawn
 
+/**
+ * @brief Calculates the legal moves for a pawn on the board
+ * @param sq The square on which the pawn is located
+ * @return A vector of squares representing the legal moves for the pawn
+ */
 std::vector<Square> Board::legal_moves_pawn(Square sq) const
 {
     std::vector<Square> pawn_moves{};
@@ -1153,11 +1191,11 @@ std::vector<Square> Board::legal_moves_pawn(Square sq) const
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN legal moves
 
-// to be quick (coding-wise, not execution wise) use the influence map then go through and remove all the squares of the
-// same color (can't take your own pieces)
-// then, go in and add castling and promotion.
-// the pawn is a special case, where it may have more moves than
-
+/**
+ * @brief Get the legal moves for the piece in a given square on the chessboard
+ * @param sq The square for which to calculate the legal moves
+ * @return A vector of Squares representing the legal moves
+ */
 std::vector<Square> Board::legal_moves(Square sq)
 {
     std::vector<Square> moves{};
@@ -1197,8 +1235,6 @@ void Board::update_influence_maps()
     // reset the maps
     influence_map_white.clear();
     influence_map_black.clear();
-    xray_map_white.clear();
-    xray_map_black.clear();
 
     for (Square square = Square::a8; square >= Square::h1; --square) {
         // white moves
@@ -1214,39 +1250,16 @@ void Board::update_influence_maps()
 
 // END update influence maps
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN update xray maps
-
-std::vector<Square> Board::xray(Square sq) const
-{
-    std::vector<Square> x{};
-
-    return x;
-}
-
-void Board::update_xray_maps()
-{
-    // reset the maps
-    xray_map_white.clear();
-    xray_map_black.clear();
-
-    for (Square square = Square::a8; square >= Square::h1; --square) {
-        // white moves
-        if (is_white(square)) {
-            xray_map_white.insert({square, xray(square)});
-        }
-        // black moves
-        if (is_black(square)) {
-            xray_map_black.insert({square, xray(square)});
-        }
-    }
-}
-
-// END update xray maps
-//----------------------------------------------------------------------------------------------------------------------
 // BEGIN update king moves
 
-/// @return True if king is in check, false if not in check.
-/// @warning doesn't work with multiple kings on the board as Square_K is assigned to the first king we find
+/**
+ * @brief Update the allowed moves for the white king and check if it is in check.
+ * @details This function detects if the king is in check and updates the legal moves.
+ * It returns a vector of squares from which the king is giving check. It works with a single king on the board.
+ * @param square_K The current position of the white king.
+ * @return A vector of squares from which the king is giving check.
+ * @warning only one king per board
+ **/
 std::vector<Square> Board::update_white_king_moves(Square square_K)
 {
     using s = Square;
@@ -1386,8 +1399,17 @@ std::vector<Square> Board::update_black_king_moves(Square square_k)
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN update move maps
 
+/**
+ * @brief Assigns squares from one unordered_map to another, excluding pawns and kings
+ * @details This function iterates over the squares in the 'from' unordered_map and copies them to the 'to'
+ * unordered_map, excluding any squares contain pawns or kings. If a king square is found, it is stored in a separate
+ * variable and is returned at the end of the function.
+ * @param to A pointer to the unordered_map where the squares will be assigned
+ * @param from A pointer to the unordered_map from where the squares will be copied
+ * @return The square that represents the king, if found
+ */
 Square Board::assign_from_influence_map_exclude_pawns_and_kings(std::unordered_map<Square, std::vector<Square>> *to,
-        std::unordered_map<Square, std::vector<Square>> *from)
+        std::unordered_map<Square, std::vector<Square>> *from) const
 {
     Square square_king{};
     to->clear();
@@ -1398,7 +1420,13 @@ Square Board::assign_from_influence_map_exclude_pawns_and_kings(std::unordered_m
     return square_king;
 }
 
-void Board::remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color)
+/**
+ * @brief Extracts legal moves from influence maps
+ * @details It is not legal to capture your own pieces
+ * @param map A pointer to the unordered_map storing squares and their corresponding vectors of squares
+ * @param color The color of the squares to be removed
+ */
+void Board::remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color) const
 {
     std::unordered_map<Square, std::vector<Square>> temp;   // to reassign original after cleaning
     std::vector<Square> temp_squares{};                     // to store non-same-colored squares
