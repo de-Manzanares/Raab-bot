@@ -2058,10 +2058,10 @@ void Board::move(Square from, Square to)
 void Board::print_move_map(Color color) const
 {
     auto map = color == Color::white ? move_map_white : move_map_black;
-    for (const auto& pair : map) {
-        std::cout << static_cast<int>(pair.first) << " : ";
-        for (const auto& square : pair.second) {
-            std::cout << static_cast<int>(square) << " ";
+    for (const auto& [sq, moves] : map) {
+        std::cout << square_to_string(sq) << " : ";
+        for (const auto& square : moves) {
+            std::cout << square_to_string(square) << " ";
         }
         std::cout << "\n";
     }
