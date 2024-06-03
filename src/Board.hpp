@@ -219,9 +219,10 @@ enum class Color {
     white, black, none
 };
 
-Color operator!(Color color)
+Color& operator!(Color& color)
 {
-    return color == Color::white ? Color::black : Color::white;
+    color == Color::white ? color = Color::black : color = Color::white;
+    return color;
 }
 
 // END Color
@@ -235,7 +236,7 @@ Color operator!(Color color)
  */
 struct Game_State {
 
-    [[nodiscard]] char fen_active_color() const { return active_color_clock % 2 == 0 ? 'w' : 'b'; }
+    [[nodiscard]] char fen_active_color() const { return active_color == Color::white ? 'w' : 'b'; }
 
     [[nodiscard]] std::string fen_castling_ability() const;
     [[nodiscard]] std::string fen_en_passant_targets() const;
@@ -244,7 +245,7 @@ struct Game_State {
     void clear();
     void set_castling_ability(const std::string& s);
 
-    uint active_color_clock{};  // increments after every move. even for white, odd for black.
+    Color active_color = Color::white;  // flips after every move. starts with white.
     bool castle_K = true;       // white can castle king side
     bool castle_Q = true;       // white can castle queen side
     bool castle_k = true;       // black can castle king side
@@ -310,7 +311,7 @@ std::string Game_State::fen_full_move_number() const
  */
 void Game_State::clear()
 {
-    active_color_clock = half_move_clock = full_move_number = 0;
+    half_move_clock = full_move_number = 0;
     castle_K = castle_Q = castle_k = castle_q = false;
     en_passant_target.clear();
 }
@@ -481,11 +482,16 @@ struct Board {
             std::unordered_map<Square, std::vector<Square>> *from) const;
     void remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color) const;
     void update_move_maps();
-
     // end move generation     ----------------------------------------
+
+    // uci
+
 
     // diagnostic
     void print_move_map(Color color) const;
+    ulong nodes_at_depth_1(Color color);
+    void move(Square from, Square to);
+    void move_pawn(Square from, Square to);
 };
 
 // END Board
@@ -949,8 +955,7 @@ void Board::import_fen(const std::string& fen)
 
     // assign to board variables
     // active color
-    active_color == 'w' ?
-            game_state.active_color_clock = 0 : game_state.active_color_clock = 1;
+    active_color == 'w' ? game_state.active_color = Color::white : game_state.active_color = Color::black;
 
     // castling ability
     game_state.set_castling_ability(castling_ability);
@@ -1957,8 +1962,23 @@ void Board::update_move_maps()
 
 // END update move maps
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN diagnostic
+// BEGIN move
 
+void Board::move_pawn(Square from, Square to)
+{
+
+}
+
+void Board::move(Square from, Square to)
+{
+    if (is_pawn(from)) { move_pawn(from, to); }
+
+    !game_state.active_color;
+}
+// END move
+//----------------------------------------------------------------------------------------------------------------------
+
+// BEGIN diagnostic
 void Board::print_move_map(Color color) const
 {
     auto map = color == Color::white ? move_map_white : move_map_black;
@@ -1969,6 +1989,16 @@ void Board::print_move_map(Color color) const
         }
         std::cout << "\n";
     }
+}
+
+ulong Board::nodes_at_depth_1(Color color)
+{
+    update_move_maps();
+    ulong nodes{};
+    for (const auto& [sq, moves] : color == Color::white ? move_map_white : move_map_black) {
+        nodes += moves.size();
+    }
+    return nodes;
 }
 
 #endif  // SRC_BITBOARD_H_
