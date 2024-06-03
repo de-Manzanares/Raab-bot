@@ -26,7 +26,7 @@ struct Board {
     uint set_pieces(const std::string& fen);
     // should it return something?
     char what_piece(uint sq) const;
-    std::vector<Square> influence(Square sq) const;
+    std::vector<Square> influence(Square sq);
 
     // I think there may need to be three maps?
     // an "influence" map - influence of the piece
@@ -71,11 +71,13 @@ struct Board {
     std::unordered_map<Square, std::vector<Square>> influence_map_black{};
     std::unordered_map<Square, std::vector<Square>> xray_map_white{};
     std::unordered_map<Square, std::vector<Square>> xray_map_black{};
+    std::vector<std::vector<Square>> pinned_pieces_white{};
+    std::vector<std::vector<Square>> pinned_pieces_black{};
 
     void update_influence_maps();
 
     char what_piece(Square sq) const;
-    std::vector<Square> influence_rook(Square sq) const;
+    std::vector<Square> influence_rook(Square sq);
     bool is_white_rook(Square sq) const;
     bool is_black_rook(Square sq) const;
     bool is_rook(Square sq) const;
@@ -86,7 +88,7 @@ struct Board {
     bool is_white_queen(Square sq) const;
     bool is_black_queen(Square sq) const;
     bool is_queen(Square sq) const;
-    std::vector<Square> influence_queen(Square sq) const;
+    std::vector<Square> influence_queen(Square sq);
     bool is_white_knight(Square sq) const;
     bool is_black_knight(Square sq) const;
     bool is_knight(Square sq) const;
@@ -111,7 +113,7 @@ struct Board {
     bool is_opposite_king(Square sq, Color c) const;
     bool is_opposite_pawn(Square sq, Color c) const;
     bool is_opposite_color(Square sq, Color c) const;
-    std::vector<Square> legal_moves(Square sq) const;
+    std::vector<Square> legal_moves(Square sq);
     std::vector<Square> legal_moves_pawn(Square sq) const;
     void update_white_king_moves_old(Square square_K);
     void update_move_maps();
@@ -130,6 +132,7 @@ struct Board {
     bool is_in_same_diagonal_left_right(Square sq1, Square sq2);
     bool is_in_same_diagonal_right_left(Square sq1, Square sq2);
     int is_in_row(Square sq) const;
+    std::vector<Square> xray_rook(Square sq) const;
 };
 
 // END Board
@@ -422,6 +425,7 @@ int Board::is_in_row(Square sq)
     if (sq >= s::h7 && sq <= s::a7) { return 7; }
     if (sq >= s::h8 && sq <= s::a8) { return 8; }
 }
+
 int Board::is_in_row(Square sq) const
 {
     using s = Square;
@@ -434,6 +438,7 @@ int Board::is_in_row(Square sq) const
     if (sq >= s::h7 && sq <= s::a7) { return 7; }
     if (sq >= s::h8 && sq <= s::a8) { return 8; }
 }
+
 int Board::is_in_column(Square sq)
 {
     using s = Square;
@@ -513,7 +518,7 @@ bool Board::is_in_same_diagonal_right_left(Square sq1, Square sq2)
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN influence map rook
 
-std::vector<Square> Board::influence_rook(Square sq) const
+std::vector<Square> Board::influence_rook(Square sq)
 {
     std::vector<Square> influence{};
     // vertical up
@@ -536,6 +541,44 @@ std::vector<Square> Board::influence_rook(Square sq) const
         influence.push_back(square);
         if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
     }
+
+    // xray
+    Square pinned;                  // potentially pinned piece
+    bool found_one;                 // xray through ONE enemy piece
+    std::vector<Square> temp{};     // to hold xray influence
+    // vertical up
+    // found_one = false;
+    // for (auto square = sq + 8; !is_upSquareper_vertical_boundary(square - 8); square = square + 8) {
+    //     influence.push_back(square);
+    //     if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
+    // }
+    // // vertical down
+    // for (auto square = sq - 8; !is_lower_vertical_boundary(square + 8); square = square - 8) {
+    //     influence.push_back(square);
+    //     if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
+    // }
+    // // horizontal right
+    // for (auto square = sq - 1; !is_right_horizontal_boundary(square + 1); square = square - 1) {
+    //     influence.push_back(square);
+    //     if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
+    // }
+    // horizontal left
+    found_one = false;
+    for (auto square = sq + 1; !is_left_horizontal_boundary(square - 1); square = square + 1) {
+        Color c = what_color(sq);
+        if (!is_empty(square) && is_same_color(square, c)) { break; }
+        else if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) {
+            pinned = square;
+            found_one = true;
+        }
+        else if (found_one) {
+            if (is_opposite_king(square, c)) {
+                if (c == Color::white) { pinned_pieces_black.push_back({pinned, sq}); }
+                if (c == Color::black) { pinned_pieces_white.push_back({pinned, sq}); }
+            }
+        }
+    }
+
     return influence;
 }
 
@@ -581,7 +624,7 @@ std::vector<Square> Board::influence_bishop(Square sq) const
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN influence map queen
 
-std::vector<Square> Board::influence_queen(Square sq) const
+std::vector<Square> Board::influence_queen(Square sq)
 {
     std::vector<Square> v1 = influence_rook(sq);
     std::vector<Square> v2 = influence_bishop(sq);
@@ -752,7 +795,7 @@ std::vector<Square> Board::influence_pawn(Square sq) const
  * @param sq A given square.
  * @return A list of squares that the piece is currently "influencing".
  */
-std::vector<Square> Board::influence(Square sq) const
+std::vector<Square> Board::influence(Square sq)
 {
     std::vector<Square> influence{};
 
@@ -797,7 +840,7 @@ std::vector<Square> Board::legal_moves_pawn(Square sq) const
 // then, go in and add castling and promotion.
 // the pawn is a special case, where it may have more moves than
 
-std::vector<Square> Board::legal_moves(Square sq) const
+std::vector<Square> Board::legal_moves(Square sq)
 {
     std::vector<Square> moves{};
     std::vector<Square> temp = influence(sq);
@@ -836,6 +879,8 @@ void Board::update_influence_maps()
     // reset the maps
     influence_map_white.clear();
     influence_map_black.clear();
+    xray_map_white.clear();
+    xray_map_black.clear();
 
     for (Square square = Square::a8; square >= Square::h1; --square) {
         // white moves
@@ -1089,19 +1134,6 @@ void Board::update_move_maps()
 
     // if one piece is giving check, it can be captured or blocked
     if (giving_check.size() == 1) {
-        // capture
-        // for every piece in the move map, remove all moves except the square giving check
-
-        // blocking is not possible when the attack is from a knight
-        // blocking vertical attacks    :   +- 8
-        // blocking horizontal attacks  :   +- 1
-        // blocking diagonal attacks    :   +-7, +-9
-        // maybe we need to do the blocking before the capturing?
-        // make a list of the blocking squares
-
-        // make list of blocking squares for horizontal attacks
-        // detect if attack is horizontal?
-        // make list of all squares between attacking and king
 
         // if it's not a knight or pawn, it might be able to be blocked
         if (!is_knight(giving_check[0]) && !is_pawn(giving_check[0])) {

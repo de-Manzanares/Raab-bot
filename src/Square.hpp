@@ -134,6 +134,4 @@ Square string_to_square(const std::string& string)
     return square;
 }
 
-// TODO overload stream extraction operator
-
 #endif //CHESSENGINE_SQUARE_H

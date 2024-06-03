@@ -45,3 +45,16 @@ TEST_CASE("en passant")
         CHECK(v == std::vector<Square>{s::d6, s::c6});
     }
 }
+
+TEST_CASE("pinned pieces")
+{
+    import_fen(&board, "8/8/8/1K1Pr1k1/8/8/8/8 w - - 0 1");
+    board.update_move_maps();
+    for (const auto& vo : board.pinned_pieces_white) {
+        for (const auto& vi : vo) {
+            std::cout << static_cast<int>(vi) << " ";
+        }
+        std::cout << "\n";
+    }
+    if (board.pinned_pieces_white.empty()) { std::cout << "EMPTY"; }
+}
