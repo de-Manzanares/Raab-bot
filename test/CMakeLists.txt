@@ -17,6 +17,8 @@ add_executable(pinned-pieces-test pinned-pieces-test.cxx)
 
 add_executable(scratch-test scratch.cxx)
 
+add_executable(evaluation-test evaluation-test.cxx)
+
 target_link_libraries(general-test PUBLIC
         /usr/local/lib/libCatch2Maind.a
         /usr/local/lib/libCatch2d.a)
@@ -42,5 +44,9 @@ target_link_libraries(pinned-pieces-test PUBLIC
         /usr/local/lib/libCatch2d.a)
 
 target_link_libraries(scratch-test PUBLIC
+        /usr/local/lib/libCatch2Maind.a
+        /usr/local/lib/libCatch2d.a)
+
+target_link_libraries(evaluation-test PUBLIC
         /usr/local/lib/libCatch2Maind.a
         /usr/local/lib/libCatch2d.a)
