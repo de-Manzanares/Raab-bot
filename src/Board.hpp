@@ -461,8 +461,8 @@ struct Board {
     // pinned pieces
     Square pinned_piece_rook(Square sq) const;
     Square pinned_piece_bishop(Square sq) const;
-    Square pinned_pieces_queen(Square sq) const;
-    Square pinned_pieces(Square sq) const;
+    Square pinned_piece_queen(Square sq) const;
+    Square pinned_piece(Square sq) const;
     void update_pinned_pieces();
 
     // influence reduction
@@ -1505,16 +1505,29 @@ Square Board::pinned_piece_bishop(Square sq) const
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN pinned piece queen
 
-Square Board::pinned_pieces_queen(Square sq) const
+Square Board::pinned_piece_queen(Square sq) const
 {
+    if (pinned_piece_rook(sq) != sq) { return pinned_piece_rook(sq); }
+    if (pinned_piece_bishop(sq) != sq) { return pinned_piece_bishop(sq); }
+    return sq;
 }
 
 // END pinned piece queen
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN pinned pieces
 
-Square Board::pinned_pieces(Square sq) const
+/**
+ * @brief Detects if a piece at the given square is pinning an opposing piece to the enemy king
+ * @param sq The square to check
+ * @return The square of the pinned piece, or the square of the piece we are checking if there is no pin.
+ */
+Square Board::pinned_piece(Square sq) const
 {
+    if (is_rook(sq)) { if (pinned_piece_rook(sq) != sq) { return pinned_piece_rook(sq); }}
+    if (is_bishop(sq)) { if (pinned_piece_bishop(sq) != sq) { return pinned_piece_bishop(sq); }}
+    if (is_queen(sq)) { if (pinned_piece_queen(sq) != sq) { return pinned_piece_queen(sq); }}
+
+    return sq;
 }
 
 // END pinned pieces
@@ -1526,16 +1539,15 @@ void Board::update_pinned_pieces()
     // reset the maps
     pinned_pieces_white.clear();
     pinned_pieces_black.clear();
-    std::vector<std::vector<Square>> temp{};
+
     for (Square square = Square::a8; square >= Square::h1; --square) {
         // white moves
-        temp.clear();
         if (is_white(square)) {
-
+            if (pinned_piece(square) != square) { pinned_pieces_black.insert({pinned_piece(square), square}); }
         }
         // black moves
         if (is_black(square)) {
-
+            if (pinned_piece(square) != square) { pinned_pieces_white.insert({pinned_piece(square), square}); }
         }
     }
 }
