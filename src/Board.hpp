@@ -438,7 +438,7 @@ struct Board {
     // fen
     // fen out
     [[nodiscard]] std::string fen_piece_placement() const;
-    std::string export_fen();
+    std::string export_fen() const;
     // fen in
     uint set_pieces(const std::string& fen);
     void import_fen(const std::string& fen);
@@ -449,7 +449,7 @@ struct Board {
     std::vector<Square> legal_moves(Square sq);
 
     // influence
-    std::vector<Square> influence_rook(Square sq);
+    std::vector<Square> influence_rook(Square sq) const;
     std::vector<Square> influence_bishop(Square sq) const;
     std::vector<Square> influence_queen(Square sq);
     static std::vector<Square> influence_knight(Square sq);
@@ -459,7 +459,7 @@ struct Board {
     void update_influence_maps();
 
     // pinned pieces
-    std::vector<Square> pinned_pieces_rook(Square sq) const;
+    std::vector<std::vector<Square>> pinned_pieces_rook(Square sq) const;
     std::vector<Square> pinned_pieces_bishop(Square sq) const;
     std::vector<Square> pinned_pieces_queen(Square sq) const;
     std::vector<Square> pinned_pieces(Square sq) const;
@@ -844,7 +844,7 @@ std::string Board::fen_piece_placement() const
  * @param board Pointer to the board object.
  * @return std::string Returns the FEN string representing the board state.
  */
-std::string Board::export_fen()
+std::string Board::export_fen() const
 {
     std::string fen;    // string to be exported
     fen += fen_piece_placement();
@@ -997,13 +997,12 @@ std::vector<Square> Board::legal_moves(Square sq)
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN influence rook
 
-// TODO move pinned logic out
 /**
  * @brief Computes the influence of a rook on the board, given a specific square.
  * @param sq The square to compute the influence for.
  * @return std::vector<Square> A vector of squares representing the influence of the rook.
  */
-std::vector<Square> Board::influence_rook(Square sq)
+std::vector<Square> Board::influence_rook(Square sq) const
 {
     std::vector<Square> influence{};
     // vertical up
@@ -1313,11 +1312,53 @@ void Board::update_influence_maps()
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN pinned pieces rook
 
-std::vector<Square> Board::pinned_pieces_rook(Square sq) const
+std::vector<std::vector<Square>> Board::pinned_pieces_rook(Square sq) const
 {
+    // xray
+    Square pinned;                  // potentially pinned piece
+    bool found_one;                 // xray through ONE enemy piece
+    std::vector<std::vector<Square>> temp{};
+    Color c = what_color(sq);
 
+    // vertical up
+    // found_one = false;
+    // for (auto square = sq + 8; !is_upSquareper_vertical_boundary(square - 8); square = square + 8) {
+    //     influence.push_back(square);
+    //     if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
+    // }
+    // // vertical down
+    // for (auto square = sq - 8; !is_lower_vertical_boundary(square + 8); square = square - 8) {
+    //     influence.push_back(square);
+    //     if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
+    // }
+    // // horizontal right
+    // for (auto square = sq - 1; !is_right_horizontal_boundary(square + 1); square = square - 1) {
+    //     influence.push_back(square);
+    //     if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
+    // }
+
+    // horizontal left
+    found_one = false;
+    for (auto square = sq + 1; !is_left_horizontal_boundary(square - 1); square = square + 1) {
+        if (!is_empty(square) && is_same_color(square, c)) { break; }
+        else if (found_one) {
+            // after the first non-king opponent has been found, if we find another, end searching in this direction
+            if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) { break; }
+            // after the first ... if we find the opposing king, that first piece is pinned.  YAY
+            if (is_opposite_king(square, c)) {
+                if (c == Color::white) { temp.push_back({pinned, sq}); }
+                if (c == Color::black) { temp.push_back({pinned, sq}); }
+                break;
+            }
+        }
+            // if it is occupied by an opponent that is not a king
+        else if (!is_empty(square) && !is_same_color(square, c) && !is_opposite_king(square, c)) {
+            pinned = square;    // possible pinned piece
+            found_one = true;
+        }
+    }
+    return temp;
 }
-
 
 // END pinned pieces rook
 //----------------------------------------------------------------------------------------------------------------------
