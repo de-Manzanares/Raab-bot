@@ -1,7 +1,6 @@
 #include <catch2/catch_all.hpp>
 #include <iostream>
 #include "../src/Board.hpp"
-#include "../src/FEN.hpp"
 
 void generate_and_sort(Board& board, const Square& sq, std::vector<Square>& v)
 {
@@ -33,7 +32,7 @@ std::vector<Square> v;
 
 TEST_CASE("legal moves pawn")
 {
-    import_fen(&board, "8/1p1P2p1/P1P2p2/4p3/3P4/2P2p1p/1P2p1P1/8 w - - 0 1");
+    board.import_fen("8/1p1P2p1/P1P2p2/4p3/3P4/2P2p1p/1P2p1P1/8 w - - 0 1");
     generate_and_sort(board, s::g2, v);
     CHECK(v == std::vector<Square>{s::h3, s::g3, s::f3, s::g4});
     generate_and_sort(board, s::e2, v);
@@ -68,7 +67,7 @@ TEST_CASE("legal moves pawn")
 
 TEST_CASE("legal moves rook")
 {
-    import_fen(&board, "R2R3r/KR6/2R5/R2Rr3/3Rr2r/5r2/6rk/R3r2r w - - 0 1");
+    board.import_fen("R2R3r/KR6/2R5/R2Rr3/3Rr2r/5r2/6rk/R3r2r w - - 0 1");
     generate_and_sort(board, s::h1, v);
     CHECK(v == std::vector<Square>{s::g1, s::f1});
     generate_and_sort(board, s::e1, v);
@@ -109,7 +108,7 @@ TEST_CASE("legal moves rook")
 
 TEST_CASE("legal moves bishop")
 {
-    import_fen(&board, "b1kb3B/3b4/3b4/3bB2B/b2bB3/4B3/4B3/b3B1KB w - - 0 1");
+    board.import_fen("b1kb3B/3b4/3b4/3bB2B/b2bB3/4B3/4B3/b3B1KB w - - 0 1");
     generate_and_sort(board, s::h1, v);
     CHECK(v == std::vector<Square>{s::g2, s::f3});
     generate_and_sort(board, s::e1, v);
@@ -146,7 +145,7 @@ TEST_CASE("legal moves bishop")
 
 TEST_CASE("legal moves queen")
 {
-    import_fen(&board, "q2q3Q/1k6/8/q2q4/4Q2Q/8/6K1/q3Q2Q w - - 0 1");
+    board.import_fen("q2q3Q/1k6/8/q2q4/4Q2Q/8/6K1/q3Q2Q w - - 0 1");
     generate_and_sort(board, s::h1, v);
     CHECK(v == std::vector<Square>{s::g1, s::f1, s::h2, s::h3});
     generate_and_sort(board, s::e1, v);
@@ -179,7 +178,7 @@ TEST_CASE("legal moves queen")
 
 TEST_CASE("legal moves knight")
 {
-    import_fen(&board, "NN1N2NN/NN2N1NN/8/N3N1N1/1N5N/8/NN1N2NN/NN2N1NN w - - 0 1");
+    board.import_fen("NN1N2NN/NN2N1NN/8/N3N1N1/1N5N/8/NN1N2NN/NN2N1NN w - - 0 1");
     // center 4x4
     generate_and_sort(board, s::e5, v);
     CHECK(v == std::vector<Square>{s::f3, s::d3, s::g4, s::c4, s::g6, s::c6, s::f7, s::d7});
@@ -248,98 +247,98 @@ TEST_CASE("legal moves knight")
 TEST_CASE("legal moves king")
 {
     SECTION("white") {
-        import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        board.import_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         generate_and_sort_white_king(board, s::e1, v);
         CHECK(v == std::vector<Square>{});
-        import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKB1R w KQkq - 0 1");
+        board.import_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKB1R w KQkq - 0 1");
         generate_and_sort_white_king(board, s::e1, v);
         CHECK(v == std::vector<Square>{});
-        import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQK2R w KQkq - 0 1");
+        board.import_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQK2R w KQkq - 0 1");
         generate_and_sort_white_king(board, s::e1, v);
         CHECK(v == std::vector<Square>{s::g1, s::f1});
-        import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQK1NR w KQkq - 0 1");
+        board.import_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQK1NR w KQkq - 0 1");
         generate_and_sort_white_king(board, s::e1, v);
         CHECK(v == std::vector<Square>{s::f1});
-        import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RN1QKBNR w KQkq - 0 1");
+        board.import_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RN1QKBNR w KQkq - 0 1");
         generate_and_sort_white_king(board, s::e1, v);
         CHECK(v == std::vector<Square>{});
-        import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RN2KBNR w KQkq - 0 1");
+        board.import_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RN2KBNR w KQkq - 0 1");
         generate_and_sort_white_king(board, s::e1, v);
         CHECK(v == std::vector<Square>{s::d1, s::c1});
-        import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNB1KBNR w KQkq - 0 1");
+        board.import_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNB1KBNR w KQkq - 0 1");
         generate_and_sort_white_king(board, s::e1, v);
         CHECK(v == std::vector<Square>{s::d1});
-        import_fen(&board, "rnb1kbnr/ppppqppp/8/8/8/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1");
+        board.import_fen("rnb1kbnr/ppppqppp/8/8/8/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1");
         generate_and_sort_white_king(board, s::e1, v);
         CHECK(v == std::vector<Square>{});
-        import_fen(&board, "rnb1kbnr/pppp1ppp/5q2/8/8/8/PPP4P/RNB1K2R w KQkq - 0 1");
+        board.import_fen("rnb1kbnr/pppp1ppp/5q2/8/8/8/PPP4P/RNB1K2R w KQkq - 0 1");
         generate_and_sort_white_king(board, s::e1, v);
         CHECK(v == std::vector<Square>{s::d1, s::e2, s::d2});
-        import_fen(&board, "rnb1kbnr/pppp1ppp/6q1/8/8/8/PPP4P/RNB1K2R w KQkq - 0 1");
+        board.import_fen("rnb1kbnr/pppp1ppp/6q1/8/8/8/PPP4P/RNB1K2R w KQkq - 0 1");
         generate_and_sort_white_king(board, s::e1, v);
         CHECK(v == std::vector<Square>{s::f1, s::d1, s::f2, s::e2, s::d2});
-        import_fen(&board, "rnb1kbnr/pppp1ppp/6q1/8/8/8/PPP4P/RNB1K2R w KQkq - 0 1");
+        board.import_fen("rnb1kbnr/pppp1ppp/6q1/8/8/8/PPP4P/RNB1K2R w KQkq - 0 1");
         generate_and_sort_white_king(board, s::e1, v);
         CHECK(v == std::vector<Square>{s::f1, s::d1, s::f2, s::e2, s::d2});
-        import_fen(&board, "rnb1kbnr/pppp1ppp/8/8/8/8/PPP4P/RNB1K2R w KQkq - 0 1");
+        board.import_fen("rnb1kbnr/pppp1ppp/8/8/8/8/PPP4P/RNB1K2R w KQkq - 0 1");
         generate_and_sort_white_king(board, s::e1, v);
         CHECK(v == std::vector<Square>{s::g1, s::f1, s::d1, s::f2, s::e2, s::d2});
-        import_fen(&board, "8/3p4/1p5r/5p1p/7K/8/8/8 w - - 0 1");
+        board.import_fen("8/3p4/1p5r/5p1p/7K/8/8/8 w - - 0 1");
         generate_and_sort_white_king(board, s::h4, v);
         CHECK(v == std::vector<Square>{s::h3, s::g3, s::g5});
-        import_fen(&board, "8/3p4/1p5r/5p1p/5K2/8/8/8 w - - 0 1");
+        board.import_fen("8/3p4/1p5r/5p1p/5K2/8/8/8 w - - 0 1");
         generate_and_sort_white_king(board, s::f4, v);
         CHECK(v == std::vector<Square>{s::g3, s::f3, s::e3, s::g5, s::f5, s::e5});
-        import_fen(&board, "8/3p4/1p5r/5p1p/3K4/8/8/8 w - - 0 1");
+        board.import_fen("8/3p4/1p5r/5p1p/3K4/8/8/8 w - - 0 1");
         generate_and_sort_white_king(board, s::d4, v);
         CHECK(v == std::vector<Square>{s::e3, s::d3, s::c3, s::c4, s::e5, s::d5});
-        import_fen(&board, "8/3p4/1p5r/5p1p/1K6/8/8/8 w - - 0 1");
+        board.import_fen("8/3p4/1p5r/5p1p/1K6/8/8/8 w - - 0 1");
         generate_and_sort_white_king(board, s::b4, v);
         CHECK(v == std::vector<Square>{s::c3, s::b3, s::a3, s::c4, s::a4, s::b5});
     }SECTION("black") {
-        import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        board.import_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         generate_and_sort_black_king(board, s::e8, v);
         CHECK(v == std::vector<Square>{});
-        import_fen(&board, "rnbqkb1r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        board.import_fen("rnbqkb1r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         generate_and_sort_black_king(board, s::e8, v);
         CHECK(v == std::vector<Square>{});
-        import_fen(&board, "rnbqk2r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        board.import_fen("rnbqk2r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         generate_and_sort_black_king(board, s::e8, v);
         CHECK(v == std::vector<Square>{s::g8, s::f8});
-        import_fen(&board, "rnbqk1nr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        board.import_fen("rnbqk1nr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         generate_and_sort_black_king(board, s::e8, v);
         CHECK(v == std::vector<Square>{s::f8});
-        import_fen(&board, "rn1qkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        board.import_fen("rn1qkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         generate_and_sort_black_king(board, s::e8, v);
         CHECK(v == std::vector<Square>{});
-        import_fen(&board, "rn2kbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        board.import_fen("rn2kbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         generate_and_sort_black_king(board, s::e8, v);
         CHECK(v == std::vector<Square>{s::d8, s::c8});
-        import_fen(&board, "rnb1kbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        board.import_fen("rnb1kbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         generate_and_sort_black_king(board, s::e8, v);
         CHECK(v == std::vector<Square>{s::d8});
-        import_fen(&board, "rnbqkbnr/pppp1ppp/8/8/8/8/PPPPQPPP/RNB1KBNR w KQkq - 0 1");
+        board.import_fen("rnbqkbnr/pppp1ppp/8/8/8/8/PPPPQPPP/RNB1KBNR w KQkq - 0 1");
         generate_and_sort_black_king(board, s::e8, v);
         CHECK(v == std::vector<Square>{});
-        import_fen(&board, "rnb1k2r/ppp4p/8/8/8/5Q2/PPPP1PPP/RNB1KBNR w KQkq - 0 1");
+        board.import_fen("rnb1k2r/ppp4p/8/8/8/5Q2/PPPP1PPP/RNB1KBNR w KQkq - 0 1");
         generate_and_sort_black_king(board, s::e8, v);
         CHECK(v == std::vector<Square>{s::e7, s::d7, s::d8});
-        import_fen(&board, "rnb1k2r/ppp4p/8/8/8/6Q1/PPPP1PPP/RNB1KBNR w KQkq - 0 1");
+        board.import_fen("rnb1k2r/ppp4p/8/8/8/6Q1/PPPP1PPP/RNB1KBNR w KQkq - 0 1");
         generate_and_sort_black_king(board, s::e8, v);
         CHECK(v == std::vector<Square>{s::f7, s::e7, s::d7, s::f8, s::d8});
-        import_fen(&board, "rnb1k2r/ppp4p/8/8/8/8/PPPP1PPP/RNB1KBNR w KQkq - 0 1");
+        board.import_fen("rnb1k2r/ppp4p/8/8/8/8/PPPP1PPP/RNB1KBNR w KQkq - 0 1");
         generate_and_sort_black_king(board, s::e8, v);
         CHECK(v == std::vector<Square>{s::f7, s::e7, s::d7, s::g8, s::f8, s::d8});
-        import_fen(&board, "8/8/8/7k/7P/1P3P1R/3P4/8 w - - 0 1");
+        board.import_fen("8/8/8/7k/7P/1P3P1R/3P4/8 w - - 0 1");
         generate_and_sort_black_king(board, s::h5, v);
         CHECK(v == std::vector<Square>{s::h6, s::g6});
-        import_fen(&board, "8/8/8/5k2/7P/1P3P1R/3P4/8 w - - 0 1");
+        board.import_fen("8/8/8/5k2/7P/1P3P1R/3P4/8 w - - 0 1");
         generate_and_sort_black_king(board, s::f5, v);
         CHECK(v == std::vector<Square>{s::f4, s::e5, s::g6, s::f6, s::e6});
-        import_fen(&board, "8/8/8/3k4/7P/1P3P1R/3P4/8 w - - 0 1");
+        board.import_fen("8/8/8/3k4/7P/1P3P1R/3P4/8 w - - 0 1");
         generate_and_sort_black_king(board, s::d5, v);
         CHECK(v == std::vector<Square>{s::d4, s::e5, s::c5, s::e6, s::d6, s::c6});
-        import_fen(&board, "8/8/8/8/1k5P/1P3P1R/3P4/8 w - - 0 1");
+        board.import_fen("8/8/8/8/1k5P/1P3P1R/3P4/8 w - - 0 1");
         generate_and_sort_black_king(board, s::b4, v);
         CHECK(v == std::vector<Square>{s::b3, s::a3, s::c5, s::b5, s::a5});
     }
@@ -347,7 +346,7 @@ TEST_CASE("legal moves king")
 
 TEST_CASE("startpos")
 {
-    import_fen(&board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    board.import_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     board.update_move_maps();
     board.print_move_map(Color::white);
     std::cout << "\n";

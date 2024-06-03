@@ -1,7 +1,6 @@
 #include <catch2/catch_all.hpp>
 #include <iostream>
 #include "../src/Board.hpp"
-#include "../src/FEN.hpp"
 
 void generate_and_sort(Board& board, const Square& sq, std::vector<Square>& v)
 {
@@ -18,7 +17,7 @@ std::vector<Square> v;
 
 TEST_CASE("rook attack map")
 {
-    import_fen(&board, "R2R3R/1R6/2R5/R2RR3/3RR2R/5R2/6R1/R3R2R w - - 0 1");
+    board.import_fen( "R2R3R/1R6/2R5/R2RR3/3RR2R/5R2/6R1/R3R2R w - - 0 1");
     generate_and_sort(board, s::h1, v);
     CHECK(v == std::vector<Square>{s::g1, s::f1, s::e1, s::h2, s::h3, s::h4});
     generate_and_sort(board, s::e1, v);
@@ -59,7 +58,7 @@ TEST_CASE("rook attack map")
 
 TEST_CASE("bishop attack map")
 {
-    import_fen(&board, "B2B3B/3B4/3B4/3BB2B/B2BB3/4B3/4B3/B3B2B w - - 0 1");
+    board.import_fen( "B2B3B/3B4/3B4/3BB2B/B2BB3/4B3/4B3/B3B2B w - - 0 1");
     generate_and_sort(board, s::h1, v);
     CHECK(v == std::vector<Square>{s::g2, s::f3, s::e4});
     generate_and_sort(board, s::e1, v);
@@ -96,7 +95,7 @@ TEST_CASE("bishop attack map")
 
 TEST_CASE("queen attack map")
 {
-    import_fen(&board, "Q2Q3Q/8/8/Q2Q4/4Q2Q/8/8/Q3Q2Q w - - 0 1");
+    board.import_fen( "Q2Q3Q/8/8/Q2Q4/4Q2Q/8/8/Q3Q2Q w - - 0 1");
     generate_and_sort(board, s::h1, v);
     CHECK(v == std::vector<Square>{s::g1, s::f1, s::e1, s::h2, s::g2, s::h3, s::f3, s::h4, s::e4});
     generate_and_sort(board, s::e1, v);
@@ -129,7 +128,7 @@ TEST_CASE("queen attack map")
 
 TEST_CASE("attack map knight")
 {
-    import_fen(&board, "NN1N2NN/NN2N1NN/8/N3N1N1/1N5N/8/NN1N2NN/NN2N1NN w - - 0 1");
+    board.import_fen( "NN1N2NN/NN2N1NN/8/N3N1N1/1N5N/8/NN1N2NN/NN2N1NN w - - 0 1");
     // center 4x4
     generate_and_sort(board, s::e5, v);
     CHECK(v == std::vector<Square>{s::f3, s::d3, s::g4, s::c4, s::g6, s::c6, s::f7, s::d7});
@@ -197,7 +196,7 @@ TEST_CASE("attack map knight")
 
 TEST_CASE("king attack map")
 {
-    import_fen(&board, "K2K3K/8/8/K5K1/1K2K2K/8/8/K3K2K w - - 0 1");
+    board.import_fen( "K2K3K/8/8/K5K1/1K2K2K/8/8/K3K2K w - - 0 1");
     generate_and_sort(board, s::h1, v);
     CHECK(v == std::vector<Square>{s::g1, s::h2, s::g2});
     generate_and_sort(board, s::e1, v);
@@ -224,7 +223,7 @@ TEST_CASE("king attack map")
 
 TEST_CASE("pawn attack map")
 {
-    import_fen(&board, "8/p2p3p/8/8/8/8/P3P2P/8 w - - 0 1");
+    board.import_fen( "8/p2p3p/8/8/8/8/P3P2P/8 w - - 0 1");
     generate_and_sort(board, s::h2, v);
     CHECK(v == std::vector<Square>{s::g3});
     generate_and_sort(board, s::e2, v);

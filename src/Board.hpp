@@ -245,9 +245,6 @@ struct Game_State {
     uint full_move_number = 1;  // starts at 1, increments after black moves
 };
 
-// END Game_State
-//----------------------------------------------------------------------------------------------------------------------
-
 /**
  * @brief Returns the castling ability of the game state in Forsyth-Edwards Notation (FEN).
  * @return A string representing the castling ability in FEN notation.
@@ -272,11 +269,7 @@ std::string Game_State::fen_castling_ability() const
  */
 std::string Game_State::fen_en_passant_targets() const
 {
-    // FEN records the square just behind any pawn that has made a two-square push forward in the latest move.
-    // As such, whenever a pawn makes a two-square move, the en passant square is recorded.
-    // IMPORTANT en passant possibility is recorded WHENEVER a pawn moves two squares
-    // and is only valid for the opponent's next move.
-
+    // TODO movement - record en passant target when pawn moves two
     return en_passant_target.empty() ? "-" : en_passant_target;
 }
 
@@ -288,7 +281,6 @@ std::string Game_State::fen_en_passant_targets() const
  */
 std::string Game_State::fen_half_move_clock() const
 {
-    // half move clock: number of half moves since the last capture or pawn advance, used for the fifty move rule
     return std::to_string(half_move_clock);
 }
 
@@ -300,7 +292,6 @@ std::string Game_State::fen_half_move_clock() const
  */
 std::string Game_State::fen_full_move_number() const
 {
-    // full move number: number of full moves. Starts at 1 and increments after blacks move.
     return std::to_string(full_move_number);
 }
 
@@ -340,6 +331,8 @@ void Game_State::set_castling_ability(const std::string& s)
 
 // END Game_State
 //----------------------------------------------------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------------------------------------------------
 // BEGIN Board
 
 /**
@@ -354,6 +347,9 @@ struct Board {
     // should it return something?
     char what_piece(uint sq) const;
     std::vector<Square> influence(Square sq);
+
+    void import_fen(const std::string& fen);
+    std::string export_fen();
 
     uint64_t b_pawn = 0b00000000'11111111'00000000'00000000'00000000'00000000'00000000'00000000;
     uint64_t b_night = 0b01000010'00000000'00000000'00000000'00000000'00000000'00000000'00000000;
@@ -1564,6 +1560,81 @@ void Board::update_move_maps()
 }
 
 // END update move maps
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN FEN
+
+/**
+ * @brief Export the current state of the board as FEN (Forsyth–Edwards Notation) string.
+ * @details
+ * 1. piece placement \n
+ * 2. active color \n
+ * 3. castling ability '-' if neither side has the ability \n
+ * 4. en passant target squares '-' if there are no target squares \n
+ * 5. half move clock, for fifty move rule
+ * 6. full move number
+ * @param board Pointer to the board object.
+ * @return std::string Returns the FEN string representing the board state.
+ */
+std::string Board::export_fen()
+{
+    std::string fen;    // string to be exported
+    fen += fen_piece_placement();
+    fen += ' ';
+    fen += game_state.fen_active_color();
+    fen += ' ';
+    fen += game_state.fen_castling_ability();
+    fen += ' ';
+    fen += game_state.fen_en_passant_targets();
+    fen += ' ';
+    fen += game_state.fen_half_move_clock();
+    fen += ' ';
+    fen += game_state.fen_full_move_number();
+    return fen;
+}
+
+/**
+ * Sets the board from a given FEN string.
+ * @param board  A pointer to the Board object.
+ * @param fen    The FEN string to import.
+ */
+// TODO check if fen is valid before/during import
+void Board::import_fen(const std::string& fen)
+{
+    std::string game_state_string;
+    std::string temp;
+
+    // clear the board
+    clear();
+
+    // set pieces and create game state string
+    game_state_string = fen.substr(set_pieces(fen));
+
+    // set games state variables
+    std::istringstream iss(game_state_string);
+
+    // create variables
+    char active_color;
+    std::string castling_ability;
+    std::string en_passant_target;
+    uint half_move_clock;
+    uint full_move_number;
+
+    // gather data
+    iss >> active_color >> castling_ability >> en_passant_target >> half_move_clock >> full_move_number;
+
+    // assign to board variables
+    // active color
+    active_color == 'w' ?
+            game_state.active_color_clock = 0 : game_state.active_color_clock = 1;
+
+    // castling ability
+    game_state.set_castling_ability(castling_ability);
+    game_state.en_passant_target = en_passant_target;
+    game_state.half_move_clock = half_move_clock;
+    game_state.full_move_number = full_move_number;
+}
+
+// END FEN
 //----------------------------------------------------------------------------------------------------------------------
 
 void Board::print_move_map(Color color) const
