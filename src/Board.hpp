@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <algorithm>
 
 // TODO make helper methods private for organization
 // TODO pawn promotion
@@ -378,6 +379,10 @@ struct Board {
     std::unordered_map<Square, std::vector<Square>> influence_map_black{};      // all black influence
     std::unordered_map<Square, Square> pinned_pieces_white{};                     // {pinned piece, pinning piece}
     std::unordered_map<Square, Square> pinned_pieces_black{};                     // {pinned piece, pinning piece}
+    // {square, squares in pinned lane}
+    std::unordered_map<Square, std::vector<Square>> pinned_piece_lane_map_white{};
+    // {square, squares in pinned lane}
+    std::unordered_map<Square, std::vector<Square>> pinned_piece_lane_map_black{};
 
     // map character code to bitboard
     std::unordered_map<char, uint64_t&> piece_map = {
@@ -434,6 +439,10 @@ struct Board {
     bool is_in_same_column(Square sq1, Square sq2);
     static bool is_in_same_diagonal_left_right(Square sq1, Square sq2);
     static bool is_in_same_diagonal_right_left(Square sq1, Square sq2);
+    bool is_in_same_row(Square sq1, Square sq2, Square sq3);
+    bool is_in_same_column(Square sq1, Square sq2, Square sq3);
+    static bool is_in_same_diagonal_left_right(Square sq1, Square sq2, Square sq3);
+    static bool is_in_same_diagonal_right_left(Square sq1, Square sq2, Square sq3);
 
     // fen
     // fen out
@@ -463,7 +472,7 @@ struct Board {
     Square pinned_piece_bishop(Square sq) const;
     Square pinned_piece_queen(Square sq) const;
     Square pinned_piece(Square sq) const;
-    void update_pinned_pieces();
+    void update_pinned_pieces(const Square& square_K, const Square& square_k);
 
     // influence reduction
     std::vector<Square> update_white_king_moves(Square square_K);
@@ -514,13 +523,6 @@ void Board::place_piece(Square square, const char& ch)
         }
     }
 }
-
-bool is_piece(const char& ch)
-{
-    return ch == 'p' || ch == 'n' || ch == 'b' || ch == 'r' || ch == 'q' || ch == 'k' ||
-            ch == 'P' || ch == 'N' || ch == 'B' || ch == 'R' || ch == 'Q' || ch == 'K';
-}
-
 
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -779,6 +781,26 @@ bool Board::is_in_same_diagonal_right_left(Square sq1, Square sq2)
     return false;
 }
 
+bool Board::is_in_same_row(Square sq1, Square sq2, Square sq3)
+{
+    return is_in_same_row(sq1, sq2) && is_in_same_row(sq2, sq3);
+}
+
+bool Board::is_in_same_column(Square sq1, Square sq2, Square sq3)
+{
+    return is_in_same_column(sq1, sq2) && is_in_same_column(sq2, sq3);
+}
+
+bool Board::is_in_same_diagonal_left_right(Square sq1, Square sq2, Square sq3)
+{
+    return is_in_same_diagonal_left_right(sq1, sq2) && is_in_same_diagonal_left_right(sq2, sq3);
+}
+
+bool Board::is_in_same_diagonal_right_left(Square sq1, Square sq2, Square sq3)
+{
+    return is_in_same_diagonal_right_left(sq1, sq2) && is_in_same_diagonal_right_left(sq2, sq3);
+}
+
 // END piece detection
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN FEN
@@ -859,6 +881,12 @@ std::string Board::export_fen() const
     fen += ' ';
     fen += game_state.fen_full_move_number();
     return fen;
+}
+
+bool is_piece(const char& ch)
+{
+    return ch == 'p' || ch == 'n' || ch == 'b' || ch == 'r' || ch == 'q' || ch == 'k' ||
+            ch == 'P' || ch == 'N' || ch == 'B' || ch == 'R' || ch == 'Q' || ch == 'K';
 }
 
 /**
@@ -1534,11 +1562,13 @@ Square Board::pinned_piece(Square sq) const
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN update pinned pieces
 
-void Board::update_pinned_pieces()
+void Board::update_pinned_pieces(const Square& square_K, const Square& square_k)
 {
     // reset the maps
     pinned_pieces_white.clear();
     pinned_pieces_black.clear();
+    pinned_piece_lane_map_white.clear();
+    pinned_piece_lane_map_black.clear();
 
     for (Square square = Square::a8; square >= Square::h1; --square) {
         // white moves
@@ -1749,13 +1779,12 @@ void Board::update_move_maps()
     // update influence maps
     update_influence_maps();
 
-    // TODO remove moves that would result in discovered check
-    // update pinned pieces
-    update_pinned_pieces();
-
     // assign from influence maps exclude pawns and kings
     Square square_K = assign_from_influence_map_exclude_pawns_and_kings(&move_map_white, &influence_map_white);
     Square square_k = assign_from_influence_map_exclude_pawns_and_kings(&move_map_black, &influence_map_black);
+
+    // update pinned pieces
+    update_pinned_pieces(square_K, square_k);
 
     // remove same colored squares (can't capture own pieces)
     remove_same_color_squares(&move_map_white, Color::white);
@@ -1890,6 +1919,38 @@ void Board::update_move_maps()
         // clear all moves except king evasion
         for (auto& pair : move_map_black) {
             if (!is_king(pair.first)) { pair.second.clear(); }
+        }
+    }
+
+    // pinned piece reduction
+    // white
+    for (const auto& [pinned, pinner] : pinned_pieces_white) {
+        for (auto& [key, squares] : move_map_white) {
+            if (key == pinned) {
+                std::vector<Square> temp{};
+                for (auto& square : squares) {
+                    if (is_in_same_row(square_K, pinner, square)) { temp.push_back(square); }
+                    if (is_in_same_column(square_K, pinner, square)) { temp.push_back(square); }
+                    if (is_in_same_diagonal_left_right(square_K, pinner, square)) { temp.push_back(square); }
+                    if (is_in_same_diagonal_right_left(square_K, pinner, square)) { temp.push_back(square); }
+                }
+                squares = temp;
+            }
+        }
+    }
+    // black
+    for (const auto& [pinned, pinner] : pinned_pieces_black) {
+        for (auto& [key, squares] : move_map_black) {
+            if (key == pinned) {
+                std::vector<Square> temp{};
+                for (auto& square : squares) {
+                    if (is_in_same_row(square_k, pinner, square)) { temp.push_back(square); }
+                    if (is_in_same_column(square_k, pinner, square)) { temp.push_back(square); }
+                    if (is_in_same_diagonal_left_right(square_k, pinner, square)) { temp.push_back(square); }
+                    if (is_in_same_diagonal_right_left(square_k, pinner, square)) { temp.push_back(square); }
+                }
+                squares = temp;
+            }
         }
     }
 }
