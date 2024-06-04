@@ -19,7 +19,7 @@ add_executable(scratch-test scratch.cxx)
 
 add_executable(evaluation-test evaluation-test.cxx)
 
-add_executable(tree-test tree-test.cxx)
+add_executable(search-test search-test.cxx)
 
 target_link_libraries(general-test PUBLIC
         /usr/local/lib/libCatch2Maind.a
@@ -53,6 +53,6 @@ target_link_libraries(evaluation-test PUBLIC
         /usr/local/lib/libCatch2Maind.a
         /usr/local/lib/libCatch2d.a)
 
-target_link_libraries(tree-test PUBLIC
+target_link_libraries(search-test PUBLIC
         /usr/local/lib/libCatch2Maind.a
         /usr/local/lib/libCatch2d.a)
