@@ -141,13 +141,13 @@ void Node::spawn(uint depth)
                 for (auto piece : promotions) {
                     Node *spawn = new Node(&_board, sq, move, piece);
                     _child.push_back(spawn);
-                    // if (detect_checkmate(&spawn->_board) != 0) { break; }   // i'm not sure what this does lol
+                    if (detect_checkmate(&spawn->_board) != 0) { return; }   // i'm not sure what this does lol
                 }
             }
             else {
                 Node *spawn = new Node(&_board, sq, move, 0);
                 _child.push_back(spawn);
-                // if (detect_checkmate(&spawn->_board) != 0) { break; }   // i'm not sure what this does lol
+                if (detect_checkmate(&spawn->_board) != 0) { return; }   // i'm not sure what this does lol
             }
         }
     }
