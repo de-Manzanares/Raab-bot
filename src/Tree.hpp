@@ -147,6 +147,42 @@ void Node::spawn(uint depth)
     }
 }
 
+struct Evaluator {
+    std::string best_move(const Node *n);
+    void best_line(const Node *n, uint depth);
+    Node *best_node;
+    std::string line{};
+};
+
+std::string Evaluator::best_move(const Node *n)
+{
+    std::string best_move;
+
+    bool maximizing = n->_board.game_state.active_color == Color::white;
+    double best_eval =
+            maximizing ? -std::numeric_limits<double>::infinity() : std::numeric_limits<double>::infinity();
+    for (const auto& c : n->_child) {
+        if (maximizing && c->_eval > best_eval || !maximizing && c->_eval < best_eval) {
+            best_eval = c->_eval;
+            best_move = c->_move;
+            best_node = c;
+        }
+    }
+    return best_move;
+}
+
+void Evaluator::best_line(const Node *n, uint depth)
+{
+    line.clear();
+    line += best_move(n);
+    line += ' ';
+    for (auto i = depth; i > 0; --i) {
+        line += best_move(best_node);
+        line += ' ';
+    }
+    std::cout << line;
+}
+
 // if it is white's turn, white is going to choose the highest number
 // if it is black's turn, black is going to choose the lowest number
 

@@ -58,13 +58,12 @@ TEST_CASE("spawn")
         n.spawn(1);
         CHECK(n._child.size() == 13);
         std::vector<std::string> path;
-        for (const auto& m : path) {
-            std::cout << m << " ";
-        }
-        std::cout << "\n";
+        Evaluator e;
+        std::cout << e.best_move(&n) << "\n";
     }SECTION("mate in two") {
         Node n("7k/5ppp/1P4p1/8/7K/8/8/8 w - - 0 1");
-        n.spawn(3);
-        std::cout << n.count_nodes() << "\n";
+        n.spawn(4);
+        Evaluator e;
+        e.best_line(&n, 4);
     }
 }
