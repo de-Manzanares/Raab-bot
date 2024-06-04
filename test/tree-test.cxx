@@ -42,12 +42,14 @@ TEST_CASE("spawn")
 {
     SECTION("checkmate") {
         Node n("1Q3k2/8/5K2/8/8/8/8/8 b - - 1 1");
-        n.spawn(1);
+        Tree t;
+        n.spawn(1, &t);
         CHECK(n._child.size() == 0);
     }SECTION("one possible move") {
         Node n("1Q4k1/7N/5K2/8/8/8/8/8 b - - 0 1");
         CHECK(n._eval == 12);
-        n.spawn(1);
+        Tree t;
+        n.spawn(1, &t);
         CHECK(n._eval == 12);
         CHECK(n._child.size() == 1);
         CHECK(n._child[0]->_board.export_fen() == "1Q6/7k/5K2/8/8/8/8/8 w - - 0 2");
@@ -55,15 +57,24 @@ TEST_CASE("spawn")
         CHECK(n._eval == 12);
     }SECTION("mate in one") {
         Node n("6k1/3PR3/4P1K1/8/8/8/8/8 w - - 0 1");
-        n.spawn(1);
+        Tree t;
+        n.spawn(1, &t);
         CHECK(n._child.size() == 13);
         std::vector<std::string> path;
         Evaluator e;
         std::cout << e.best_move(&n) << "\n";
-    }SECTION("mate in two") {
+    }
+}
+
+TEST_CASE("min max proper LOL")
+{
+    SECTION("mate in two") {
         Node n("7k/5ppp/1P4p1/8/7K/8/8/8 w - - 0 1");
-        n.spawn(4);
+        Tree t;
         Evaluator e;
-        e.best_line(&n, 4);
+        n.spawn(1, &t);
+        t.rings;
+        // std::vector<Node *> path = min_max(t.rings, 4);
+        // print_nodes(path);
     }
 }

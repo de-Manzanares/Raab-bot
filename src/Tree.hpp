@@ -4,6 +4,11 @@
 #include "Board.hpp"
 #include "Evaluator.hpp"
 
+struct Node;
+struct Tree {
+    std::vector<std::vector<Node *>> rings{};
+};
+
 std::unordered_map<char, int> material_value = {
         {'Q', 900},
         {'q', -900},
@@ -73,7 +78,7 @@ struct Node {
     std::vector<Node *> _child{};
     uint count_nodes();
 
-    void spawn(uint depth);
+    void spawn(uint depth, Tree *tree);
 };
 
 Node::Node()
@@ -118,9 +123,15 @@ uint Node::count_nodes()
     return count;
 }
 
-void Node::spawn(uint depth)
+
+
+// todo untangle later
+
+void Node::spawn(uint depth, Tree *tree)
 {
     if (depth == 0) { return; }
+
+    std::vector<Node *> temp{};
 
     for (const auto& [sq, moves] :
             _board.game_state.active_color == Color::white ?
@@ -132,18 +143,22 @@ void Node::spawn(uint depth)
                 for (auto piece : promotions) {
                     Node *spawn = new Node(&_board, sq, move, piece);
                     _child.push_back(spawn);
+                    temp.push_back(spawn);
                 }
             }
             else {
                 Node *spawn = new Node(&_board, sq, move, 0);
                 _child.push_back(spawn);
+                temp.push_back(spawn);
             }
         }
     }
+    // populate rings
+    tree->rings.push_back(temp);
     // assign parent node
     for (auto& n : _child) {
         n->parent = this;
-        n->spawn(depth - 1);
+        n->spawn(depth - 1, tree);
     }
 }
 
@@ -182,6 +197,56 @@ void Evaluator::best_line(const Node *n, uint depth)
     }
     std::cout << line;
 }
+
+Node *max(std::vector<Node *> v)
+{
+    Node *max_node;
+    double max = -std::numeric_limits<double>::infinity();
+    for (const auto& n : v) {
+        if (n->_eval > max) {
+            max = n->_eval;
+            max_node = n;
+        }
+    }
+    return max_node;
+}
+
+Node *min(std::vector<Node *> v)
+{
+    Node *min_node;
+    double min = std::numeric_limits<double>::infinity();
+    for (const auto& n : v) {
+        if (n->_eval < min) {
+            min = n->_eval;
+            min_node = n;
+        }
+    }
+    return min_node;
+}
+
+std::vector<Node *> min_max(std::vector<std::vector<Node *>> v, uint depth)
+{
+    std::vector<Node *> path;
+    Color c = v[v.size() - 1][0]->_board.game_state.active_color;
+
+    for (auto i = depth - 1; depth >= 0; depth--) {
+        if (c == Color::white) { path.push_back(max(v[i])); }
+        else if (c == Color::black) { path.push_back(min(v[i])); }
+        // switch turn
+        !c;
+    }
+    return path;
+}
+
+void print_nodes(std::vector<Node *> path)
+{
+    std::reverse(path.begin(), path.end());
+    for (const auto& n : path) {
+        std::cout << n->_move << " ";
+    }
+    std::cout << "\n";
+}
+
 
 // if it is white's turn, white is going to choose the highest number
 // if it is black's turn, black is going to choose the lowest number
