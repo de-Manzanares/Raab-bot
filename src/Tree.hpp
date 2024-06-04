@@ -60,14 +60,15 @@ double eval(const Board *board)
 
 struct Node {
     Node();
-    Node(const std::string fen);
-    Node(Board board, Square from, Square to, char ch);
+    explicit Node(const std::string& fen);
+    Node(const Board *board, Square from, Square to, char ch);
 
     ~Node();
 
     std::string _move{};
     Node *parent{};
     Board _board{};
+    Board _board_copy{};
     double _eval{};
     std::vector<Node *> _child{};
     uint count_nodes();
@@ -81,16 +82,16 @@ Node::Node()
     _eval = eval(&_board);
 }
 
-Node::Node(const std::string fen)
+Node::Node(const std::string& fen)
 {
     _board.import_fen(fen);
     _board.update_move_maps();
     _eval = eval(&_board);
 }
 
-Node::Node(Board board, Square from, Square to, char ch)
+Node::Node(const Board *board, Square from, Square to, char ch)
 {
-    _board = board;
+    _board = *board;
     _board.move(from, to, 0);
     _board.update_move_maps();
     _eval = eval(&_board);
@@ -105,35 +106,6 @@ Node::~Node()
     }
 }
 
-void Node::spawn(uint depth)
-{
-    if (depth == 0) { return; }
-
-    for (const auto& [sq, moves] :
-            _board.game_state.active_color == Color::white ? _board.move_map_white : _board.move_map_black) {
-        for (const auto& move : moves) {
-            if ((_board.is_in_row(move) == 8 && _board.is_white_pawn(sq))
-                    || _board.is_in_row(move) == 1 && _board.is_black_pawn(sq)) {
-                std::vector<char> promotions{'q', 'r', 'b', 'n'};
-                for (auto piece : promotions) {
-                    Node *spawn = new Node(_board, sq, move, piece);
-                    _child.push_back(spawn);
-                }
-            }
-            else {
-                Node *spawn = new Node(_board, sq, move, 0);
-                _child.push_back(spawn);
-            }
-        }
-    }
-
-    // assign parent node
-    for (auto& n : _child) {
-        n->parent = this;
-        n->spawn(depth - 1);
-    }
-}
-
 uint Node::count_nodes()
 {
     uint count = _child.size();
@@ -143,29 +115,23 @@ uint Node::count_nodes()
     return count;
 }
 
-std::vector<std::string> min_max(const Node *root, uint depth)
+void Node::spawn(uint depth)
 {
-    std::vector<std::string> path;
+    if (depth == 0) { return; }
 
-    // TODO deal with tied evaluations
-
-    bool maximizing = root->_board.game_state.active_color == Color::white;
-    double best_eval = (maximizing ?
-                        -std::numeric_limits<double>::infinity() : std::numeric_limits<double>::infinity());
-    std::string best_move;
-    std::vector<std::string> best_path;
-
-    for (const auto& child : root->_child) {
-        double child_eval = child->_eval;
-
-        if ((maximizing && child_eval > best_eval)
-                || !maximizing && child_eval < best_eval) {
-            best_eval = child_eval;
-            best_move = child->_move;
+    for (const auto& [sq, moves] :
+            this->_board.game_state.active_color == Color::white ?
+            this->_board.move_map_white : this->_board.move_map_black) {
+        for (const auto& move : moves) {
+            Node *spawn = new Node(&this->_board, sq, move, 0);
+            _child.push_back(spawn);
         }
     }
-    path.push_back(best_move);
-    return path;
+    // assign parent node
+    for (auto& n : _child) {
+        n->parent = this;
+        n->spawn(depth - 1);
+    }
 }
 
 // if it is white's turn, white is going to choose the highest number

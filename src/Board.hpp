@@ -254,6 +254,7 @@ Color& operator!(Color& color)
  * half move clock, and full move number.
  */
 struct Game_State {
+    Game_State& operator=(const Game_State& rhs);
 
     [[nodiscard]] char fen_active_color() const { return active_color == Color::white ? 'w' : 'b'; }
 
@@ -366,6 +367,20 @@ void Game_State::set_castling_ability(const std::string& s)
     }
 }
 
+Game_State& Game_State::operator=(const Game_State& rhs)
+{
+    active_color = rhs.active_color;
+    castle_K = rhs.castle_K;
+    castle_Q = rhs.castle_Q;
+    castle_k = rhs.castle_k;
+    castle_q = rhs.castle_q;
+    en_passant_target = rhs.en_passant_target;
+    half_move_clock = rhs.half_move_clock;
+    full_move_number = rhs.full_move_number;
+
+    return *this;
+}
+
 // END Game_State
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Board
@@ -375,7 +390,7 @@ void Game_State::set_castling_ability(const std::string& s)
  * @details Stores all relevant game-state data and enforces rules
  */
 struct Board {
-
+    Board& operator=(const Board& rhs);
     // bitboards
     uint64_t b_pawn = 0b00000000'11111111'00000000'00000000'00000000'00000000'00000000'00000000;
     uint64_t b_night = 0b01000010'00000000'00000000'00000000'00000000'00000000'00000000'00000000;
@@ -519,6 +534,36 @@ struct Board {
 };
 
 // END Board
+
+Board& Board::operator=(const Board& rhs)
+{
+    b_pawn = rhs.b_pawn;
+    b_night = rhs.b_night;
+    b_bishop = rhs.b_bishop;
+    b_rook = rhs.b_rook;
+    b_queen = rhs.b_queen;
+    b_king = rhs.b_king;
+    w_Pawn = rhs.w_Pawn;
+    w_Night = rhs.w_Night;
+    w_Bishop = rhs.w_Bishop;
+    w_Rook = rhs.w_Rook;
+    w_Queen = rhs.w_Queen;
+    w_King = rhs.w_King;
+
+    game_state = rhs.game_state;
+
+    move_map_white = rhs.move_map_white;
+    move_map_black = rhs.move_map_black;
+    influence_map_white = rhs.influence_map_white;
+    influence_map_black = rhs.influence_map_black;
+    pinned_pieces_white = rhs.pinned_pieces_white;
+    pinned_pieces_black = rhs.pinned_pieces_black;
+
+    pinned_piece_lane_map_white = rhs.pinned_piece_lane_map_white;
+    pinned_piece_lane_map_black = rhs.pinned_piece_lane_map_black;
+
+    return *this;
+}
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN clear
 
