@@ -2,7 +2,6 @@
 #define CHESSENGINE_TREE_HPP
 
 #include "Board.hpp"
-#include "Evaluator.hpp"
 
 struct Node;
 struct Tree {
@@ -78,7 +77,7 @@ struct Node {
     std::vector<Node *> _child{};
     uint count_nodes();
 
-    void spawn(uint depth, Tree *tree);
+    void spawn(uint depth);
 };
 
 Node::Node()
@@ -127,15 +126,14 @@ uint Node::count_nodes()
 
 // todo untangle later
 
-void Node::spawn(uint depth, Tree *tree)
+void Node::spawn(uint depth)
 {
     if (depth == 0) { return; }
-
-    std::vector<Node *> temp{};
 
     for (const auto& [sq, moves] :
             _board.game_state.active_color == Color::white ?
             _board.move_map_white : _board.move_map_black) {
+
         for (const auto& move : moves) {
             if ((_board.is_in_row(move) == 8 && _board.is_white_pawn(sq))
                     || _board.is_in_row(move) == 1 && _board.is_black_pawn(sq)) {
@@ -143,22 +141,21 @@ void Node::spawn(uint depth, Tree *tree)
                 for (auto piece : promotions) {
                     Node *spawn = new Node(&_board, sq, move, piece);
                     _child.push_back(spawn);
-                    temp.push_back(spawn);
+                    // if (detect_checkmate(&spawn->_board) != 0) { break; }   // i'm not sure what this does lol
                 }
             }
             else {
                 Node *spawn = new Node(&_board, sq, move, 0);
                 _child.push_back(spawn);
-                temp.push_back(spawn);
+                // if (detect_checkmate(&spawn->_board) != 0) { break; }   // i'm not sure what this does lol
             }
         }
     }
     // populate rings
-    tree->rings.push_back(temp);
     // assign parent node
     for (auto& n : _child) {
         n->parent = this;
-        n->spawn(depth - 1, tree);
+        n->spawn(depth - 1);
     }
 }
 

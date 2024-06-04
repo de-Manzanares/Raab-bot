@@ -1,6 +1,6 @@
 #include <catch2/catch_all.hpp>
 #include <iostream>
-#include "../src/Evaluator.hpp"
+#include "../src/tree.hpp"
 #include "../src/Board.hpp"
 
 Board board;
