@@ -29,5 +29,11 @@ TEST_CASE("simple evaluation")
     board.import_fen("r4k2/1pp3pp/4Q3/p5N1/8/2PP3P/1Pn2RP1/1K1R4 b - - 2 26");
     board.update_move_maps();
     CHECK(eval(&board) == 1000);
+}
 
+TEST_CASE("bruh")
+{
+    board.import_fen("1Q4k1/8/6K1/8/8/8/8/8 b - - 1 1");
+    board.update_move_maps();
+    CHECK(eval(&board) == 1000);
 }
