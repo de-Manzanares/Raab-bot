@@ -92,10 +92,13 @@ Node::Node(const std::string& fen)
 Node::Node(const Board *board, Square from, Square to, char ch)
 {
     _board = *board;
-    _board.move(from, to, 0);
+    _board.move(from, to, ch);
     _board.update_move_maps();
     _eval = eval(&_board);
     _move += square_to_string(from) += square_to_string(to);
+    if (ch != 0) {
+        _move += ch;
+    }
 }
 
 Node::~Node()
@@ -120,11 +123,21 @@ void Node::spawn(uint depth)
     if (depth == 0) { return; }
 
     for (const auto& [sq, moves] :
-            this->_board.game_state.active_color == Color::white ?
-            this->_board.move_map_white : this->_board.move_map_black) {
+            _board.game_state.active_color == Color::white ?
+            _board.move_map_white : _board.move_map_black) {
         for (const auto& move : moves) {
-            Node *spawn = new Node(&this->_board, sq, move, 0);
-            _child.push_back(spawn);
+            if ((_board.is_in_row(move) == 8 && _board.is_white_pawn(sq))
+                    || _board.is_in_row(move) == 1 && _board.is_black_pawn(sq)) {
+                std::vector<char> promotions{'q', 'r', 'b', 'n'};
+                for (auto piece : promotions) {
+                    Node *spawn = new Node(&_board, sq, move, piece);
+                    _child.push_back(spawn);
+                }
+            }
+            else {
+                Node *spawn = new Node(&_board, sq, move, 0);
+                _child.push_back(spawn);
+            }
         }
     }
     // assign parent node

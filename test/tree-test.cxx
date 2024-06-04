@@ -55,11 +55,16 @@ TEST_CASE("spawn")
         CHECK(n._eval == 12);
     }SECTION("mate in one") {
         Node n("6k1/3PR3/4P1K1/8/8/8/8/8 w - - 0 1");
-        n._board.print_move_map(Color::white);
         n.spawn(1);
-        CHECK(n._child.size() == 10);
-        for (const auto& c : n._child) {
-            std::cout << c->_move << " : " << c->_eval << "\n";
+        CHECK(n._child.size() == 13);
+        std::vector<std::string> path;
+        for (const auto& m : path) {
+            std::cout << m << " ";
         }
+        std::cout << "\n";
+    }SECTION("mate in two") {
+        Node n("7k/5ppp/1P4p1/8/7K/8/8/8 w - - 0 1");
+        n.spawn(3);
+        std::cout << n.count_nodes() << "\n";
     }
 }
