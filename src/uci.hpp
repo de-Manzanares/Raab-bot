@@ -7,6 +7,7 @@
 
 void string_to_move(const std::string *string, Square *from, Square *to, char *ch);
 
+// TODO set up opening book
 uint D = 2;   // depth
 double neg_inf = -std::numeric_limits<double>::infinity();
 double pos_inf = std::numeric_limits<double>::infinity();
@@ -68,6 +69,12 @@ void uci::loop()
         }
         if (in.find("go") != std::string::npos) {
             //start calculating for current position
+            if (n->_board.move_map_white.size() + n->_board.move_map_black.size() <= 26) { D = 3; }
+            if (n->_board.move_map_white.size() + n->_board.move_map_black.size() <= 22) { D = 4; }
+            if (n->_board.move_map_white.size() + n->_board.move_map_black.size() <= 18) { D = 6; }
+            if (n->_board.move_map_white.size() + n->_board.move_map_black.size() <= 14) { D = 8; }
+            if (n->_board.move_map_white.size() + n->_board.move_map_black.size() <= 10) { D = 10; }
+            if (n->_board.move_map_white.size() + n->_board.move_map_black.size() <= 6) { D = 12; }
             n->spawn(D);
             std::vector<Node *> opt_nodes{min_max(n, D, neg_inf, pos_inf, is_maxing(n))};
             opt_nodes[0]->spawn(D);

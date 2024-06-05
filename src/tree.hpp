@@ -4,7 +4,14 @@
 #include <limits>
 #include "Board.hpp"
 
+// TODO add castling bonus
+// TODO discourage early queen movement
+// TODO move params up top for easy access ...
+// TODO include influence as well as legal moves
+
 struct Node;
+double discourage_early_queen_movement(const Node *node);
+
 struct Tree {
     std::vector<std::vector<Node *>> rings{};
 };
@@ -97,6 +104,8 @@ struct Node {
 
     ~Node();
 
+    Square _from;
+    Square _to;
     std::string _move{};
     Node *parent{};
     Board _board{};
@@ -113,22 +122,24 @@ struct Node {
 Node::Node()
 {
     _board.update_move_maps();
-    _eval = eval(&_board);
+    _eval = eval(&_board) + discourage_early_queen_movement(this);
 }
 
 Node::Node(const std::string& fen)
 {
     _board.import_fen(fen);
     _board.update_move_maps();
-    _eval = eval(&_board);
+    _eval = eval(&_board) + discourage_early_queen_movement(this);
 }
 
 Node::Node(const Board *board, Square from, Square to, char ch)
 {
     _board = *board;
+    _from = from;
+    _to = to;
     _board.move(from, to, ch);
     _board.update_move_maps();
-    _eval = eval(&_board);
+    _eval = eval(&_board) + discourage_early_queen_movement(this);
     _move += square_to_string(from) += square_to_string(to);
     if (ch != 0) {
         _move += ch;
@@ -282,6 +293,24 @@ void print_nodes(std::vector<Node *> path)
         std::cout << n->_move << " ";
     }
     std::cout << "\n";
+}
+
+double discourage_early_queen_movement(const Node *node)
+{
+    double score = 0;
+    if (node->_board.game_state.full_move_number <= 10) {
+        if (node->parent != nullptr) {
+            if (node->parent->_board.is_queen(node->_from)) {
+                if (node->parent->_board.game_state.active_color == Color::white) { score -= .5; }
+                if (node->parent->_board.game_state.active_color == Color::black) { score += .5; }
+            }
+            else if (!node->parent->_board.is_pawn(node->_from)){
+                if (node->parent->_board.game_state.active_color == Color::white) { score += .5; }
+                if (node->parent->_board.game_state.active_color == Color::black) { score -= .5; }
+            }
+        }
+    }
+    return score;
 }
 
 
