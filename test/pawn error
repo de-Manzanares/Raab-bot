@@ -1,0 +1,4 @@
+2024-06-05 11:27:13.689-->1:position startpos moves e2e4 e7e5 g1f3 d7d5 e4d5 h7h5 d2d4 g7g6 g2g4 a7a5 b1c3 b7b6
+2024-06-05 11:27:13.689-->1:go wtime 287121 btime 289601 winc 0 binc 0
+2024-06-05 11:27:16.135<--1:bestmove c2c4
+2024-06-05 11:27:16.135*1*---------> Arena:Illegal move!: "bestmove c2c4" ()

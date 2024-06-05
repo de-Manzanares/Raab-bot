@@ -155,3 +155,10 @@ TEST_CASE("hanging piece ct#50966377 modified lol black first")
     }
     D = 4;
 }
+
+TEST_CASE("jumping pawn")
+{
+    Node n("k7/8/8/8/8/2N5/2P5/K7 w - - 0 1");
+    n.spawn(1);
+    CHECK(n._board.move_map_white[Square::c2] == std::vector<Square>{});
+}
