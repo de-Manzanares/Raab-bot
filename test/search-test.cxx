@@ -155,3 +155,8 @@ TEST_CASE("hanging piece ct#50966377 modified lol black first")
     }
     D = 4;
 }
+
+TEST_CASE("move count")
+{
+    Node n("8/1r6/q5K1/5p2/5k2/5b2/3p1r2/8 w - - 8 74");
+}

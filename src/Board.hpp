@@ -9,6 +9,8 @@
 #include <vector>
 #include <algorithm>
 
+// TODO REMOVE PAWN IF TAKEN BY EN PASSANT
+
 // TODO make helper methods private for organization
 // TODO pawn promotion
 // TODO movement

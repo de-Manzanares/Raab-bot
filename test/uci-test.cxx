@@ -24,3 +24,8 @@ TEST_CASE("bruh")
 
     CHECK(test_output.str() == "e");
 }
+
+TEST_CASE("move count")
+{
+    Node n("8/1r6/q5K1/5p2/5k2/5b2/3p1r2/8 w - - 8 74");
+}

@@ -8,6 +8,8 @@
 // TODO discourage early queen movement
 // TODO move params up top for easy access ...
 // TODO include influence as well as legal moves
+// TODO discourage stalemate (worse than winning better than losing)
+// TODO info depth
 
 struct Node;
 double discourage_early_queen_movement(const Node *node);
@@ -116,7 +118,7 @@ struct Node {
     void spawn(uint depth);
 
     Node *next_step(Node *start, Node *end);
-    Node *next_step(Node *end);
+    Node *next_step(Node *end, uint *depth);
 };
 
 Node::Node()
@@ -203,10 +205,13 @@ void Node::spawn(uint depth)
 }
 
 ///@warning infinite loop if start node doesn't lead to end node
-Node *Node::next_step(Node *end)
+Node *Node::next_step(Node *end, uint *depth)
 {
     Node *current = end;
-    while (current->parent != this) { current = current->parent; }
+    while (current->parent != this) {
+        current = current->parent;
+        (*depth)++;
+    }
     return current;
 }
 
@@ -301,10 +306,10 @@ double discourage_early_queen_movement(const Node *node)
     if (node->_board.game_state.full_move_number <= 10) {
         if (node->parent != nullptr) {
             if (node->parent->_board.is_queen(node->_from)) {
-                if (node->parent->_board.game_state.active_color == Color::white) { score -= .5; }
-                if (node->parent->_board.game_state.active_color == Color::black) { score += .5; }
+                if (node->parent->_board.game_state.active_color == Color::white) { score -= .9; }
+                if (node->parent->_board.game_state.active_color == Color::black) { score += .9; }
             }
-            else if (!node->parent->_board.is_pawn(node->_from)){
+            else if (!node->parent->_board.is_pawn(node->_from)) {
                 if (node->parent->_board.game_state.active_color == Color::white) { score += .5; }
                 if (node->parent->_board.game_state.active_color == Color::black) { score -= .5; }
             }

@@ -8,7 +8,6 @@
 void string_to_move(const std::string *string, Square *from, Square *to, char *ch);
 
 // TODO set up opening book
-uint D = 2;   // depth
 double neg_inf = -std::numeric_limits<double>::infinity();
 double pos_inf = std::numeric_limits<double>::infinity();
 
@@ -69,17 +68,66 @@ void uci::loop()
         }
         if (in.find("go") != std::string::npos) {
             //start calculating for current position
-            if (n->_board.move_map_white.size() + n->_board.move_map_black.size() <= 26) { D = 3; }
-            if (n->_board.move_map_white.size() + n->_board.move_map_black.size() <= 22) { D = 4; }
-            if (n->_board.move_map_white.size() + n->_board.move_map_black.size() <= 18) { D = 6; }
-            if (n->_board.move_map_white.size() + n->_board.move_map_black.size() <= 14) { D = 8; }
-            if (n->_board.move_map_white.size() + n->_board.move_map_black.size() <= 10) { D = 10; }
-            if (n->_board.move_map_white.size() + n->_board.move_map_black.size() <= 6) { D = 12; }
+            // TODO determine depth using complexity of the board and time left in the game
+            // if there is plenty of time, dig deeper
+            n->_board.update_move_maps();
+            uint D;
+            uint moving_pieces = 0;
+            for (const auto& [sq, moves] : n->_board.move_map_white) {
+                if (!moves.empty()) { moving_pieces++; }
+            }
+            for (const auto& [sq, moves] : n->_board.move_map_black) {
+                if (!moves.empty()) { moving_pieces++; }
+            }
+            if (moving_pieces <= 6) {
+                D = 24;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            else if (moving_pieces <= 10) {
+                D = 24;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            else if (moving_pieces <= 14) {
+                D = 24;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            else if (moving_pieces <= 16) {
+                D = 20;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            else if (moving_pieces <= 18) {
+                D = 14;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            else if (moving_pieces <= 22) {
+                D = 10;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            else if (moving_pieces <= 24) {
+                D = 8;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            else if (moving_pieces <= 26) {
+                D = 6;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            else if (moving_pieces <= 28) {
+                D = 3;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            else {
+                D = 2;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            std::cout << "info moving pieces on the board: " << moving_pieces << "\n";
             n->spawn(D);
             std::vector<Node *> opt_nodes{min_max(n, D, neg_inf, pos_inf, is_maxing(n))};
             opt_nodes[0]->spawn(D);
             opt_nodes.push_back(min_max(n, D, neg_inf, pos_inf, is_maxing(n)));
-            std::vector<Node *> moves{(n->next_step(opt_nodes[1]))};
+
+            uint depth_counter = 1;
+            std::vector<Node *> moves{(n->next_step(opt_nodes[1], &depth_counter))};
+            std::cout << "info depth " << depth_counter << "\n";
             std::cout << "bestmove " << moves[0]->_move << "\n";
             delete n;
         }
