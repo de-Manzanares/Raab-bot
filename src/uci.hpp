@@ -70,7 +70,9 @@ void uci::loop()
             //start calculating for current position
             n->spawn(D);
             std::vector<Node *> opt_nodes{min_max(n, D, neg_inf, pos_inf, is_maxing(n))};
-            std::vector<Node *> moves{(n->next_step(opt_nodes[0]))};
+            opt_nodes[0]->spawn(D);
+            opt_nodes.push_back(min_max(n, D, neg_inf, pos_inf, is_maxing(n)));
+            std::vector<Node *> moves{(n->next_step(opt_nodes[1]))};
             std::cout << "bestmove " << moves[0]->_move << "\n";
             delete n;
         }
