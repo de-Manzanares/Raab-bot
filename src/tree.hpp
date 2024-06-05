@@ -182,6 +182,7 @@ void Node::spawn(uint depth)
                 if (detect_checkmate(&spawn->_board) != 0) { return; }   // i'm not sure what this does lol
             }
         }
+        // std::cout << "info " << count_nodes() << " nodes" << "\n";
     }
     // populate rings
     // assign parent node
@@ -260,7 +261,7 @@ Node *min(std::vector<Node *> v)
     return min_node;
 }
 
-std::vector<Node *> min_max(std::vector<std::vector<Node *>> v, uint depth)
+std::vector<Node *> minmax(std::vector<std::vector<Node *>> v, uint depth)
 {
     std::vector<Node *> path;
     Color c = v[v.size() - 1][0]->_board.game_state.active_color;

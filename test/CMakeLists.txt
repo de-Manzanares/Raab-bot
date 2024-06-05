@@ -21,6 +21,8 @@ add_executable(evaluation-test evaluation-test.cxx)
 
 add_executable(search-test search-test.cxx)
 
+add_executable(uci-test uci-test.cxx)
+
 target_link_libraries(general-test PUBLIC
         /usr/local/lib/libCatch2Maind.a
         /usr/local/lib/libCatch2d.a)
@@ -54,5 +56,9 @@ target_link_libraries(evaluation-test PUBLIC
         /usr/local/lib/libCatch2d.a)
 
 target_link_libraries(search-test PUBLIC
+        /usr/local/lib/libCatch2Maind.a
+        /usr/local/lib/libCatch2d.a)
+
+target_link_libraries(uci-test PUBLIC
         /usr/local/lib/libCatch2Maind.a
         /usr/local/lib/libCatch2d.a)
