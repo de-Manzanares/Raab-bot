@@ -66,7 +66,7 @@ double mobility_evaluation(const Board *board)
 
 double check_bonus(const Board *board)
 {
-    const double VALUE = 2;
+    const double VALUE = 10;
     double score = 0;
     if (board->game_state.in_check_white) { score -= VALUE; }
     if (board->game_state.in_check_black) { score += VALUE; }
@@ -104,6 +104,9 @@ struct Node {
     uint count_nodes();
 
     void spawn(uint depth);
+
+    Node *next_step(Node *start, Node *end);
+    Node *next_step(Node *end);
 };
 
 Node::Node()
@@ -166,14 +169,14 @@ void Node::spawn(uint depth)
                 std::vector<char> promotions{'q', 'r', 'b', 'n'};
                 for (auto piece : promotions) {
                     Node *spawn = new Node(&_board, sq, move, piece);
-                    spawn->parent  = this;
+                    spawn->parent = this;
                     _child.push_back(spawn);
                     if (detect_checkmate(&spawn->_board) != 0) { return; }   // i'm not sure what this does lol
                 }
             }
             else {
                 Node *spawn = new Node(&_board, sq, move, 0);
-                spawn->parent  = this;
+                spawn->parent = this;
                 _child.push_back(spawn);
                 if (detect_checkmate(&spawn->_board) != 0) { return; }   // i'm not sure what this does lol
             }
@@ -184,6 +187,14 @@ void Node::spawn(uint depth)
     for (auto& n : _child) {
         n->spawn(depth - 1);
     }
+}
+
+///@warning infinite loop if start node doesn't lead to end node
+Node *Node::next_step(Node *end)
+{
+    Node *current = end;
+    while (current->parent != this) { current = current->parent; }
+    return current;
 }
 
 struct Evaluator {

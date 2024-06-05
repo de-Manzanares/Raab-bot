@@ -4,47 +4,90 @@
 #include "../src/tree.hpp"
 #include "../src/search.hpp"
 
-double neg_inf = -std::numeric_limits<double>::infinity();
-double pos_inf = std::numeric_limits<double>::infinity();
 
 // TODO there is something wrong with my tree generation... it is taking too long...
 // TODO maybe if we enhance the evaluation, the alpha beta search will be more effective LOL
 // ALL of the time is in generating the tree ...
 
-TEST_CASE("search")
+std::string delim = "\n--------------------------------------------------\n\n";
+
+bool is_maxing(Node *n)
 {
-    SECTION("mate in one") {
-        Node n("6k1/2R5/6K1/8/8/8/8/8 w - - 0 1");
-        n.spawn(2);                                 // we need to get the nodes to stop spawning if game is over
-        auto step_1 = min_max(&n, 2, neg_inf, pos_inf, true);
-        std::cout << "mate in one nodes: " << n.count_nodes() << "\n";
-        std::cout << step_1.second->_move << "\n";
-        CHECK(step_1.first == 1000);        // found the mate in one
-    }SECTION("mate in two") {
-        Node n("8/6k1/2R5/1R4K1/8/8/5P2/8 w - - 0 1");
-        n.spawn(2);
-        auto step_1 = min_max(&n, 2, neg_inf, pos_inf, true);
-        std::cout << "step 1 nodes: " << n.count_nodes() << "\n";
-        std::cout << "step 1 best move: " << step_1.second->parent->_move << "\n";
+    return n->_board.game_state.active_color == Color::white;
+}
 
-        step_1.second->spawn(2);
-        auto step_2 = min_max(step_1.second, 2, neg_inf, pos_inf, true);
-        std::cout << "step 2 nodes: " << step_1.second->count_nodes() << "\n";
-        std::cout << "step 2 best move: " << step_2.second->parent->_move << "\n";
+const uint D = 4;   // depth
+double neg_inf = -std::numeric_limits<double>::infinity();
+double pos_inf = std::numeric_limits<double>::infinity();
 
-        step_2.second->spawn(2);
-        auto step_3 = min_max(step_2.second, 2, neg_inf, pos_inf, true);
-        std::cout << "step 3 nodes: " << step_3.second->count_nodes() << "\n";
-        std::cout << "step 3 best move: " << step_3.second->parent->_move << "\n";
-        for (const auto& c : step_2.second->_child) {
-            std::cout << c->_eval << " : " << c->_move << "\n";
-        }
+TEST_CASE("mate in one")
+{
+    std::cout << delim;
+    Node n("6k1/2R5/6K1/8/8/8/8/8 w - - 0 1");
+    n.spawn(D);
+    std::vector<Node *> opt_nodes;
+    std::vector<Node *> moves;
+    opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
+    moves.push_back(n.next_step(opt_nodes[0]));
+    std::cout << moves[0]->_move;
+}
+
+TEST_CASE("mate in two")
+{
+    std::cout << delim;
+    Node n("8/7k/1R6/2R3K1/8/8/8/8 w - - 0 1");
+    std::vector<Node *> opt_nodes;
+    std::vector<Node *> moves;
+
+    n.spawn(D);
+    opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
+    moves.push_back(n.next_step(opt_nodes[0]));
+    std::cout << moves[0]->_move << "\n";
+
+    for (int i = 0; i < 2; i++) {
+        opt_nodes[i]->spawn(D);
+        opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
+        moves.push_back(moves[i]->next_step(opt_nodes[i + 1]));
+        std::cout << moves[i + 1]->_move << "\n";
     }
+}
 
-    // SECTION("mate in three") {                     // too slow
-    //    Node n("8/8/6k1/2R5/1R4K1/8/8/8 w - - 0 1");
-    //    n.spawn(5);
-    //    std::cout << "mate in three nodes: " << n.count_nodes() << "\n";
-    //    CHECK(min_max(&n, 5, neg_inf, pos_inf, true) == 1000);        // found the mate in three
-    //}
+TEST_CASE("mate in two, part 2")
+{
+    std::cout << delim;
+    Node n("8/8/7k/2R5/1R4K1/8/8/8 w - - 0 1");
+    std::vector<Node *> opt_nodes;
+    std::vector<Node *> moves;
+
+    n.spawn(D);
+    opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
+    moves.push_back(n.next_step(opt_nodes[0]));
+    std::cout << moves[0]->_move << "\n";
+
+    for (int i = 0; i < 2; i++) {
+        opt_nodes[i]->spawn(D);
+        opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
+        moves.push_back(moves[i]->next_step(opt_nodes[i + 1]));
+        std::cout << moves[i + 1]->_move << "\n";
+    }
+}
+
+TEST_CASE("mate in three")      // has a real round about solution LOL
+{
+    std::cout << delim;
+    Node n("8/8/6k1/2R5/1R4K1/8/8/8 w - - 0 1");
+    std::vector<Node *> opt_nodes;
+    std::vector<Node *> moves;
+
+    n.spawn(D);
+    opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
+    moves.push_back(n.next_step(opt_nodes[0]));
+    std::cout << moves[0]->_move << "\n";
+
+    for (int i = 0; i < 4; i++) {
+        opt_nodes[i]->spawn(D);
+        opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
+        moves.push_back(moves[i]->next_step(opt_nodes[i + 1]));
+        std::cout << moves[i + 1]->_move << "\n";
+    }
 }
