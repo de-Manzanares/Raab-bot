@@ -72,54 +72,54 @@ void uci::loop()
             // if there is plenty of time, dig deeper
             n->_board.update_move_maps();
             uint D;
-            uint moving_pieces = 0;
+            uint pieces = 0;
             for (const auto& [sq, moves] : n->_board.move_map_white) {
-                if (!moves.empty()) { moving_pieces++; }
+                if (!moves.empty()) { pieces++; }
             }
             for (const auto& [sq, moves] : n->_board.move_map_black) {
-                if (!moves.empty()) { moving_pieces++; }
+                if (!moves.empty()) { pieces++; }
             }
-            if (moving_pieces <= 6) {
-                D = 24;
-                std::cout << "info branch depth " << D << "\n";
-            }
-            else if (moving_pieces <= 10) {
-                D = 24;
-                std::cout << "info branch depth " << D << "\n";
-            }
-            else if (moving_pieces <= 14) {
-                D = 24;
-                std::cout << "info branch depth " << D << "\n";
-            }
-            else if (moving_pieces <= 16) {
-                D = 20;
-                std::cout << "info branch depth " << D << "\n";
-            }
-            else if (moving_pieces <= 18) {
-                D = 14;
-                std::cout << "info branch depth " << D << "\n";
-            }
-            else if (moving_pieces <= 22) {
-                D = 10;
-                std::cout << "info branch depth " << D << "\n";
-            }
-            else if (moving_pieces <= 24) {
+            if (pieces <= 6) {
                 D = 8;
                 std::cout << "info branch depth " << D << "\n";
             }
-            else if (moving_pieces <= 26) {
+            else if (pieces <= 10) {
+                D = 7;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            else if (pieces <= 14) {
                 D = 6;
                 std::cout << "info branch depth " << D << "\n";
             }
-            else if (moving_pieces <= 28) {
+            else if (pieces <= 16) {
+                D =5;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            else if (pieces <= 18) {
+                D = 4;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            else if (pieces <= 22) {
                 D = 3;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            else if (pieces <= 24) {
+                D = 2;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            else if (pieces <= 26) {
+                D = 2;
+                std::cout << "info branch depth " << D << "\n";
+            }
+            else if (pieces <= 28) {
+                D = 2;
                 std::cout << "info branch depth " << D << "\n";
             }
             else {
                 D = 2;
                 std::cout << "info branch depth " << D << "\n";
             }
-            std::cout << "info moving pieces on the board: " << moving_pieces << "\n";
+            std::cout << "info moving pieces on the board: " << pieces << "\n";
             n->spawn(D);
             std::vector<Node *> opt_nodes{min_max(n, D, neg_inf, pos_inf, is_maxing(n))};
             opt_nodes[0]->spawn(D);
