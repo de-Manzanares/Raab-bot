@@ -51,9 +51,36 @@ int detect_checkmate(const Board *board)
     return 0;
 }
 
+double mobility_evaluation(const Board *board)
+{
+    const double MULTIPLIER = 1.0 / 10.0;
+    double score = 0;
+    for (const auto& [sq, moves] : board->move_map_white) {
+        score += static_cast<double>(moves.size());
+    }
+    for (const auto& [sq, moves] : board->move_map_black) {
+        score -= static_cast<double>(moves.size());
+    }
+    return score * MULTIPLIER;
+}
+
+double check_bonus(const Board *board)
+{
+    const double VALUE = 2;
+    double score = 0;
+    if (board->game_state.in_check_white) { score -= VALUE; }
+    if (board->game_state.in_check_black) { score += VALUE; }
+    return score;
+}
+
 double simple_evaluation(const Board *board)
 {
-    if (detect_checkmate(board) == 0) { return material_evaluation(board); }
+    if (detect_checkmate(board) == 0) {
+        double sum = material_evaluation(board)
+                + mobility_evaluation(board)
+                + check_bonus(board);
+        return sum;
+    }
     return 1'000 * detect_checkmate(board);
 }
 
@@ -72,7 +99,6 @@ struct Node {
     std::string _move{};
     Node *parent{};
     Board _board{};
-    Board _board_copy{};
     double _eval{};
     std::vector<Node *> _child{};
     uint count_nodes();
@@ -140,12 +166,14 @@ void Node::spawn(uint depth)
                 std::vector<char> promotions{'q', 'r', 'b', 'n'};
                 for (auto piece : promotions) {
                     Node *spawn = new Node(&_board, sq, move, piece);
+                    spawn->parent  = this;
                     _child.push_back(spawn);
                     if (detect_checkmate(&spawn->_board) != 0) { return; }   // i'm not sure what this does lol
                 }
             }
             else {
                 Node *spawn = new Node(&_board, sq, move, 0);
+                spawn->parent  = this;
                 _child.push_back(spawn);
                 if (detect_checkmate(&spawn->_board) != 0) { return; }   // i'm not sure what this does lol
             }
@@ -154,7 +182,6 @@ void Node::spawn(uint depth)
     // populate rings
     // assign parent node
     for (auto& n : _child) {
-        n->parent = this;
         n->spawn(depth - 1);
     }
 }

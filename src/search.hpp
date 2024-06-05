@@ -12,30 +12,38 @@ bool is_maximizing(Color current_color, uint at_depth)
 
 // TODO interleave tree generation and searching somehow
 
-double min_max(Node *n, uint depth, double alpha, double beta, bool maximizing)
+std::pair<double, Node *> min_max(Node *n, uint depth, double alpha, double beta, bool maximizing)
 {
     // n->_child.size() == 0 ??? maybe something else
-    if (depth == 0 || n->_child.empty()) { return eval(&n->_board); }
+    if (depth == 0 || n->_child.empty()) { return {eval(&n->_board), n}; }
+
+    Node *opt_node = nullptr;
 
     if (maximizing) {
         double max = -std::numeric_limits<double>::infinity();
         for (const auto& c : n->_child) {
-            double temp_eval = min_max(c, depth - 1, alpha, beta, false);
-            max = std::max(max, temp_eval);
-            alpha = std::max(alpha, temp_eval);
+            auto res = min_max(c, depth - 1, alpha, beta, false);
+            if (max < res.first) {
+                max = res.first;
+                opt_node = res.second;
+            }
+            alpha = std::max(alpha, res.first);
             if (beta <= alpha) { break; }
         }
-        return max;
+        return {max, opt_node};
     }
     else {
         double min = std::numeric_limits<double>::infinity();
         for (const auto& c : n->_child) {
-            double temp_eval = min_max(c, depth - 1, alpha, beta, true);
-            min = std::min(min, temp_eval);
-            beta = std::min(beta, temp_eval);
+            auto res = min_max(c, depth - 1, alpha, beta, true);
+            if (min > res.first) {
+                min = res.first;
+                opt_node = res.second;
+            }
+            beta = std::min(beta, res.first);
             if (beta <= alpha) { break; }
         }
-        return min;
+        return {min, opt_node};
     }
 }
 

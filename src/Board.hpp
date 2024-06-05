@@ -273,6 +273,9 @@ struct Game_State {
     std::string en_passant_target;   // en passant target
     uint half_move_clock{};     // for the 50 move rule
     uint full_move_number = 1;  // starts at 1, increments after black moves
+
+    bool in_check_black = false;
+    bool in_check_white = false;
 };
 
 /**
@@ -377,7 +380,8 @@ Game_State& Game_State::operator=(const Game_State& rhs)
     en_passant_target = rhs.en_passant_target;
     half_move_clock = rhs.half_move_clock;
     full_move_number = rhs.full_move_number;
-
+    in_check_black = rhs.in_check_black;
+    in_check_white = rhs.in_check_white;
     return *this;
 }
 
@@ -1388,12 +1392,12 @@ std::vector<Square> Board::influence(Square sq) const
 
     // if the square is empty, there is no influence
     if (what_piece(sq) == ' ') { return influence; }
+    else if (is_pawn(sq)) { influence = influence_pawn(sq); }
     else if (is_rook(sq)) { influence = influence_rook(sq); }
     else if (is_bishop(sq)) { influence = influence_bishop(sq); }
     else if (is_queen(sq)) { influence = influence_queen(sq); }
     else if (is_knight(sq)) { influence = influence_knight(sq); }
     else if (is_king(sq)) { influence = influence_king(sq); }
-    else if (is_pawn(sq)) { influence = influence_pawn(sq); }
     return influence;
 }
 
@@ -1707,6 +1711,7 @@ std::vector<Square> Board::update_white_king_moves(Square square_K)
     for (const auto& pair : influence_map_black) {
         if (std::find(pair.second.begin(), pair.second.end(), square_K) != pair.second.end()) {  // is the king in check
             is_in_check = true;
+            game_state.in_check_white = true;
             // keep track of who is giving check
             giving_check.push_back(pair.first);
         }
@@ -1773,6 +1778,7 @@ std::vector<Square> Board::update_black_king_moves(Square square_k)
     for (const auto& pair : influence_map_white) {
         if (std::find(pair.second.begin(), pair.second.end(), square_k) != pair.second.end()) {  // is the king in check
             is_in_check = true;
+            game_state.in_check_black = true;
             giving_check.push_back(pair.first);
         }
     }
@@ -1864,6 +1870,10 @@ void Board::remove_same_color_squares(std::unordered_map<Square, std::vector<Squ
 
 void Board::update_move_maps()
 {
+    // reset check flags
+    game_state.in_check_white = false;
+    game_state.in_check_black = false;
+
     // update influence maps
     update_influence_maps();
 
