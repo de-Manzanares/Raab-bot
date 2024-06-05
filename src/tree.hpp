@@ -1,6 +1,7 @@
 #ifndef CHESSENGINE_TREE_HPP
 #define CHESSENGINE_TREE_HPP
 
+#include <limits>
 #include "Board.hpp"
 
 struct Node;
