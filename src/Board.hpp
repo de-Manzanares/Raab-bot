@@ -1737,18 +1737,22 @@ std::vector<Square> Board::update_white_king_moves(Square square_K)
 
     // if the legal moves contain a castling square, but not the adjacent square necessary to legally castle
     // remove the castling square
-    if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::g1) != legal_moves_kings.end()) {
-        if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::f1) == legal_moves_kings.end()) {
-            // remove g1
-            auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::g1);
-            legal_moves_kings.erase(it, legal_moves_kings.end());
+    if (game_state.castle_K) {
+        if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::g1) != legal_moves_kings.end()) {
+            if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::f1) == legal_moves_kings.end()) {
+                // remove g1
+                auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::g1);
+                legal_moves_kings.erase(it, legal_moves_kings.end());
+            }
         }
     }
-    if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::c1) != legal_moves_kings.end()) {
-        if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::d1) == legal_moves_kings.end()) {
-            // remove c1
-            auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::c1);
-            legal_moves_kings.erase(it, legal_moves_kings.end());
+    if (game_state.castle_Q) {
+        if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::c1) != legal_moves_kings.end()) {
+            if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::d1) == legal_moves_kings.end()) {
+                // remove c1
+                auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::c1);
+                legal_moves_kings.erase(it, legal_moves_kings.end());
+            }
         }
     }
 
@@ -1803,18 +1807,22 @@ std::vector<Square> Board::update_black_king_moves(Square square_k)
 
     // if the legal moves contain a castling square, but not the adjacent square necessary to legally castle
     // remove the castling square
-    if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::g8) != legal_moves_kings.end()) {
-        if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::f8) == legal_moves_kings.end()) {
-            // remove g8
-            auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::g8);
-            legal_moves_kings.erase(it, legal_moves_kings.end());
+    if (game_state.castle_k) {
+        if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::g8) != legal_moves_kings.end()) {
+            if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::f8) == legal_moves_kings.end()) {
+                // remove g8
+                auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::g8);
+                legal_moves_kings.erase(it, legal_moves_kings.end());
+            }
         }
     }
-    if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::c8) != legal_moves_kings.end()) {
-        if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::d8) == legal_moves_kings.end()) {
-            // remove c1
-            auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::c8);
-            legal_moves_kings.erase(it, legal_moves_kings.end());
+    if (game_state.castle_q) {
+        if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::c8) != legal_moves_kings.end()) {
+            if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::d8) == legal_moves_kings.end()) {
+                // remove c1
+                auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::c8);
+                legal_moves_kings.erase(it, legal_moves_kings.end());
+            }
         }
     }
 
