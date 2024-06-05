@@ -159,7 +159,7 @@ uint Node::count_nodes()
 void Node::spawn(uint depth)
 {
     if (depth == 0) { return; }
-
+    _board.update_move_maps();
     for (const auto& [sq, moves] :
             _board.game_state.active_color == Color::white ?
             _board.move_map_white : _board.move_map_black) {
