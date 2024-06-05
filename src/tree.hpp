@@ -53,7 +53,7 @@ int detect_checkmate(const Board *board)
 
 double mobility_evaluation(const Board *board)
 {
-    const double MULTIPLIER = 1.0 / 10.0;
+    const double MULTIPLIER = 1.0 / 100.0;
     double score = 0;
     for (const auto& [sq, moves] : board->move_map_white) {
         score += static_cast<double>(moves.size());
@@ -66,7 +66,7 @@ double mobility_evaluation(const Board *board)
 
 double check_bonus(const Board *board)
 {
-    const double VALUE = 10;
+    const double VALUE = 0.5;
     double score = 0;
     if (board->game_state.in_check_white) { score -= VALUE; }
     if (board->game_state.in_check_black) { score += VALUE; }

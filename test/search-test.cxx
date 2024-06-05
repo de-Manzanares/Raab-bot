@@ -16,7 +16,7 @@ bool is_maxing(Node *n)
     return n->_board.game_state.active_color == Color::white;
 }
 
-const uint D = 4;   // depth
+uint D = 4;   // depth
 double neg_inf = -std::numeric_limits<double>::infinity();
 double pos_inf = std::numeric_limits<double>::infinity();
 
@@ -90,4 +90,68 @@ TEST_CASE("mate in three")      // has a real round about solution LOL
         moves.push_back(moves[i]->next_step(opt_nodes[i + 1]));
         std::cout << moves[i + 1]->_move << "\n";
     }
+}
+
+TEST_CASE("hanging piece ct#50966377")
+{
+    std::cout << delim;
+    Node n("3b4/5q1k/pp2R3/P3Pprp/1P6/3Q1K1B/8/8 w - - 0 1");
+    std::vector<Node *> opt_nodes;
+    std::vector<Node *> moves;
+
+    n.spawn(D);
+    opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
+    moves.push_back(n.next_step(opt_nodes[0]));
+    std::cout << moves[0]->_move << "\n";
+
+    for (int i = 0; i < 4; i++) {
+        opt_nodes[i]->spawn(D);
+        opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
+        moves.push_back(moves[i]->next_step(opt_nodes[i + 1]));
+        std::cout << moves[i + 1]->_move << "\n";
+    }
+}
+
+TEST_CASE("hanging piece ct#50966377 modified lol white first")
+{
+    D = 2;
+    std::cout << delim;
+    Node n("3b4/5q1k/pp6/P3Pprp/1P6/3Q1K1B/8/8 w - - 0 1");
+    std::vector<Node *> opt_nodes;
+    std::vector<Node *> moves;
+
+    n.spawn(D);
+    opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
+    moves.push_back(n.next_step(opt_nodes[0]));
+    std::cout << moves[0]->_move << "\n";
+
+    for (int i = 0; i < 4; i++) {
+        opt_nodes[i]->spawn(D);
+        opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
+        moves.push_back(moves[i]->next_step(opt_nodes[i + 1]));
+        std::cout << moves[i + 1]->_move << "\n";
+    }
+    D = 4;
+}
+
+TEST_CASE("hanging piece ct#50966377 modified lol black first")
+{
+    D = 2;
+    std::cout << delim;
+    Node n("3b4/5q1k/pp6/P3Pprp/1P6/3Q1K1B/8/8 b - - 0 1");
+    std::vector<Node *> opt_nodes;
+    std::vector<Node *> moves;
+
+    n.spawn(D);
+    opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
+    moves.push_back(n.next_step(opt_nodes[0]));
+    std::cout << moves[0]->_move << "\n";
+
+    for (int i = 0; i < 4; i++) {
+        opt_nodes[i]->spawn(D);
+        opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
+        moves.push_back(moves[i]->next_step(opt_nodes[i + 1]));
+        std::cout << moves[i + 1]->_move << "\n";
+    }
+    D = 4;
 }
