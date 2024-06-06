@@ -2089,10 +2089,16 @@ void Board::move_pawn(Square from, Square to, char ch)
             if (static_cast<int>(to) - static_cast<int>(from) == 16) {
                 game_state.en_passant_target = square_to_string(from + 8);
             }
+            else if (square_to_string(to) == game_state.en_passant_target) {
+                remove_piece(string_to_square(game_state.en_passant_target) - 8);
+            }
         }
         else if (is_black_pawn(from)) {
             if (static_cast<int>(from) - static_cast<int>(to) == 16) {
                 game_state.en_passant_target = square_to_string(from - 8);
+            }
+            else if (square_to_string(to) == game_state.en_passant_target) {
+                remove_piece(string_to_square(game_state.en_passant_target) + 8);
             }
         }
 
@@ -2177,8 +2183,7 @@ void Board::move_piece(Square from, Square to)
 
 void Board::move(Square from, Square to, char ch)
 {
-    // en passant expires
-    if (!game_state.en_passant_target.empty()) { game_state.en_passant_target.clear(); }
+
 
     // game state updates
     // comes first because from and to will change occupants after the move
@@ -2196,6 +2201,9 @@ void Board::move(Square from, Square to, char ch)
     if (is_king(from)) { move_king(from, to); }
     if (is_rook(from)) { move_rook(from, to); }
     else if (!is_empty(from)) { move_piece(from, to); }    // for knights, bishops, queens
+
+    // en passant expires
+    if (!game_state.en_passant_target.empty()) { game_state.en_passant_target.clear(); }
 
 }
 // END move

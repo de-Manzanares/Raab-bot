@@ -42,6 +42,10 @@ TEST_CASE("en passant")
         CHECK(v == std::vector<Square>{s::e6, s::d6});
         generate_and_sort(board, s::c5, v);
         CHECK(v == std::vector<Square>{s::d6, s::c6});
+    }SECTION("remove en passant pawn") {
+        board.import_fen("8/8/2Pp4/6K1/8/8/2k5/8 w - d7 0 1");
+        board.move(s::c6, s::d7, 0);
+        CHECK(board.is_empty(Square::d6));
     }
 }
 
