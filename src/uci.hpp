@@ -79,8 +79,9 @@ void uci::loop()
             for (const auto& [sq, moves] : n->_board.move_map_black) {
                 if (!moves.empty()) { pieces++; }
             }
-            if (pieces <= 8) { D = 4; }
-            else if (pieces <= 10) { D = 3; }
+            // TODO why is 3 a hard no?
+            if (pieces <= 8) { D = 2; }
+            else if (pieces <= 10) { D = 2; }
             else { D = 2; }
             std::cout << "info branch depth " << D << "\n";
             std::cout << "info moving pieces on the board: " << pieces << "\n";
