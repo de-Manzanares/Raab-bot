@@ -7,7 +7,8 @@
 
 // TODO there is something wrong with my tree generation... it is taking too long...
 // TODO maybe if we enhance the evaluation, the alpha beta search will be more effective LOL
-// ALL of the time is in generating the tree ...
+
+uint placeholder{};
 
 std::string delim = "\n--------------------------------------------------\n\n";
 
@@ -16,7 +17,7 @@ bool is_maxing(Node *n)
     return n->_board.game_state.active_color == Color::white;
 }
 
-uint D = 4;   // depth
+uint D = 2;   // depth
 double neg_inf = -std::numeric_limits<double>::infinity();
 double pos_inf = std::numeric_limits<double>::infinity();
 
@@ -28,7 +29,7 @@ TEST_CASE("mate in one")
     std::vector<Node *> opt_nodes;
     std::vector<Node *> moves;
     opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
-    moves.push_back(n.next_step(opt_nodes[0]));
+    moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move;
 }
 
@@ -41,13 +42,13 @@ TEST_CASE("mate in two")
 
     n.spawn(D);
     opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
-    moves.push_back(n.next_step(opt_nodes[0]));
+    moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 2; i++) {
         opt_nodes[i]->spawn(D);
         opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
-        moves.push_back(moves[i]->next_step(opt_nodes[i + 1]));
+        moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
     }
 }
@@ -61,13 +62,13 @@ TEST_CASE("mate in two, part 2")
 
     n.spawn(D);
     opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
-    moves.push_back(n.next_step(opt_nodes[0]));
+    moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 2; i++) {
         opt_nodes[i]->spawn(D);
         opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
-        moves.push_back(moves[i]->next_step(opt_nodes[i + 1]));
+        moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
     }
 }
@@ -81,13 +82,13 @@ TEST_CASE("mate in three")      // has a real round about solution LOL
 
     n.spawn(D);
     opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
-    moves.push_back(n.next_step(opt_nodes[0]));
+    moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 4; i++) {
         opt_nodes[i]->spawn(D);
         opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
-        moves.push_back(moves[i]->next_step(opt_nodes[i + 1]));
+        moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
     }
 }
@@ -101,13 +102,13 @@ TEST_CASE("hanging piece ct#50966377")
 
     n.spawn(D);
     opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
-    moves.push_back(n.next_step(opt_nodes[0]));
+    moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 4; i++) {
         opt_nodes[i]->spawn(D);
         opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
-        moves.push_back(moves[i]->next_step(opt_nodes[i + 1]));
+        moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
     }
 }
@@ -122,16 +123,15 @@ TEST_CASE("hanging piece ct#50966377 modified lol white first")
 
     n.spawn(D);
     opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
-    moves.push_back(n.next_step(opt_nodes[0]));
+    moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 4; i++) {
         opt_nodes[i]->spawn(D);
         opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
-        moves.push_back(moves[i]->next_step(opt_nodes[i + 1]));
+        moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
     }
-    D = 4;
 }
 
 TEST_CASE("hanging piece ct#50966377 modified lol black first")
@@ -144,19 +144,33 @@ TEST_CASE("hanging piece ct#50966377 modified lol black first")
 
     n.spawn(D);
     opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
-    moves.push_back(n.next_step(opt_nodes[0]));
+    moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 4; i++) {
         opt_nodes[i]->spawn(D);
         opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
-        moves.push_back(moves[i]->next_step(opt_nodes[i + 1]));
+        moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
     }
-    D = 4;
 }
 
-TEST_CASE("move count")
+TEST_CASE("depth three gives exit code -9")
 {
-    Node n("8/1r6/q5K1/5p2/5k2/5b2/3p1r2/8 w - - 8 74");
+    Node n("r1b1kb1r/ppp2ppp/2np4/3Pp3/2P1q3/4P3/PP3PPP/RNBQK1NR w KQkq - 0 9");
+    std::vector<uint> w{0};
+    std::vector<uint> b{0};
+
+    for (const auto& [sq, moves] : n._board.move_map_white) {
+        w[0] += moves.size();
+    }
+    for (const auto& [sq, moves] : n._board.move_map_black) {
+        b[0] += moves.size();
+    }
+
+    std::cout << w[0] << "\n" << b[0] << "\n";
+    std::cout << "est depth 2: " << w[0] * b[0] << " nodes\n";
+    std::cout << "est depth 3: " << w[0] * b[0] * w[0] << " nodes\n";
+    std::cout << "est depth 4: " << w[0] * b[0] * w[0] * b[0] << " nodes\n";
+    // n.spawn(D);
 }
