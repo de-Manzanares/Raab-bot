@@ -11,10 +11,6 @@
 
 // TODO REMOVE PAWN IF TAKEN BY EN PASSANT
 
-// TODO make helper methods private for organization
-// TODO pawn promotion
-// TODO movement
-
 // BEGIN Square
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -273,6 +269,7 @@ struct Game_State {
     bool castle_k = true;       // black can castle king side
     bool castle_q = true;       // black can castle queen side
     std::string en_passant_target;   // en passant target
+    bool en_passant_set = false;    // to note if en passant was just set during the turn
     uint half_move_clock{};     // for the 50 move rule
     uint full_move_number = 1;  // starts at 1, increments after black moves
 
@@ -380,6 +377,7 @@ Game_State& Game_State::operator=(const Game_State& rhs)
     castle_k = rhs.castle_k;
     castle_q = rhs.castle_q;
     en_passant_target = rhs.en_passant_target;
+    en_passant_set = rhs.en_passant_set;
     half_move_clock = rhs.half_move_clock;
     full_move_number = rhs.full_move_number;
     in_check_black = rhs.in_check_black;
@@ -2069,9 +2067,9 @@ void Board::update_move_maps()
 
 void Board::move_pawn(Square from, Square to, char ch)
 {
-    // TODO pawn promotion
     bool promoted = false;
 
+    // promotion
     if (ch == 'q' || ch == 'r' || ch == 'b' || ch == 'n') {
         Color c = what_color(from);
         if (is_white_pawn(from) && is_in_row(to) == 8) { promoted = true; }
@@ -2088,6 +2086,7 @@ void Board::move_pawn(Square from, Square to, char ch)
         if (is_white_pawn(from)) {
             if (static_cast<int>(to) - static_cast<int>(from) == 16) {
                 game_state.en_passant_target = square_to_string(from + 8);
+                game_state.en_passant_set = true;
             }
             else if (square_to_string(to) == game_state.en_passant_target) {
                 remove_piece(string_to_square(game_state.en_passant_target) - 8);
@@ -2096,6 +2095,7 @@ void Board::move_pawn(Square from, Square to, char ch)
         else if (is_black_pawn(from)) {
             if (static_cast<int>(from) - static_cast<int>(to) == 16) {
                 game_state.en_passant_target = square_to_string(from - 8);
+                game_state.en_passant_set = true;
             }
             else if (square_to_string(to) == game_state.en_passant_target) {
                 remove_piece(string_to_square(game_state.en_passant_target) + 8);
@@ -2183,8 +2183,6 @@ void Board::move_piece(Square from, Square to)
 
 void Board::move(Square from, Square to, char ch)
 {
-
-
     // game state updates
     // comes first because from and to will change occupants after the move
     !game_state.active_color;                               // swap active color
@@ -2203,7 +2201,10 @@ void Board::move(Square from, Square to, char ch)
     else if (!is_empty(from)) { move_piece(from, to); }    // for knights, bishops, queens
 
     // en passant expires
-    if (!game_state.en_passant_target.empty()) { game_state.en_passant_target.clear(); }
+    if (!game_state.en_passant_set && !game_state.en_passant_target.empty()) {
+        game_state.en_passant_target.clear();
+    }
+    if (game_state.en_passant_set) { game_state.en_passant_set = false; }
 
 }
 // END move
