@@ -79,52 +79,15 @@ void uci::loop()
             for (const auto& [sq, moves] : n->_board.move_map_black) {
                 if (!moves.empty()) { pieces++; }
             }
-            if (pieces <= 6) {
-                D = 8;
-                std::cout << "info branch depth " << D << "\n";
-            }
-            else if (pieces <= 10) {
-                D = 7;
-                std::cout << "info branch depth " << D << "\n";
-            }
-            else if (pieces <= 14) {
-                D = 6;
-                std::cout << "info branch depth " << D << "\n";
-            }
-            else if (pieces <= 16) {
-                D =5;
-                std::cout << "info branch depth " << D << "\n";
-            }
-            else if (pieces <= 18) {
-                D = 4;
-                std::cout << "info branch depth " << D << "\n";
-            }
-            else if (pieces <= 22) {
-                D = 3;
-                std::cout << "info branch depth " << D << "\n";
-            }
-            else if (pieces <= 24) {
-                D = 2;
-                std::cout << "info branch depth " << D << "\n";
-            }
-            else if (pieces <= 26) {
-                D = 2;
-                std::cout << "info branch depth " << D << "\n";
-            }
-            else if (pieces <= 28) {
-                D = 2;
-                std::cout << "info branch depth " << D << "\n";
-            }
-            else {
-                D = 2;
-                std::cout << "info branch depth " << D << "\n";
-            }
+            if (pieces <= 8) { D = 4; }
+            else if (pieces <= 10) { D = 3; }
+            else { D = 2; }
+            std::cout << "info branch depth " << D << "\n";
             std::cout << "info moving pieces on the board: " << pieces << "\n";
             n->spawn(D);
             std::vector<Node *> opt_nodes{min_max(n, D, neg_inf, pos_inf, is_maxing(n))};
             opt_nodes[0]->spawn(D);
             opt_nodes.push_back(min_max(n, D, neg_inf, pos_inf, is_maxing(n)));
-
             uint depth_counter = 1;
             std::vector<Node *> moves{(n->next_step(opt_nodes[1], &depth_counter))};
             std::cout << "info depth " << depth_counter << "\n";

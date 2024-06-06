@@ -4,12 +4,15 @@
 #include <limits>
 #include "Board.hpp"
 
+// TODO REMOVE PAWN IF TAKEN BY EN PASSANT
+
 // TODO add castling bonus
 // TODO discourage early queen movement
 // TODO move params up top for easy access ...
 // TODO include influence as well as legal moves
 // TODO discourage stalemate (worse than winning better than losing)
 // TODO info depth
+// TODO influencing the center
 
 struct Node;
 double discourage_early_queen_movement(const Node *node);
