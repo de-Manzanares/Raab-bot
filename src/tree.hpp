@@ -201,7 +201,13 @@ uint Node::count_nodes()
 
 void Node::spawn(uint depth)
 {
-    if (depth == 0) { return; }
+    if (depth == 0) {
+        _board.update_move_maps();
+        _eval = eval(&_board) + discourage_early_queen_movement(this) + castle_bonus(this);
+        delete _board.maps;
+        _board.maps = nullptr;
+        return;
+    }
 
     _board.update_move_maps();
     _eval = eval(&_board) + discourage_early_queen_movement(this) + castle_bonus(this);
