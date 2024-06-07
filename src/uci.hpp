@@ -5,7 +5,7 @@
 #include "tree.hpp"
 #include "search.hpp"
 
-const bool INFO = false;
+const bool INFO = true;
 
 void string_to_move(const std::string *string, Square *from, Square *to, char *ch);
 
@@ -80,7 +80,8 @@ void uci::loop()
             for (const auto& [sq, moves] : n->_board.move_map_black) {
                 if (!moves.empty()) { pieces++; }
             }
-            D = 2;
+            // depth 3 just crashes ... ?
+            D = 3;
 
             if (INFO) { std::cout << "info branch depth " << D << "\n"; }
             if (INFO) { std::cout << "info moving pieces on the board: " << pieces << "\n"; }

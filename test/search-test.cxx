@@ -1,21 +1,12 @@
 #include <catch2/catch_all.hpp>
 #include <iostream>
-#include "../src/Board.hpp"
-#include "../src/tree.hpp"
-#include "../src/search.hpp"
+#include "../src/uci.hpp"
 
 uint placeholder{};
 
 std::string delim = "\n--------------------------------------------------\n\n";
 
-bool is_maxing(Node *n)
-{
-    return n->_board.game_state.active_color == Color::white;
-}
-
 uint D = 2;   // depth
-double neg_inf = -std::numeric_limits<double>::infinity();
-double pos_inf = std::numeric_limits<double>::infinity();
 
 TEST_CASE("mate in one")
 {
@@ -169,4 +160,28 @@ TEST_CASE("depth three gives exit code -9")
     std::cout << "est depth 3: " << w[0] * b[0] * w[0] << " nodes\n";
     std::cout << "est depth 4: " << w[0] * b[0] * w[0] * b[0] << " nodes\n";
     // n.spawn(D);
+}
+
+TEST_CASE("depth 3 time")
+{
+
+    // Save original cout and cin
+    std::streambuf *original_cout = std::cout.rdbuf();
+    std::streambuf *original_cin = std::cin.rdbuf();
+
+    // Set up input and output streams
+    std::istringstream test_input(
+            "position startpos moves b1a3 e7e6 f2f4 d7d5 g1f3 g8f6 e2e3 a7a6 f1e2 b8c6\ngo\n");
+    std::cin.rdbuf(test_input.rdbuf());
+    std::ostringstream test_output;
+    std::cout.rdbuf(test_output.rdbuf());
+
+    uci::loop();
+
+    // Replace original cout and cin
+    std::cout.rdbuf(original_cout);
+    std::cin.rdbuf(original_cin);
+
+    CHECK(test_output.str() == "e");
+
 }

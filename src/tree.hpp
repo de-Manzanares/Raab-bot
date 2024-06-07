@@ -4,7 +4,10 @@
 #include <limits>
 #include "Board.hpp"
 
+// TODO do you have a memory leak?!
+// TODO iterative deepening
 // TODO enable partial analysis - some depth 3 is better than no depth 3
+// spawn based on time left and complexity (predicted nodes)
 // TODO discourage stalemate (worse than winning better than losing)
 // passed pawns good
 // stacked pawns bad
@@ -127,6 +130,8 @@ double eval(const Board *board)
 {
     return simple_evaluation(board);
 }
+
+// TODO make nodes as small as possible
 
 struct Node {
     Node();
