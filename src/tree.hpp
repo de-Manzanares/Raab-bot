@@ -152,20 +152,23 @@ struct Node {
     void spawn(uint depth);
 
     Node *next_step(Node *end, uint *depth);
-    void spawn_nonrecrusiv(uint depth);
 };
 
 Node::Node()
 {
     _board.update_move_maps();
-    _eval = eval(&_board) + discourage_early_queen_movement(this);
+    _eval = eval(&_board) + discourage_early_queen_movement(this) + castle_bonus(this);
+    delete _board.maps;
+    _board.maps = nullptr;
 }
 
 Node::Node(const std::string& fen)
 {
     _board.import_fen(fen);
     _board.update_move_maps();
-    _eval = eval(&_board) + discourage_early_queen_movement(this);
+    _eval = eval(&_board) + discourage_early_queen_movement(this) + castle_bonus(this);
+    delete _board.maps;
+    _board.maps = nullptr;
 }
 
 Node::Node(const Board *board, Square from, Square to, char ch)
@@ -174,8 +177,6 @@ Node::Node(const Board *board, Square from, Square to, char ch)
     _from = from;
     _to = to;
     _board.move(from, to, ch);
-    // _board.update_move_maps();
-    // _eval = eval(&_board) + discourage_early_queen_movement(this) + castle_bonus(this);
     _move += square_to_string(from) += square_to_string(to);
     if (ch != 0) {
         _move += ch;

@@ -39,3 +39,9 @@ TEST_CASE("bruh")
     board.update_move_maps();
     CHECK(eval(&board) == 1000);
 }
+
+TEST_CASE("updated eval")
+{
+    Node *n = new Node;
+    CHECK(n->_eval == 0);
+}
