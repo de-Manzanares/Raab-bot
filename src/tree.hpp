@@ -4,11 +4,13 @@
 #include <limits>
 #include "Board.hpp"
 
+// TODO enable partial analysis - some depth 3 is better than no depth 3
+// TODO discourage stalemate (worse than winning better than losing)
+// passed pawns good
+// stacked pawns bad
 // TODO move order
 // TODO include influence as well as legal moves (instead of ?)
 // bonus for influence around enemy king?
-// TODO discourage stalemate (worse than winning better than losing)
-// TODO add castling bonus
 
 // TODO checks seem to cause freeze ups
 // TODO local opening book
