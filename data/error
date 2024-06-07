@@ -1,7 +1,0 @@
-2024-06-07 06:52:36,307 chess.engine (engine.py:1062) DEBUG <UciProtocol (pid=25491)>: << position startpos moves g2g4 g8f6 g4g5 f6d5 f1g2 c7c6 e2e4 d5f4 g2f3 e7e5 f3g4 d8g5 g4d7 b8d7 g1f3 g5g2 f3g1 g2h1 d1g4 h7h5 g4g5 f4h3 g5g3 h1g1 g3g1 h3g1
-2024-06-07 06:52:36,308 chess.engine (engine.py:1062) DEBUG <UciProtocol (pid=25491)>: << go wtime 199179 btime 116420 winc 3000 binc 3000
-2024-06-07 06:52:36,391 chess.engine (engine.py:1088) DEBUG <UciProtocol (pid=25491)>: >> info branch depth 2
-2024-06-07 06:52:36,391 chess.engine (engine.py:1088) DEBUG <UciProtocol (pid=25491)>: >> info moving pieces on the board: 20
-2024-06-07 06:52:36,391 chess.engine (engine.py:1088) DEBUG <UciProtocol (pid=25491)>: >> info depth 2
-2024-06-07 06:52:36,391 chess.engine (engine.py:1088) DEBUG <UciProtocol (pid=25491)>: >> bestmove e1g1
-2024-06-07 06:52:36,392 lib.engine_wrapper (engine_wrapper.py:185) ERROR Ending game due to bot attempting an illegal move.

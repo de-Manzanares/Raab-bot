@@ -2190,6 +2190,16 @@ void Board::move(Square from, Square to, char ch)
     }
     else { game_state.half_move_clock++; }
 
+    // update castling rights if capturing rook
+    if (is_white_rook(to)) {
+        if (to == Square::h1) { game_state.castle_K = false; }
+        else if (to == Square::a1) { game_state.castle_Q = false; }
+    }
+    else if (is_black_rook(to)) {
+        if (to == Square::h8) { game_state.castle_k = false; }
+        else if (to == Square::a8) { game_state.castle_q = false; }
+    }
+
     // move piece
     if (is_pawn(from)) { move_pawn(from, to, ch); }
     if (is_king(from)) { move_king(from, to); }

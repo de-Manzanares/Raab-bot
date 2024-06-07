@@ -76,6 +76,31 @@ TEST_CASE(
     CHECK(test_output.str() != "bestmove b5a4");
 }
 
+TEST_CASE(
+        "2024-06-07 06:52:36,392 lib.engine_wrapper (engine_wrapper.py:185) ERROR Ending game due to bot attempting an illegal move.")
+{
+    // castling error
+
+    // Save original cout and cin
+    std::streambuf *original_cout = std::cout.rdbuf();
+    std::streambuf *original_cin = std::cin.rdbuf();
+
+    // Set up input and output streams
+    std::istringstream test_input(
+            "position startpos moves g2g4 g8f6 g4g5 f6d5 f1g2 c7c6 e2e4 d5f4 g2f3 e7e5 f3g4 d8g5 g4d7 b8d7 g1f3 g5g2 f3g1 g2h1 d1g4 h7h5 g4g5 f4h3 g5g3 h1g1 g3g1 h3g1\ngo\n");
+    std::cin.rdbuf(test_input.rdbuf());
+    std::ostringstream test_output;
+    std::cout.rdbuf(test_output.rdbuf());
+
+    uci::loop();
+
+    // Replace original cout and cin
+    std::cout.rdbuf(original_cout);
+    std::cin.rdbuf(original_cin);
+
+    CHECK(test_output.str() != "bestmove e1g1");
+}
+
 TEST_CASE("pinned pieces rook")
 {
     board.import_fen("8/8/8/1k1pR2K/8/8/8/8 w - - 0 1");

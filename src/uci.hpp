@@ -5,6 +5,8 @@
 #include "tree.hpp"
 #include "search.hpp"
 
+const bool INFO = false;
+
 void string_to_move(const std::string *string, Square *from, Square *to, char *ch);
 
 double neg_inf = -std::numeric_limits<double>::infinity();
@@ -79,15 +81,19 @@ void uci::loop()
                 if (!moves.empty()) { pieces++; }
             }
             D = 2;
-            std::cout << "info branch depth " << D << "\n";
-            std::cout << "info moving pieces on the board: " << pieces << "\n";
+
+            if (INFO) { std::cout << "info branch depth " << D << "\n"; }
+            if (INFO) { std::cout << "info moving pieces on the board: " << pieces << "\n"; }
+
             n->spawn(D);
             std::vector<Node *> opt_nodes{min_max(n, D, neg_inf, pos_inf, is_maxing(n))};
             opt_nodes[0]->spawn(D);
             opt_nodes.push_back(min_max(n, D, neg_inf, pos_inf, is_maxing(n)));
             uint depth_counter = 1;
             std::vector<Node *> moves{(n->next_step(opt_nodes[1], &depth_counter))};
-            std::cout << "info depth " << depth_counter << "\n";
+
+            if (INFO) { std::cout << "info depth " << depth_counter << "\n"; }
+
             std::cout << "bestmove " << moves[0]->_move << "\n";
             delete n;
         }
