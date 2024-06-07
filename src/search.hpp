@@ -10,8 +10,6 @@ bool is_maximizing(Color current_color, uint at_depth)
     return down_there == Color::white;
 }
 
-// TODO interleave tree generation and searching somehow
-
 Node *min_max(Node *n, uint depth, double alpha, double beta, bool maximizing)
 {
     // n->_child.size() == 0 ??? maybe something else

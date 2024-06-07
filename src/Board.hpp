@@ -9,8 +9,6 @@
 #include <vector>
 #include <algorithm>
 
-// TODO REMOVE PAWN IF TAKEN BY EN PASSANT
-
 // BEGIN Square
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -301,7 +299,6 @@ std::string Game_State::fen_castling_ability() const
  */
 std::string Game_State::fen_en_passant_targets() const
 {
-    // TODO movement - record en passant target when pawn moves two
     return en_passant_target.empty() ? "-" : en_passant_target;
 }
 
@@ -1439,7 +1436,6 @@ void Board::update_influence_maps()
  * @param sq The square of the rook.
  * @return The square of the pinned piece, or the square of the given rook if there is no pinned piece
  */
-// TODO write helper function
 Square Board::pinned_piece_rook(Square sq) const
 {
     Square pinned;                  // potentially pinned piece

@@ -7,7 +7,6 @@
 
 void string_to_move(const std::string *string, Square *from, Square *to, char *ch);
 
-// TODO set up opening book
 double neg_inf = -std::numeric_limits<double>::infinity();
 double pos_inf = std::numeric_limits<double>::infinity();
 
@@ -79,10 +78,7 @@ void uci::loop()
             for (const auto& [sq, moves] : n->_board.move_map_black) {
                 if (!moves.empty()) { pieces++; }
             }
-            // TODO why is 3 a hard no?
-            if (pieces <= 8) { D = 2; }
-            else if (pieces <= 10) { D = 2; }
-            else { D = 2; }
+            D = 2;
             std::cout << "info branch depth " << D << "\n";
             std::cout << "info moving pieces on the board: " << pieces << "\n";
             n->spawn(D);

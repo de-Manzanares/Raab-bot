@@ -4,14 +4,17 @@
 #include <limits>
 #include "Board.hpp"
 
-// TODO REMOVE PAWN IF TAKEN BY EN PASSANT
 
-// TODO add castling bonus
-// TODO discourage early queen movement
 // TODO move params up top for easy access ...
 // TODO include influence as well as legal moves
 // TODO discourage stalemate (worse than winning better than losing)
-// TODO info depth
+// TODO move order
+
+// TODO checks seem to cause freeze ups
+// TODO local opening book
+// TODO local table-base
+// TODO avoid pawn forks LOL
+// TODO add castling bonus
 // TODO influencing the center
 
 struct Node;
@@ -120,7 +123,6 @@ struct Node {
 
     void spawn(uint depth);
 
-    Node *next_step(Node *start, Node *end);
     Node *next_step(Node *end, uint *depth);
 };
 

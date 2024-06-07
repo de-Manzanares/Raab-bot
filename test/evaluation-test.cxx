@@ -7,7 +7,6 @@ Board board;
 
 TEST_CASE("simple evaluation")
 {
-    // TODO not initializing to startpos? --------------------------
     board.import_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     board.update_move_maps();
     CHECK(material_evaluation(&board) == 0.00);

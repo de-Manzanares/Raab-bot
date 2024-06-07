@@ -1,6 +1,0 @@
-                    DEBUG    <UciProtocol (pid=8740)>: << position startpos moves d2d4 e7e6 e2e4 f8b4 c2c3     engine.py:1062
-                             b4d6 g1e2 d8h4 e4e5 d6e7 d1c2 h7h5 c1d2 b8c6 g2g3 h4g4 e1d1 g4f3 h1g1 f3f2 f1g2
-                             d7d5 e5d6 e7d6 d2e1 f2e3 g2c6 b7c6 h2h3 a8b8 e1d2 e3f3 d1e1 g8f6 e1d1 c8a6 c3c4
-                    DEBUG    <UciProtocol (pid=8740)>: << go wtime 596840 btime 608370 winc 3000 binc 3000     engine.py:1062
-[06/05/24 14:06:22] DEBUG    <UciProtocol (pid=8740)>: >> bestmove d5c4                                        engine.py:1088
-                    ERROR    Ending game due to bot attempting an illegal move.

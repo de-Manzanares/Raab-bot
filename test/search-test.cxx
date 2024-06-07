@@ -4,10 +4,6 @@
 #include "../src/tree.hpp"
 #include "../src/search.hpp"
 
-
-// TODO there is something wrong with my tree generation... it is taking too long...
-// TODO maybe if we enhance the evaluation, the alpha beta search will be more effective LOL
-
 uint placeholder{};
 
 std::string delim = "\n--------------------------------------------------\n\n";
