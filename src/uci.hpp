@@ -81,7 +81,7 @@ void uci::loop()
                 if (!moves.empty()) { pieces++; }
             }
             // depth 3 just crashes ... ?
-            D = 3;
+            D = 4;
 
             if (INFO) { std::cout << "info branch depth " << D << "\n"; }
             if (INFO) { std::cout << "info moving pieces on the board: " << pieces << "\n"; }

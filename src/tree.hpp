@@ -174,8 +174,8 @@ Node::Node(const Board *board, Square from, Square to, char ch)
     _from = from;
     _to = to;
     _board.move(from, to, ch);
-    _board.update_move_maps();
-    _eval = eval(&_board) + discourage_early_queen_movement(this) + castle_bonus(this);
+    // _board.update_move_maps();
+    // _eval = eval(&_board) + discourage_early_queen_movement(this) + castle_bonus(this);
     _move += square_to_string(from) += square_to_string(to);
     if (ch != 0) {
         _move += ch;
@@ -204,6 +204,9 @@ void Node::spawn(uint depth)
     if (depth == 0) { return; }
 
     _board.update_move_maps();
+    _eval = eval(&_board) + discourage_early_queen_movement(this) + castle_bonus(this);
+
+    if (detect_checkmate(&_board) != 0) { return; }
 
     for (const auto& [sq, moves] :
             _board.game_state.active_color == Color::white ?
@@ -217,18 +220,19 @@ void Node::spawn(uint depth)
                     Node *spawn = new Node(&_board, sq, move, piece);
                     spawn->parent = this;
                     _child.push_back(spawn);
-                    if (detect_checkmate(&spawn->_board) != 0) { return; }
+                    // if (detect_checkmate(&spawn->_board) != 0) { return; }
                 }
             }
             else {
                 Node *spawn = new Node(&_board, sq, move, 0);
                 spawn->parent = this;
                 _child.push_back(spawn);
-                if (detect_checkmate(&spawn->_board) != 0) { return; }
+                // if (detect_checkmate(&spawn->_board) != 0) { return; }
             }
         }
     }
     delete _board.maps;
+    _board.maps = nullptr;
 
     for (auto& n : _child) {
         n->spawn(depth - 1);
