@@ -25,9 +25,9 @@ struct Node;
 double discourage_early_queen_movement(const Node *node);
 double castle_bonus(Node *n);
 
-const double CHECK_BONUS = 0.25;                     // gives weight to checks
-const double MOBILITY_MULTIPLIER = 1.0 / 100.0;     // gives weight for each legal move
-const double CASTLE_BONUS = 0.5;                    // gives weight to castling
+const double CHECK_BONUS = 0;                     // gives weight to checks 0.25
+const double MOBILITY_MULTIPLIER = 0 / 100.0;     // gives weight for each legal move 1.0
+const double CASTLE_BONUS = 0;                    // gives weight to castling 0.5
 
 /// material value
 std::unordered_map<char, int> material_value = {
