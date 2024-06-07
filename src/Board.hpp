@@ -390,6 +390,42 @@ Game_State& Game_State::operator=(const Game_State& rhs)
  * @brief Represents the chessboard
  * @details Stores all relevant game-state data and enforces rules
  */
+struct Maps {
+    std::unordered_map<Square, std::vector<Square>> move_map_white{};           // all white moves
+    std::unordered_map<Square, std::vector<Square>> move_map_black{};           // all black moves
+    std::unordered_map<Square, std::vector<Square>> influence_map_white{};      // all white influence
+    std::unordered_map<Square, std::vector<Square>> influence_map_black{};      // all black influence
+    std::unordered_map<Square, Square> pinned_pieces_white{};                   // {pinned piece, pinning piece}
+    std::unordered_map<Square, Square> pinned_pieces_black{};                   // {pinned piece, pinning piece}
+    // {square, squares in pinned lane}
+    std::unordered_map<Square, std::vector<Square>> pinned_piece_lane_map_white{};
+    // {square, squares in pinned lane}
+    std::unordered_map<Square, std::vector<Square>> pinned_piece_lane_map_black{};
+
+    void clear();
+};
+
+void Maps::clear()
+{
+    move_map_white.clear();
+    move_map_black.clear();
+    influence_map_white.clear();
+    influence_map_black.clear();
+    pinned_pieces_white.clear();
+    pinned_pieces_black.clear();
+    pinned_piece_lane_map_white.clear();
+    pinned_piece_lane_map_black.clear();
+}
+
+// std::unordered_map<Square, std::vector<Square>> maps->move_map_white{};
+// std::unordered_map<Square, std::vector<Square>> maps->move_map_black{};
+// std::unordered_map<Square, std::vector<Square>> maps->influence_map_white{};
+// std::unordered_map<Square, std::vector<Square>> maps->influence_map_black{};
+// std::unordered_map<Square, Square> maps->pinned_pieces_white{};
+// std::unordered_map<Square, Square> maps->pinned_pieces_black{};
+// std::unordered_map<Square, std::vector<Square>> maps->pinned_piece_lane_map_white{};
+// std::unordered_map<Square, std::vector<Square>> maps->pinned_piece_lane_map_black{};
+
 struct Board {
     Board& operator=(const Board& rhs);
     // bitboards
@@ -409,16 +445,7 @@ struct Board {
     // game conditions aside from piece placement
     Game_State game_state;
 
-    std::unordered_map<Square, std::vector<Square>> move_map_white{};           // all white moves
-    std::unordered_map<Square, std::vector<Square>> move_map_black{};           // all black moves
-    std::unordered_map<Square, std::vector<Square>> influence_map_white{};      // all white influence
-    std::unordered_map<Square, std::vector<Square>> influence_map_black{};      // all black influence
-    std::unordered_map<Square, Square> pinned_pieces_white{};                     // {pinned piece, pinning piece}
-    std::unordered_map<Square, Square> pinned_pieces_black{};                     // {pinned piece, pinning piece}
-    // {square, squares in pinned lane}
-    std::unordered_map<Square, std::vector<Square>> pinned_piece_lane_map_white{};
-    // {square, squares in pinned lane}
-    std::unordered_map<Square, std::vector<Square>> pinned_piece_lane_map_black{};
+    Maps *maps = new Maps;
 
     // map character code to bitboard
     std::unordered_map<char, uint64_t&> piece_map = {
@@ -528,7 +555,6 @@ struct Board {
     void move(Square from, Square to, char ch);
     void move_pawn(Square from, Square to, char ch);
     void remove_piece(Square square);
-    void move_knight(Square from, Square to);
     void move_piece(Square from, Square to);
     void move_king(Square from, Square to);
     void move_rook(Square from, Square to);
@@ -552,16 +578,6 @@ Board& Board::operator=(const Board& rhs)
     w_King = rhs.w_King;
 
     game_state = rhs.game_state;
-
-    move_map_white = rhs.move_map_white;
-    move_map_black = rhs.move_map_black;
-    influence_map_white = rhs.influence_map_white;
-    influence_map_black = rhs.influence_map_black;
-    pinned_pieces_white = rhs.pinned_pieces_white;
-    pinned_pieces_black = rhs.pinned_pieces_black;
-
-    pinned_piece_lane_map_white = rhs.pinned_piece_lane_map_white;
-    pinned_piece_lane_map_black = rhs.pinned_piece_lane_map_black;
 
     return *this;
 }
@@ -1410,17 +1426,17 @@ std::vector<Square> Board::influence(Square sq) const
 void Board::update_influence_maps()
 {
     // reset the maps
-    influence_map_white.clear();
-    influence_map_black.clear();
+    maps->influence_map_white.clear();
+    maps->influence_map_black.clear();
 
     for (Square square = Square::a8; square >= Square::h1; --square) {
         // white moves
         if (is_white(square)) {
-            influence_map_white.insert({square, influence(square)});
+            maps->influence_map_white.insert({square, influence(square)});
         }
         // black moves
         if (is_black(square)) {
-            influence_map_black.insert({square, influence(square)});
+            maps->influence_map_black.insert({square, influence(square)});
         }
     }
 }
@@ -1653,19 +1669,19 @@ Square Board::pinned_piece(Square sq) const
 void Board::update_pinned_pieces(const Square& square_K, const Square& square_k)
 {
     // reset the maps
-    pinned_pieces_white.clear();
-    pinned_pieces_black.clear();
-    pinned_piece_lane_map_white.clear();
-    pinned_piece_lane_map_black.clear();
+    maps->pinned_pieces_white.clear();
+    maps->pinned_pieces_black.clear();
+    maps->pinned_piece_lane_map_white.clear();
+    maps->pinned_piece_lane_map_black.clear();
 
     for (Square square = Square::a8; square >= Square::h1; --square) {
         // white moves
         if (is_white(square)) {
-            if (pinned_piece(square) != square) { pinned_pieces_black.insert({pinned_piece(square), square}); }
+            if (pinned_piece(square) != square) { maps->pinned_pieces_black.insert({pinned_piece(square), square}); }
         }
         // black moves
         if (is_black(square)) {
-            if (pinned_piece(square) != square) { pinned_pieces_white.insert({pinned_piece(square), square}); }
+            if (pinned_piece(square) != square) { maps->pinned_pieces_white.insert({pinned_piece(square), square}); }
         }
     }
 }
@@ -1704,7 +1720,7 @@ std::vector<Square> Board::update_white_king_moves(Square square_K)
 
     // detect whether king is in check
     is_in_check = false;
-    for (const auto& pair : influence_map_black) {
+    for (const auto& pair : maps->influence_map_black) {
         if (std::find(pair.second.begin(), pair.second.end(), square_K) != pair.second.end()) {  // is the king in check
             is_in_check = true;
             game_state.in_check_white = true;
@@ -1720,7 +1736,7 @@ std::vector<Square> Board::update_white_king_moves(Square square_K)
     // remove square that are under attack
     for (const auto& s : influence_kings) {
         under_attack = false;   // reset search flag
-        for (const auto& pair : influence_map_black) {
+        for (const auto& pair : maps->influence_map_black) {
             if (std::find(pair.second.begin(), pair.second.end(), s) != pair.second.end()) {
                 under_attack = true;
                 break;
@@ -1753,7 +1769,7 @@ std::vector<Square> Board::update_white_king_moves(Square square_K)
     }
 
     // add king moves to move map
-    move_map_white.insert({square_K, legal_moves_kings});
+    maps->move_map_white.insert({square_K, legal_moves_kings});
 
     return giving_check;
 }
@@ -1775,7 +1791,7 @@ std::vector<Square> Board::update_black_king_moves(Square square_k)
 
     // detect whether king is in check
     is_in_check = false;
-    for (const auto& pair : influence_map_white) {
+    for (const auto& pair : maps->influence_map_white) {
         if (std::find(pair.second.begin(), pair.second.end(), square_k) != pair.second.end()) {  // is the king in check
             is_in_check = true;
             game_state.in_check_black = true;
@@ -1790,7 +1806,7 @@ std::vector<Square> Board::update_black_king_moves(Square square_k)
     // remove square that are under attack
     for (const auto& s : influence_kings) {
         under_attack = false;   // reset search flag
-        for (const auto& pair : influence_map_white) {
+        for (const auto& pair : maps->influence_map_white) {
             if (std::find(pair.second.begin(), pair.second.end(), s) != pair.second.end()) {
                 under_attack = true;
                 break;
@@ -1823,7 +1839,7 @@ std::vector<Square> Board::update_black_king_moves(Square square_k)
     }
 
     // add king moves to move map
-    move_map_black.insert({square_k, legal_moves_kings});
+    maps->move_map_black.insert({square_k, legal_moves_kings});
 
     return giving_check;
 }
@@ -1874,6 +1890,9 @@ void Board::remove_same_color_squares(std::unordered_map<Square, std::vector<Squ
 
 void Board::update_move_maps()
 {
+    // clear move maps
+    maps->clear();
+
     // reset check flags
     game_state.in_check_white = false;
     game_state.in_check_black = false;
@@ -1882,20 +1901,22 @@ void Board::update_move_maps()
     update_influence_maps();
 
     // assign from influence maps exclude pawns and kings
-    Square square_K = assign_from_influence_map_exclude_pawns_and_kings(&move_map_white, &influence_map_white);
-    Square square_k = assign_from_influence_map_exclude_pawns_and_kings(&move_map_black, &influence_map_black);
+    Square square_K = assign_from_influence_map_exclude_pawns_and_kings(
+            &maps->move_map_white, &maps->influence_map_white);
+    Square square_k = assign_from_influence_map_exclude_pawns_and_kings(
+            &maps->move_map_black, &maps->influence_map_black);
 
     // update pinned pieces
     update_pinned_pieces(square_K, square_k);
 
     // remove same colored squares (can't capture own pieces)
-    remove_same_color_squares(&move_map_white, Color::white);
-    remove_same_color_squares(&move_map_black, Color::black);
+    remove_same_color_squares(&maps->move_map_white, Color::white);
+    remove_same_color_squares(&maps->move_map_black, Color::black);
 
     // add pawn moves directly
     for (auto sq = Square::a8; sq >= Square::h1; --sq) {
-        if (is_white_pawn(sq)) { move_map_white.insert({sq, legal_moves(sq)}); }
-        if (is_black_pawn(sq)) { move_map_black.insert({sq, legal_moves(sq)}); }
+        if (is_white_pawn(sq)) { maps->move_map_white.insert({sq, legal_moves(sq)}); }
+        if (is_black_pawn(sq)) { maps->move_map_black.insert({sq, legal_moves(sq)}); }
     }
 
     // add king moves
@@ -1948,7 +1969,7 @@ void Board::update_move_maps()
                 }
             }
         }
-        for (auto& pair : move_map_white) {
+        for (auto& pair : maps->move_map_white) {
             if (!is_king(pair.first)) {
                 std::vector<Square> temp{};
                 for (const auto& sq : pair.second) {
@@ -1964,7 +1985,7 @@ void Board::update_move_maps()
         // if more than once piece is giving check, the king must be moved
     else if (giving_check.size() > 1) {
         // clear all moves except king evasion
-        for (auto& pair : move_map_white) {
+        for (auto& pair : maps->move_map_white) {
             if (!is_king(pair.first)) { pair.second.clear(); }
         }
     }
@@ -2003,7 +2024,7 @@ void Board::update_move_maps()
                 }
             }
         }
-        for (auto& pair : move_map_black) {
+        for (auto& pair : maps->move_map_black) {
             if (!is_king(pair.first)) {
                 std::vector<Square> temp{};
                 for (const auto& sq : pair.second) {
@@ -2019,15 +2040,15 @@ void Board::update_move_maps()
         // if more than once piece is giving check, the king must be moved
     else if (giving_check.size() > 1) {
         // clear all moves except king evasion
-        for (auto& pair : move_map_black) {
+        for (auto& pair : maps->move_map_black) {
             if (!is_king(pair.first)) { pair.second.clear(); }
         }
     }
 
     // pinned piece reduction
     // white
-    for (const auto& [pinned, pinner] : pinned_pieces_white) {
-        for (auto& [key, squares] : move_map_white) {
+    for (const auto& [pinned, pinner] : maps->pinned_pieces_white) {
+        for (auto& [key, squares] : maps->move_map_white) {
             if (key == pinned) {
                 std::vector<Square> temp{};
                 for (auto& square : squares) {
@@ -2041,8 +2062,8 @@ void Board::update_move_maps()
         }
     }
     // black
-    for (const auto& [pinned, pinner] : pinned_pieces_black) {
-        for (auto& [key, squares] : move_map_black) {
+    for (const auto& [pinned, pinner] : maps->pinned_pieces_black) {
+        for (auto& [key, squares] : maps->move_map_black) {
             if (key == pinned) {
                 std::vector<Square> temp{};
                 for (auto& square : squares) {
@@ -2219,7 +2240,7 @@ void Board::move(Square from, Square to, char ch)
 // BEGIN diagnostic
 void Board::print_move_map(Color color) const
 {
-    auto map = color == Color::white ? move_map_white : move_map_black;
+    auto map = color == Color::white ? maps->move_map_white : maps->move_map_black;
     for (const auto& [sq, moves] : map) {
         std::cout << square_to_string(sq) << " : ";
         for (const auto& square : moves) {
@@ -2233,7 +2254,7 @@ ulong Board::nodes_at_depth_1(Color color)
 {
     update_move_maps();
     ulong nodes{};
-    for (const auto& [sq, moves] : color == Color::white ? move_map_white : move_map_black) {
+    for (const auto& [sq, moves] : color == Color::white ? maps->move_map_white : maps->move_map_black) {
         nodes += moves.size();
     }
     return nodes;

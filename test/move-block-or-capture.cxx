@@ -7,8 +7,8 @@ void generate_and_sort(Board& board, const Square& sq, std::vector<Square>& v)
     v.clear();
     board.update_move_maps();
     Color c = board.what_color(sq);
-    if (c == Color::white) { v = board.move_map_white[sq]; }
-    if (c == Color::black) { v = board.move_map_black[sq]; }
+    if (c == Color::white) { v = Maps::move_map_white[sq]; }
+    if (c == Color::black) { v = Maps::move_map_black[sq]; }
     std::sort(v.begin(), v.end());
 }
 

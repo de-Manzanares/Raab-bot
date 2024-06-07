@@ -74,10 +74,10 @@ void uci::loop()
             n->_board.update_move_maps();
             uint D;
             uint pieces = 0;
-            for (const auto& [sq, moves] : n->_board.move_map_white) {
+            for (const auto& [sq, moves] : n->_board.maps->move_map_white) {
                 if (!moves.empty()) { pieces++; }
             }
-            for (const auto& [sq, moves] : n->_board.move_map_black) {
+            for (const auto& [sq, moves] : n->_board.maps->move_map_black) {
                 if (!moves.empty()) { pieces++; }
             }
             // depth 3 just crashes ... ?

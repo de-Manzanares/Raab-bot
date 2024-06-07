@@ -6,22 +6,22 @@ void generate_and_sort(Board& board, const Square& sq, std::vector<Square>& v)
 {
     board.update_move_maps();
     Color c = board.what_color(sq);
-    if (c == Color::white) { v = board.move_map_white[sq]; }
-    if (c == Color::black) { v = board.move_map_black[sq]; }
+    if (c == Color::white) { v = board.maps->move_map_white[sq]; }
+    if (c == Color::black) { v = board.maps->move_map_black[sq]; }
     std::sort(v.begin(), v.end());
 }
 
 void generate_and_sort_white_king(Board& board, const Square& sq, std::vector<Square>& v)
 {
     board.update_move_maps();
-    v = board.move_map_white[sq];
+    v = board.maps->move_map_white[sq];
     std::sort(v.begin(), v.end());
 }
 
 void generate_and_sort_black_king(Board& board, const Square& sq, std::vector<Square>& v)
 {
     board.update_move_maps();
-    v = board.move_map_black[sq];
+    v = board.maps->move_map_black[sq];
     std::sort(v.begin(), v.end());
 }
 

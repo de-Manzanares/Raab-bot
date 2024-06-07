@@ -72,12 +72,12 @@ int detect_checkmate(const Board *board)
 
     // detect white checkmate
     if (board->game_state.active_color == Color::white) {
-        for (const auto& [sq, moves] : board->move_map_white) { number_of_moves += moves.size(); }
+        for (const auto& [sq, moves] : board->maps->move_map_white) { number_of_moves += moves.size(); }
         if (number_of_moves == 0) { return -1; }
     }
     // detect black checkmate
     if (board->game_state.active_color == Color::black) {
-        for (const auto& [sq, moves] : board->move_map_black) { number_of_moves += moves.size(); }
+        for (const auto& [sq, moves] : board->maps->move_map_black) { number_of_moves += moves.size(); }
         if (number_of_moves == 0) { return 1; }
     }
     // if neither is in checkmate
@@ -93,10 +93,10 @@ int detect_checkmate(const Board *board)
 double mobility_evaluation(const Board *board)
 {
     double score = 0;
-    for (const auto& [sq, moves] : board->move_map_white) {
+    for (const auto& [sq, moves] : board->maps->move_map_white) {
         score += static_cast<double>(moves.size());
     }
-    for (const auto& [sq, moves] : board->move_map_black) {
+    for (const auto& [sq, moves] : board->maps->move_map_black) {
         score -= static_cast<double>(moves.size());
     }
     return score * MOBILITY_MULTIPLIER;
@@ -152,6 +152,7 @@ struct Node {
     void spawn(uint depth);
 
     Node *next_step(Node *end, uint *depth);
+    void spawn_nonrecrusiv(uint depth);
 };
 
 Node::Node()
@@ -201,10 +202,12 @@ uint Node::count_nodes()
 void Node::spawn(uint depth)
 {
     if (depth == 0) { return; }
+
     _board.update_move_maps();
+
     for (const auto& [sq, moves] :
             _board.game_state.active_color == Color::white ?
-            _board.move_map_white : _board.move_map_black) {
+            _board.maps->move_map_white : _board.maps->move_map_black) {
 
         for (const auto& move : moves) {
             if ((_board.is_in_row(move) == 8 && _board.is_white_pawn(sq))
@@ -214,17 +217,19 @@ void Node::spawn(uint depth)
                     Node *spawn = new Node(&_board, sq, move, piece);
                     spawn->parent = this;
                     _child.push_back(spawn);
-                    if (detect_checkmate(&spawn->_board) != 0) { return; }   // i'm not sure what this does lol
+                    if (detect_checkmate(&spawn->_board) != 0) { return; }
                 }
             }
             else {
                 Node *spawn = new Node(&_board, sq, move, 0);
                 spawn->parent = this;
                 _child.push_back(spawn);
-                if (detect_checkmate(&spawn->_board) != 0) { return; }   // i'm not sure what this does lol
+                if (detect_checkmate(&spawn->_board) != 0) { return; }
             }
         }
     }
+    delete _board.maps;
+
     for (auto& n : _child) {
         n->spawn(depth - 1);
     }

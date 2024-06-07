@@ -10,6 +10,7 @@ uint D = 2;   // depth
 
 TEST_CASE("mate in one")
 {
+    D = 2;
     std::cout << delim;
     Node n("6k1/2R5/6K1/8/8/8/8/8 w - - 0 1");
     n.spawn(D);
@@ -22,6 +23,7 @@ TEST_CASE("mate in one")
 
 TEST_CASE("mate in two")
 {
+    D = 2;
     std::cout << delim;
     Node n("8/7k/1R6/2R3K1/8/8/8/8 w - - 0 1");
     std::vector<Node *> opt_nodes;
@@ -38,6 +40,12 @@ TEST_CASE("mate in two")
         moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
     }
+}
+
+TEST_CASE("mate in two seg fault")
+{
+    Node n("8/7k/1R6/2R3K1/8/8/8/8 w - - 0 1");
+    n.spawn(3);
 }
 
 TEST_CASE("mate in two, part 2")
@@ -148,10 +156,10 @@ TEST_CASE("depth three gives exit code -9")
     std::vector<uint> w{0};
     std::vector<uint> b{0};
 
-    for (const auto& [sq, moves] : n._board.move_map_white) {
+    for (const auto& [sq, moves] : n._board.maps->move_map_white) {
         w[0] += moves.size();
     }
-    for (const auto& [sq, moves] : n._board.move_map_black) {
+    for (const auto& [sq, moves] : n._board.maps->move_map_black) {
         b[0] += moves.size();
     }
 
