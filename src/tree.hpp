@@ -4,24 +4,25 @@
 #include <limits>
 #include "Board.hpp"
 
-
-// TODO move params up top for easy access ...
-// TODO include influence as well as legal moves
-// TODO discourage stalemate (worse than winning better than losing)
 // TODO move order
+// TODO include influence as well as legal moves (instead of ?)
+// bonus for influence around enemy king?
+// TODO discourage stalemate (worse than winning better than losing)
+// TODO add castling bonus
 
 // TODO checks seem to cause freeze ups
 // TODO local opening book
 // TODO local table-base
 // TODO avoid pawn forks LOL
-// TODO add castling bonus
 // TODO influencing the center
 
 struct Node;
 double discourage_early_queen_movement(const Node *node);
+double castle_bonus(Node *n);
 
 const double CHECK_BONUS = 0.5;                     // gives weight to checks
 const double MOBILITY_MULTIPLIER = 1.0 / 100.0;     // gives weight for each legal move
+const double CASTLE_BONUS = 0.5;                    // gives weight to castling
 
 /// material value
 std::unordered_map<char, int> material_value = {
@@ -166,7 +167,7 @@ Node::Node(const Board *board, Square from, Square to, char ch)
     _to = to;
     _board.move(from, to, ch);
     _board.update_move_maps();
-    _eval = eval(&_board) + discourage_early_queen_movement(this);
+    _eval = eval(&_board) + discourage_early_queen_movement(this) + castle_bonus(this);
     _move += square_to_string(from) += square_to_string(to);
     if (ch != 0) {
         _move += ch;
@@ -260,6 +261,19 @@ double discourage_early_queen_movement(const Node *node)
     return score;
 }
 
+double castle_bonus(Node *n)
+{
+    double score = 0;
+    if (n->parent != nullptr) {
+        if (n->parent->_board.is_white_king(n->_from) && n->_from == Square::e1) {
+            if (n->_to == Square::g1 || n->_to == Square::c1) { score += CASTLE_BONUS; }
+        }
+        else if (n->parent->_board.is_black_king(n->_from) && n->_from == Square::e8) {
+            if (n->_to == Square::g8 || n->_to == Square::c8) { score -= CASTLE_BONUS; }
+        }
+    }
+    return score;
+}
 
 // if it is white's turn, white is going to choose the highest number
 // if it is black's turn, black is going to choose the lowest number
