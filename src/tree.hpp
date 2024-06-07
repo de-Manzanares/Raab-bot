@@ -20,10 +20,10 @@
 struct Node;
 double discourage_early_queen_movement(const Node *node);
 
-struct Tree {
-    std::vector<std::vector<Node *>> rings{};
-};
+const double CHECK_BONUS = 0.5;                     // gives weight to checks
+const double MOBILITY_MULTIPLIER = 1.0 / 100.0;     // gives weight for each legal move
 
+/// material value
 std::unordered_map<char, int> material_value = {
         {'Q', 900},
         {'q', -900},
@@ -36,6 +36,12 @@ std::unordered_map<char, int> material_value = {
         {'P', 100},
         {'p', -100}};
 
+/**
+ * @brief Evaluates the material value on the given chess board.
+ * @details This function calculates the material value of the chess pieces on the given chess board.
+ * @param board A pointer to the chess board to be evaluated.
+ * @return The material value of the chess pieces on the board divided by 100.
+ */
 double material_evaluation(const Board *board)
 {
     double sum = 0;
@@ -47,6 +53,13 @@ double material_evaluation(const Board *board)
     return sum / 100;
 }
 
+/**
+ * @brief Detects if the given chess board is in a checkmate position.
+ * @detlails Check whether there are any legal moves available for the active player. If there are no
+ * legal moves available, this is checkmate.
+ * @param board The chess board for which to detect checkmate.
+ * @return -1 if White is in checkmate, 1 if Black is in checkmate, 0 if neither color is in checkmate.
+ */
 int detect_checkmate(const Board *board)
 {
     ulong number_of_moves = 0;
@@ -56,20 +69,23 @@ int detect_checkmate(const Board *board)
         for (const auto& [sq, moves] : board->move_map_white) { number_of_moves += moves.size(); }
         if (number_of_moves == 0) { return -1; }
     }
-
     // detect black checkmate
     if (board->game_state.active_color == Color::black) {
         for (const auto& [sq, moves] : board->move_map_black) { number_of_moves += moves.size(); }
         if (number_of_moves == 0) { return 1; }
     }
-
     // if neither is in checkmate
     return 0;
 }
 
+/**
+ * @brief Evaluates the mobility of a given chess board.
+ * @details Adds score for each legal move available to a side.
+ * @param board A pointer to the chess board.
+ * @return The mobility score.
+ */
 double mobility_evaluation(const Board *board)
 {
-    const double MULTIPLIER = 1.0 / 100.0;
     double score = 0;
     for (const auto& [sq, moves] : board->move_map_white) {
         score += static_cast<double>(moves.size());
@@ -77,15 +93,19 @@ double mobility_evaluation(const Board *board)
     for (const auto& [sq, moves] : board->move_map_black) {
         score -= static_cast<double>(moves.size());
     }
-    return score * MULTIPLIER;
+    return score * MOBILITY_MULTIPLIER;
 }
 
+/**
+ * Calculates the bonus score for a given board based on whether a player is in check.
+ * @param board The board to check for in-check status.
+ * @return (+) score is black is in check, (-) score if white is in check
+ */
 double check_bonus(const Board *board)
 {
-    const double VALUE = 0.5;
     double score = 0;
-    if (board->game_state.in_check_white) { score -= VALUE; }
-    if (board->game_state.in_check_black) { score += VALUE; }
+    if (board->game_state.in_check_white) { score -= CHECK_BONUS; }
+    if (board->game_state.in_check_black) { score += CHECK_BONUS; }
     return score;
 }
 
@@ -170,10 +190,6 @@ uint Node::count_nodes()
     return count;
 }
 
-
-
-// todo untangle later
-
 void Node::spawn(uint depth)
 {
     if (depth == 0) { return; }
@@ -200,10 +216,7 @@ void Node::spawn(uint depth)
                 if (detect_checkmate(&spawn->_board) != 0) { return; }   // i'm not sure what this does lol
             }
         }
-        // std::cout << "info " << count_nodes() << " nodes" << "\n";
     }
-    // populate rings
-    // assign parent node
     for (auto& n : _child) {
         n->spawn(depth - 1);
     }
@@ -218,82 +231,6 @@ Node *Node::next_step(Node *end, uint *depth)
         (*depth)++;
     }
     return current;
-}
-
-struct Evaluator {
-    std::string best_move(const Node *n);
-    void best_line(const Node *n, uint depth);
-    Node *best_node;
-    std::string line{};
-};
-
-std::string Evaluator::best_move(const Node *n)
-{
-    std::string best_move;
-
-    bool maximizing = n->_board.game_state.active_color == Color::white;
-    double best_eval =
-            maximizing ? -std::numeric_limits<double>::infinity() : std::numeric_limits<double>::infinity();
-    for (const auto& c : n->_child) {
-        if (maximizing && c->_eval > best_eval || !maximizing && c->_eval < best_eval) {
-            best_eval = c->_eval;
-            best_move = c->_move;
-            best_node = c;
-        }
-    }
-    return best_move;
-}
-
-void Evaluator::best_line(const Node *n, uint depth)
-{
-    line.clear();
-    line += best_move(n);
-    line += ' ';
-    for (auto i = depth; i > 0; --i) {
-        line += best_move(best_node);
-        line += ' ';
-    }
-    std::cout << line;
-}
-
-Node *max(std::vector<Node *> v)
-{
-    Node *max_node;
-    double max = -std::numeric_limits<double>::infinity();
-    for (const auto& n : v) {
-        if (n->_eval > max) {
-            max = n->_eval;
-            max_node = n;
-        }
-    }
-    return max_node;
-}
-
-Node *min(std::vector<Node *> v)
-{
-    Node *min_node;
-    double min = std::numeric_limits<double>::infinity();
-    for (const auto& n : v) {
-        if (n->_eval < min) {
-            min = n->_eval;
-            min_node = n;
-        }
-    }
-    return min_node;
-}
-
-std::vector<Node *> minmax(std::vector<std::vector<Node *>> v, uint depth)
-{
-    std::vector<Node *> path;
-    Color c = v[v.size() - 1][0]->_board.game_state.active_color;
-
-    for (auto i = depth - 1; depth >= 0; depth--) {
-        if (c == Color::white) { path.push_back(max(v[i])); }
-        else if (c == Color::black) { path.push_back(min(v[i])); }
-        // switch turn
-        !c;
-    }
-    return path;
 }
 
 void print_nodes(std::vector<Node *> path)
