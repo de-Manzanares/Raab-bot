@@ -72,13 +72,17 @@ int detect_checkmate(const Board *board)
 
     // detect white checkmate
     if (board->game_state.active_color == Color::white) {
-        for (const auto& [sq, moves] : board->maps->move_map_white) { number_of_moves += moves.size(); }
-        if (number_of_moves == 0) { return -1; }
+        if (board->game_state.in_check_white) {
+            for (const auto& [sq, moves] : board->maps->move_map_white) { number_of_moves += moves.size(); }
+            if (number_of_moves == 0) { return -1; }
+        }
     }
     // detect black checkmate
     if (board->game_state.active_color == Color::black) {
-        for (const auto& [sq, moves] : board->maps->move_map_black) { number_of_moves += moves.size(); }
-        if (number_of_moves == 0) { return 1; }
+        if (board->game_state.in_check_black) {
+            for (const auto& [sq, moves] : board->maps->move_map_black) { number_of_moves += moves.size(); }
+            if (number_of_moves == 0) { return 1; }
+        }
     }
     // if neither is in checkmate
     return 0;
