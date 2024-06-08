@@ -9,8 +9,8 @@ void generate_and_sort(Board& board, const Square& sq, std::vector<Square>& v)
     v.clear();
     board.update_move_maps();
     Color c = board.what_color(sq);
-    if (c == Color::white) { v = Maps::move_map_white[sq]; }
-    if (c == Color::black) { v = Maps::move_map_black[sq]; }
+    if (c == Color::white) { v = board.maps->move_map_white[sq]; }
+    if (c == Color::black) { v = board.maps->move_map_black[sq]; }
     std::sort(v.begin(), v.end());
 }
 
@@ -99,6 +99,32 @@ TEST_CASE(
     std::cin.rdbuf(original_cin);
 
     CHECK(test_output.str() != "bestmove e1g1");
+}
+
+TEST_CASE(
+        "2024-06-08 06:30:23,327 lib.engine_wrapper (engine_wrapper.py:185) ERROR Ending game due to bot attempting an illegal move.")
+{
+    // castling error
+    // when castling long, you have to check that the third square is not occupied.
+
+    // Save original cout and cin
+    std::streambuf *original_cout = std::cout.rdbuf();
+    std::streambuf *original_cin = std::cin.rdbuf();
+
+    // Set up input and output streams
+    std::istringstream test_input(
+            "position startpos moves d2d4 d7d5 c2c4 d8d6 c4d5 d6d5 d1a4 c8d7 a4b4 b8c6 b4b7 a8b8 b7c7 d5a5 c7a5 c6a5 c1d2 a5c4 d2c3 g8f6 e2e3 c4b2 a2a4 e7e5 d4e5 f6e4 e5e6 f7e6 c3b2 b8b2\ngo\n");
+    std::cin.rdbuf(test_input.rdbuf());
+    std::ostringstream test_output;
+    std::cout.rdbuf(test_output.rdbuf());
+
+    uci::loop();
+
+    // Replace original cout and cin
+    std::cout.rdbuf(original_cout);
+    std::cin.rdbuf(original_cin);
+
+    CHECK(test_output.str()== "e");
 }
 
 TEST_CASE("pinned pieces rook")

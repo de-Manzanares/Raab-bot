@@ -1765,6 +1765,11 @@ std::vector<Square> Board::update_white_king_moves(Square square_K)
                 auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::c1);
                 legal_moves_kings.erase(it, legal_moves_kings.end());
             }
+                // when castling long, gotta check the third square too. if b1 isn't empty, can't castle just yet
+            else if (!is_empty(Square::b1)) {
+                auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::c1);
+                legal_moves_kings.erase(it, legal_moves_kings.end());
+            }
         }
     }
 
@@ -1832,6 +1837,11 @@ std::vector<Square> Board::update_black_king_moves(Square square_k)
         if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::c8) != legal_moves_kings.end()) {
             if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::d8) == legal_moves_kings.end()) {
                 // remove c1
+                auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::c8);
+                legal_moves_kings.erase(it, legal_moves_kings.end());
+            }
+                // when castling long, gotta check the third square too. if b8 isn't empty, can't castle just yet
+            else if (!is_empty(Square::b8)) {
                 auto it = std::remove(legal_moves_kings.begin(), legal_moves_kings.end(), s::c8);
                 legal_moves_kings.erase(it, legal_moves_kings.end());
             }
