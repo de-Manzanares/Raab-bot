@@ -1804,8 +1804,8 @@ std::vector<Square> Board::update_black_king_moves(Square square_k)
         }
     }
     if (!is_in_check) {     // if not in check, add castling moves (if available)
-        if (game_state.castle_K) { influence_kings.push_back(s::g8); }
-        if (game_state.castle_Q) { influence_kings.push_back(s::c8); }
+        if (game_state.castle_k) { influence_kings.push_back(s::g8); }
+        if (game_state.castle_q) { influence_kings.push_back(s::c8); }
     }
 
     // remove square that are under attack

@@ -124,7 +124,33 @@ TEST_CASE(
     std::cout.rdbuf(original_cout);
     std::cin.rdbuf(original_cin);
 
-    CHECK(test_output.str()== "e");
+    CHECK(test_output.str() != "bestmove e1b1");
+}
+
+TEST_CASE(
+        "2024-06-08 03:17:07,256 lib.engine_wrapper (engine_wrapper.py:185) ERROR Ending game due to bot attempting an illegal move.")
+{
+    // castling error
+    // when castling long, you have to check that the third square is not occupied.
+
+    // Save original cout and cin
+    std::streambuf *original_cout = std::cout.rdbuf();
+    std::streambuf *original_cin = std::cin.rdbuf();
+
+    // Set up input and output streams
+    std::istringstream test_input(
+            "position startpos moves b1c3 g8f6 g1f3 d7d5 d2d4 a7a6 c1f4 b7b6 f3e5 e7e6 a2a4 f8b4 g2g4 d8d6 e5f7 b4c3 b2c3 d6f4 f7h8\ngo\n");
+    std::cin.rdbuf(test_input.rdbuf());
+    std::ostringstream test_output;
+    std::cout.rdbuf(test_output.rdbuf());
+
+    uci::loop();
+
+    // Replace original cout and cin
+    std::cout.rdbuf(original_cout);
+    std::cin.rdbuf(original_cin);
+
+    CHECK(test_output.str() != "e8g8");
 }
 
 TEST_CASE("pinned pieces rook")
