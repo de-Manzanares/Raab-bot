@@ -81,17 +81,15 @@ void uci::loop()
                 if (!moves.empty()) { pieces++; }
             }
             // depth 3 just crashes ... ?
-            D = 4;
+            D = 3;
 
             if (INFO) { std::cout << "info branch depth " << D << "\n"; }
             if (INFO) { std::cout << "info moving pieces on the board: " << pieces << "\n"; }
 
             n->spawn(D);
             std::vector<Node *> opt_nodes{min_max(n, D, neg_inf, pos_inf, is_maxing(n))};
-            opt_nodes[0]->spawn(D);
-            opt_nodes.push_back(min_max(n, D, neg_inf, pos_inf, is_maxing(n)));
             uint depth_counter = 1;
-            std::vector<Node *> moves{(n->next_step(opt_nodes[1], &depth_counter))};
+            std::vector<Node *> moves{(n->next_step(opt_nodes[0], &depth_counter))};
 
             if (INFO) { std::cout << "info depth " << depth_counter << "\n"; }
 

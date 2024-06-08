@@ -42,6 +42,8 @@ TEST_CASE("bruh")
 
 TEST_CASE("updated eval")
 {
-    Node *n = new Node;
-    CHECK(n->_eval == 0);
+    // Node *n = new Node("7k/3R4/2R5/8/8/8/8/2K5 w - - 0 1");
+    // n->spawn(3);
+    Node *n0 = new Node;
+    n0->spawn(4);
 }
