@@ -47,3 +47,17 @@ TEST_CASE("updated eval")
     Node *n0 = new Node;
     n0->spawn(4);
 }
+
+TEST_CASE("material ratio")
+{
+    double ratio_multiplier = 2.0;
+    Board b;
+    b.import_fen("r6N/2r5/5R1N/1k6/6R1/n3K3/8/8 w - - 0 1");
+    CHECK(material_ratio(&b) == ratio_multiplier * 3.0 / 29.0);
+    b.import_fen("R6n/2R5/5r1n/1K6/6r1/N3k3/8/8 w - - 0 1");
+    CHECK(material_ratio(&b) == ratio_multiplier * -3.0 / 29.0);
+    b.import_fen("8/2r5/5R2/1k6/6R1/4K3/8/8 w - - 0 1");
+    CHECK(material_ratio(&b) == ratio_multiplier * 5.0 / 15.0);
+    b.import_fen("8/2R5/5r2/1K6/6r1/4k3/8/8 w - - 0 1");
+    CHECK(material_ratio(&b) == ratio_multiplier * -5.0 / 15.0);
+}

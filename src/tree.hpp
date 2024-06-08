@@ -4,22 +4,17 @@
 #include <limits>
 #include "Board.hpp"
 
-// TODO do you have a memory leak?!
 // TODO iterative deepening
-// TODO enable partial analysis - some depth 3 is better than no depth 3
+// TODO give weight to controlling opposing king's squares
 // spawn based on time left and complexity (predicted nodes)
-// TODO discourage stalemate (worse than winning better than losing)
-// passed pawns good
-// stacked pawns bad
-// TODO move order
-// TODO include influence as well as legal moves (instead of ?)
-// bonus for influence around enemy king?
-
-// TODO checks seem to cause freeze ups
-// TODO local opening book
-// TODO local table-base
+// TODO give weight to stalemate
+// TODO passed pawns good
+// TODO stacked pawns bad
 // TODO avoid pawn forks LOL
+// TODO move order
 // TODO influencing the center
+// TODO include influence as well as legal moves (instead of ?)
+// TODO enable time control on analysis
 
 struct Node;
 double discourage_early_queen_movement(const Node *node);
@@ -28,6 +23,7 @@ double castle_bonus(Node *n);
 const double CHECK_BONUS = 0.25;                     // gives weight to checks 0.25
 const double MOBILITY_MULTIPLIER = 1.0 / 100.0;     // gives weight for each legal move 1.0
 const double CASTLE_BONUS = 0.5;                    // gives weight to castling 0.5
+const double RATIO_MULTIPLIER = 2.0;                // gives weight to ratio of material advantage
 
 /// material value
 std::unordered_map<char, int> material_value = {
@@ -41,6 +37,28 @@ std::unordered_map<char, int> material_value = {
         {'n', -300},
         {'P', 100},
         {'p', -100}};
+
+/**
+ * @brief Calculates the material ratio for a given chess board.
+ * @details intended to encourage trading when up on material, and discourage trading when down on material
+ * @param board Pointer to the Board object representing the chess board.
+ * @return The ratio of material advantage to total material. Pos for white neg for black.
+ * indicates an advantage for black.
+ */
+double material_ratio(const Board *board)
+{
+    double wscore = 0;
+    double bscore = 0;
+    double ratio = 0;
+    for (Square sq = Square::a8; sq >= Square::h1; --sq) {
+        if (!board->is_empty(sq)) {
+            if (board->is_white(sq)) { wscore += material_value[board->what_piece(sq)]; }
+            else if (board->is_black(sq)) { bscore += material_value[board->what_piece(sq)]; }
+        }
+    }
+    if (wscore == -bscore) { return 0; }
+    return RATIO_MULTIPLIER * ((wscore + bscore) / (wscore - bscore));
+}
 
 /**
  * @brief Evaluates the material value on the given chess board.
@@ -124,7 +142,8 @@ double simple_evaluation(const Board *board)
     if (detect_checkmate(board) == 0) {
         double sum = material_evaluation(board)
                 + mobility_evaluation(board)
-                + check_bonus(board);
+                + check_bonus(board)
+                + material_ratio(board);
         return sum;
     }
     return 1'000 * detect_checkmate(board);
