@@ -4,6 +4,7 @@
 #include <limits>
 #include "Board.hpp"
 
+// TODO combine search and eval
 // TODO iterative deepening
 // TODO give weight to controlling opposing king's squares
 // spawn based on time left and complexity (predicted nodes)
