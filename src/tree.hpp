@@ -4,7 +4,6 @@
 #include <limits>
 #include "Board.hpp"
 
-// TODO combine search and eval
 // TODO iterative deepening
 // TODO give weight to controlling opposing king's squares
 // spawn based on time left and complexity (predicted nodes)
@@ -16,6 +15,10 @@
 // TODO influencing the center
 // TODO include influence as well as legal moves (instead of ?)
 // TODO enable time control on analysis
+
+
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN EVALUATION
 
 struct Node;
 double discourage_early_queen_movement(const Node *node);
@@ -138,6 +141,9 @@ double check_bonus(const Board *board)
     return score;
 }
 
+/**
+ * Creates an aggregate score using all evaluation methods
+ */
 double simple_evaluation(const Board *board)
 {
     if (detect_checkmate(board) == 0) {
@@ -150,18 +156,30 @@ double simple_evaluation(const Board *board)
     return 1'000 * detect_checkmate(board);
 }
 
+/**
+ * wrapper for simple_evaluation()
+ */
 double eval(const Board *board)
 {
     return simple_evaluation(board);
 }
 
-// TODO make nodes as small as possible
+// END EVALUATION
+//----------------------------------------------------------------------------------------------------------------------
+// BEGIN NODE
 
+// TODO make nodes as small as possible
+// TODO get rid of move, redundant with _from and _to
+
+/**
+ * @class Node
+ * @brief Represents a node in a tree structure
+ * @details Each node contains a possible game state.
+ */
 struct Node {
     Node();
     explicit Node(const std::string& fen);
     Node(const Board *board, Square from, Square to, char ch);
-
     ~Node();
 
     Square _from;
@@ -171,19 +189,25 @@ struct Node {
     Board _board{};
     double _eval{};
     std::vector<Node *> _child{};
+
     uint count_nodes();
-
     void spawn(uint depth);
-
     Node *next_step(Node *end, uint *depth);
 };
 
+/**
+ * @brief Default constructor for Node class
+ */
 Node::Node()
 {
     _board.update_move_maps();
     _eval = eval(&_board) + discourage_early_queen_movement(this) + castle_bonus(this);
 }
 
+/**
+ * @brief Create a Node with the given FEN string.
+ * @param fen The FEN string representing a game state
+ */
 Node::Node(const std::string& fen)
 {
     _board.import_fen(fen);
@@ -191,6 +215,13 @@ Node::Node(const std::string& fen)
     _eval = eval(&_board) + discourage_early_queen_movement(this) + castle_bonus(this);
 }
 
+/**
+ * @brief Constructor used in tree generation
+ * @param board The board to be copied.
+ * @param from The starting square of the move to be made.
+ * @param to The ending square of the move to be made.
+ * @param ch The character representation of the piece to promote the pawn to, if the move is a pawn promotion.
+ */
 Node::Node(const Board *board, Square from, Square to, char ch)
 {
     _board = *board;
@@ -203,6 +234,9 @@ Node::Node(const Board *board, Square from, Square to, char ch)
     }
 }
 
+/**
+ * @brief Destructor for the Node class
+ */
 Node::~Node()
 {
     for (auto& child : _child) {
@@ -211,6 +245,10 @@ Node::~Node()
     }
 }
 
+/**
+ * @brief Counts the total number of nodes in the tree starting from the node calling the function.
+ * @return The total number of nodes in the tree "below" the calling node.
+ */
 uint Node::count_nodes()
 {
     uint count = _child.size();
@@ -220,6 +258,10 @@ uint Node::count_nodes()
     return count;
 }
 
+/**
+ * @brief Creates a decision tree of n layers.
+ * @param depth The depth of the tree to spawn child nodes for.
+ */
 void Node::spawn(uint depth)
 {
     if (depth == 0) {
@@ -266,7 +308,13 @@ void Node::spawn(uint depth)
     }
 }
 
-///@warning infinite loop if start node doesn't lead to end node
+/**
+ * @brief Finds the next step from the current node to the end node
+ * @param end The end node to find the next step to
+ * @param depth Pointer to the depth variable, which will be updated during traversal
+ * @return The next step node from the current node to the end node
+ * @warning The function will result in an infinite loop if the current node is not a parent of the end node
+ */
 Node *Node::next_step(Node *end, uint *depth)
 {
     Node *current = end;
@@ -277,15 +325,13 @@ Node *Node::next_step(Node *end, uint *depth)
     return current;
 }
 
-void print_nodes(std::vector<Node *> path)
-{
-    std::reverse(path.begin(), path.end());
-    for (const auto& n : path) {
-        std::cout << n->_move << " ";
-    }
-    std::cout << "\n";
-}
+// END NODE
+//---------------------------------------------------------------------------------------------------------------------
 
+/**
+ * In the first ten moves of the game, penalize queen movements, encourage other piece movements
+ * @note is not needed when an opening book is in use
+ */
 double discourage_early_queen_movement(const Node *node)
 {
     double score = 0;
@@ -304,6 +350,10 @@ double discourage_early_queen_movement(const Node *node)
     return score;
 }
 
+/**
+ * Encourage castling lol
+ * I just wanted to see castling more often so I tacked some weight onto it.
+ */
 double castle_bonus(Node *n)
 {
     double score = 0;
@@ -317,8 +367,5 @@ double castle_bonus(Node *n)
     }
     return score;
 }
-
-// if it is white's turn, white is going to choose the highest number
-// if it is black's turn, black is going to choose the lowest number
 
 #endif //CHESSENGINE_TREE_HPP

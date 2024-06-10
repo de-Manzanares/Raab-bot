@@ -4,12 +4,18 @@
 #include "Board.hpp"
 #include "tree.hpp"
 
-bool is_maximizing(Color current_color, uint at_depth)
-{
-    Color down_there = at_depth % 2 == 0 ? current_color : !current_color;
-    return down_there == Color::white;
-}
+// TODO combine search and eval
 
+/**
+ * @brief Find the optimal node in a decision tree.
+ * @param n The current node in the search tree.
+ * @param depth The remaining depth to explore in the search tree.
+ * @param alpha The alpha value used in alpha-beta pruning.
+ * @param beta The beta value used in alpha-beta pruning.
+ * @param maximizing A boolean flag indicating whether the current node is a maximizing node or not.
+ * @return The optimal node found based on the evaluation and specified depth.
+ * @note This function assumes that the tree has been populated with valid nodes and evaluations.
+ */
 Node *min_max(Node *n, uint depth, double alpha, double beta, bool maximizing)
 {
     // n->_child.size() == 0 ??? maybe something else

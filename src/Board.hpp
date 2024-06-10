@@ -386,10 +386,6 @@ Game_State& Game_State::operator=(const Game_State& rhs)
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Board
 
-/**
- * @brief Represents the chessboard
- * @details Stores all relevant game-state data and enforces rules
- */
 struct Maps {
     std::unordered_map<Square, std::vector<Square>> move_map_white{};           // all white moves
     std::unordered_map<Square, std::vector<Square>> move_map_black{};           // all black moves
@@ -417,15 +413,10 @@ void Maps::clear()
     pinned_piece_lane_map_black.clear();
 }
 
-// std::unordered_map<Square, std::vector<Square>> maps->move_map_white{};
-// std::unordered_map<Square, std::vector<Square>> maps->move_map_black{};
-// std::unordered_map<Square, std::vector<Square>> maps->influence_map_white{};
-// std::unordered_map<Square, std::vector<Square>> maps->influence_map_black{};
-// std::unordered_map<Square, Square> maps->pinned_pieces_white{};
-// std::unordered_map<Square, Square> maps->pinned_pieces_black{};
-// std::unordered_map<Square, std::vector<Square>> maps->pinned_piece_lane_map_white{};
-// std::unordered_map<Square, std::vector<Square>> maps->pinned_piece_lane_map_black{};
-
+/**
+ * @brief Represents the chessboard
+ * @details Stores all relevant game-state data and enforces rules
+ */
 struct Board {
     Board& operator=(const Board& rhs);
     // bitboards
