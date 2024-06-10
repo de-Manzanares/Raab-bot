@@ -275,6 +275,7 @@ uint Node::count_nodes()
  */
 void Node::spawn_depth_first(uint depth)
 {
+
     if (depth == 0) {
         _board.update_move_maps();
         _eval = eval(&_board) + discourage_early_queen_movement(this) + castle_bonus(this);
@@ -311,6 +312,11 @@ void Node::spawn_depth_first(uint depth)
             }
         }
     }
+
+    // TODO partial tree gen is only good for breadth first?
+    // auto now = std::chrono::high_resolution_clock::now();
+    // auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - Counter::start).count();
+    // if (elapsed_ms > 15000) { return; }
 
     delete _board.maps;
     _board.maps = nullptr;

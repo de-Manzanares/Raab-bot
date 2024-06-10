@@ -41,11 +41,11 @@ void status_update_thread(uint update_interval_ms)
         uint generated = current - previous;
         auto now = std::chrono::high_resolution_clock::now();
 
-        std::cout << "info"
+        std::cerr << "info"
                   // << " depth "
                   << " time " << std::chrono::duration_cast<std::chrono::milliseconds>(now - Counter::start).count()
-                  << " nodes " << static_cast<int>(Counter::node / 1000) << "k"
-                  << " nps " << static_cast<int>((current - previous) / 1000) << "k"
+                  << " nodes " << Counter::node
+                  << " nps " << current - previous
                   << "\n";
         std::this_thread::sleep_for(std::chrono::milliseconds(update_interval_ms));
 
@@ -77,7 +77,7 @@ void uci::loop()
 
             Counter::node = 0;
             n->_board.update_move_maps();
-            uint D = 4;
+            uint D = 3;
             std::thread status_thread(status_update_thread, 1000);
             n->spawn_depth_first(D);
             continue_status_updates = false;
@@ -95,8 +95,8 @@ void uci::loop()
             std::cout << "info"
                       << " depth " << opt_nodes[0]->node_depth()
                       << " time " << time
-                      << " nodes " << static_cast<int>(Counter::node / 1000) << "k\n"
-                      << "bestmove "
+                      << " nodes " << Counter::node
+                      << "\nbestmove "
                       << moves[0]->_move << "\n";
 
             delete n;
