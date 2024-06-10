@@ -3,6 +3,7 @@
 
 #include <limits>
 #include <queue>
+#include <thread>
 #include "Board.hpp"
 
 // TODO add node count, nps, time controls on tree gen
@@ -175,9 +176,11 @@ double eval(const Board *board)
 
 struct Counter {
     static uint node;
+    static std::chrono::time_point<std::chrono::high_resolution_clock> start;
 };
 
 uint Counter::node = 0;
+std::chrono::time_point<std::chrono::high_resolution_clock> Counter::start = std::chrono::high_resolution_clock::now();
 
 /**
  * @class Node
@@ -298,11 +301,6 @@ void Node::spawn_depth_first(uint depth)
                     spawn->parent = this;
                     _child.push_back(spawn);
                     Counter::node++;
-                    if (Counter::node % 1000 == 0) {
-                        std::cout << "info depth " << spawn->node_depth()
-                                  << " nodes " << Counter::node
-                                  << "\n";
-                    }
                 }
             }
             else {
@@ -310,14 +308,10 @@ void Node::spawn_depth_first(uint depth)
                 spawn->parent = this;
                 _child.push_back(spawn);
                 Counter::node++;
-                if (Counter::node % 1000 == 0) {
-                    std::cout << "info depth " << spawn->node_depth()
-                              << " nodes " << Counter::node
-                              << "\n";
-                }
             }
         }
     }
+
     delete _board.maps;
     _board.maps = nullptr;
     for (auto& n : _child) {

@@ -29,6 +29,30 @@ struct uci {
     static void loop();
 };
 
+bool continue_status_updates = true;
+
+void status_update_thread(uint update_interval_ms)
+{
+    uint previous = 0;
+    Counter::start = std::chrono::high_resolution_clock::now();
+
+    while (continue_status_updates) {
+        uint current = Counter::node;
+        uint generated = current - previous;
+        auto now = std::chrono::high_resolution_clock::now();
+
+        std::cout << "info"
+                  // << " depth "
+                  << " time " << std::chrono::duration_cast<std::chrono::milliseconds>(now - Counter::start).count()
+                  << " nodes " << static_cast<int>(Counter::node / 1000) << "k"
+                  << " nps " << static_cast<int>((current - previous) / 1000) << "k"
+                  << "\n";
+        std::this_thread::sleep_for(std::chrono::milliseconds(update_interval_ms));
+
+        previous = current;
+    }
+}
+
 /**
  * @brief Implements the main loop that listens to UCI commands and processes them.
  */
@@ -52,19 +76,28 @@ void uci::loop()
         else if (simon_says(&in, "go") && n != nullptr) {
 
             Counter::node = 0;
-
             n->_board.update_move_maps();
-
-            uint D = 3;
+            uint D = 4;
+            std::thread status_thread(status_update_thread, 1000);
             n->spawn_depth_first(D);
+            continue_status_updates = false;
+            status_thread.join();
+
             // n->spawn_breadth_first(D);
 
             std::vector<Node *> opt_nodes{min_max(n, D, neg_inf, pos_inf, is_maxing(n))};
             uint depth_counter = 1;
             std::vector<Node *> moves{(n->next_step(opt_nodes[0], &depth_counter))};
 
-            std::cout << "info depth " << opt_nodes[0]->node_depth() << " nodes " << Counter::node << "\n"
-                      << "bestmove " << moves[0]->_move << "\n";
+            auto time = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::high_resolution_clock::now() - Counter::start).count();
+
+            std::cout << "info"
+                      << " depth " << opt_nodes[0]->node_depth()
+                      << " time " << time
+                      << " nodes " << static_cast<int>(Counter::node / 1000) << "k\n"
+                      << "bestmove "
+                      << moves[0]->_move << "\n";
 
             delete n;
             n = nullptr;
