@@ -4,8 +4,6 @@
 #include "Board.hpp"
 #include "tree.hpp"
 
-// TODO combine search and eval
-
 /**
  * @brief Find the optimal node in a decision tree.
  * @param n The current node in the search tree.
@@ -24,7 +22,7 @@ Node *min_max(Node *n, uint depth, double alpha, double beta, bool maximizing)
     Node *opt_node = nullptr;
 
     if (maximizing) {
-        double max = -std::numeric_limits<double>::infinity();
+        double max = -100'000;
         for (const auto& c : n->_child) {
             auto res = min_max(c, depth - 1, alpha, beta, false);
             if (max < res->_eval) {
@@ -37,7 +35,7 @@ Node *min_max(Node *n, uint depth, double alpha, double beta, bool maximizing)
         return opt_node;
     }
     else {
-        double min = std::numeric_limits<double>::infinity();
+        double min = 100'000;
         for (const auto& c : n->_child) {
             auto res = min_max(c, depth - 1, alpha, beta, true);
             if (min > res->_eval) {

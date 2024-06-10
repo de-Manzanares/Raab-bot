@@ -2,7 +2,10 @@
 #define CHESSENGINE_TREE_HPP
 
 #include <limits>
+#include <queue>
 #include "Board.hpp"
+
+// TODO add node count, nps, time controls on tree gen
 
 // TODO iterative deepening
 // TODO give weight to controlling opposing king's squares
@@ -149,8 +152,7 @@ double simple_evaluation(const Board *board)
     if (detect_checkmate(board) == 0) {
         double sum = material_evaluation(board)
                 + mobility_evaluation(board)
-                + check_bonus(board)
-                + material_ratio(board);
+                + check_bonus(board);
         return sum;
     }
     return 1'000 * detect_checkmate(board);
@@ -170,6 +172,12 @@ double eval(const Board *board)
 
 // TODO make nodes as small as possible
 // TODO get rid of move, redundant with _from and _to
+
+struct Counter {
+    static uint node;
+};
+
+uint Counter::node = 0;
 
 /**
  * @class Node
@@ -191,8 +199,10 @@ struct Node {
     std::vector<Node *> _child{};
 
     uint count_nodes();
-    void spawn(uint depth);
+    void spawn_depth_first(uint depth);
     Node *next_step(Node *end, uint *depth);
+    uint node_depth();
+    void spawn_breadth_first(uint depth);
 };
 
 /**
@@ -252,9 +262,7 @@ Node::~Node()
 uint Node::count_nodes()
 {
     uint count = _child.size();
-    for (const auto& child : _child) {
-        count += child->count_nodes();
-    }
+    for (const auto& child : _child) { count += child->count_nodes(); }
     return count;
 }
 
@@ -262,7 +270,7 @@ uint Node::count_nodes()
  * @brief Creates a decision tree of n layers.
  * @param depth The depth of the tree to spawn child nodes for.
  */
-void Node::spawn(uint depth)
+void Node::spawn_depth_first(uint depth)
 {
     if (depth == 0) {
         _board.update_move_maps();
@@ -289,22 +297,31 @@ void Node::spawn(uint depth)
                     Node *spawn = new Node(&_board, sq, move, piece);
                     spawn->parent = this;
                     _child.push_back(spawn);
-                    // if (detect_checkmate(&spawn->_board) != 0) { return; }
+                    Counter::node++;
+                    if (Counter::node % 1000 == 0) {
+                        std::cout << "info depth " << spawn->node_depth()
+                                  << " nodes " << Counter::node
+                                  << "\n";
+                    }
                 }
             }
             else {
                 Node *spawn = new Node(&_board, sq, move, 0);
                 spawn->parent = this;
                 _child.push_back(spawn);
-                // if (detect_checkmate(&spawn->_board) != 0) { return; }
+                Counter::node++;
+                if (Counter::node % 1000 == 0) {
+                    std::cout << "info depth " << spawn->node_depth()
+                              << " nodes " << Counter::node
+                              << "\n";
+                }
             }
         }
     }
     delete _board.maps;
     _board.maps = nullptr;
-
     for (auto& n : _child) {
-        n->spawn(depth - 1);
+        n->spawn_depth_first(depth - 1);
     }
 }
 
@@ -325,6 +342,16 @@ Node *Node::next_step(Node *end, uint *depth)
     return current;
 }
 
+uint Node::node_depth()
+{
+    uint ply = 0;
+    Node *current = this;
+    while (current->parent != nullptr) {
+        current = current->parent;
+        ply++;
+    }
+    return ply;
+}
 // END NODE
 //---------------------------------------------------------------------------------------------------------------------
 

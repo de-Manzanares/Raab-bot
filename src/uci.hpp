@@ -18,7 +18,6 @@ bool is_maxing(Node *n) { return n->_board.game_state.active_color == Color::whi
 bool simon_says(const std::string *s, const std::string& has) { return s->find(has) != std::string::npos; }
 
 // PARAMS
-const bool INFO = true;
 double neg_inf = -100'000;
 double pos_inf = 100'000;
 
@@ -52,18 +51,20 @@ void uci::loop()
         }
         else if (simon_says(&in, "go") && n != nullptr) {
 
+            Counter::node = 0;
+
             n->_board.update_move_maps();
 
             uint D = 3;
-            n->spawn(D);
+            n->spawn_depth_first(D);
+            // n->spawn_breadth_first(D);
 
             std::vector<Node *> opt_nodes{min_max(n, D, neg_inf, pos_inf, is_maxing(n))};
             uint depth_counter = 1;
             std::vector<Node *> moves{(n->next_step(opt_nodes[0], &depth_counter))};
 
-            if (INFO) { std::cout << "info depth " << depth_counter << "\n"; }
-
-            std::cout << "bestmove " << moves[0]->_move << "\n";
+            std::cout << "info depth " << opt_nodes[0]->node_depth() << " nodes " << Counter::node << "\n"
+                      << "bestmove " << moves[0]->_move << "\n";
 
             delete n;
             n = nullptr;

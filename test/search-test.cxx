@@ -13,7 +13,7 @@ TEST_CASE("mate in one")
     D = 2;
     std::cout << delim;
     Node n("6k1/2R5/6K1/8/8/8/8/8 w - - 0 1");
-    n.spawn(D);
+    n.spawn_depth_first(D);
     std::vector<Node *> opt_nodes;
     std::vector<Node *> moves;
     opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
@@ -29,13 +29,13 @@ TEST_CASE("mate in two")
     std::vector<Node *> opt_nodes;
     std::vector<Node *> moves;
 
-    n.spawn(D);
+    n.spawn_depth_first(D);
     opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
     moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 2; i++) {
-        opt_nodes[i]->spawn(D);
+        opt_nodes[i]->spawn_depth_first(D);
         opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
         moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
@@ -45,7 +45,7 @@ TEST_CASE("mate in two")
 TEST_CASE("mate in two seg fault")
 {
     Node n("8/7k/1R6/2R3K1/8/8/8/8 w - - 0 1");
-    n.spawn(3);
+    n.spawn_depth_first(3);
 }
 
 TEST_CASE("mate in two, part 2")
@@ -55,13 +55,13 @@ TEST_CASE("mate in two, part 2")
     std::vector<Node *> opt_nodes;
     std::vector<Node *> moves;
 
-    n.spawn(D);
+    n.spawn_depth_first(D);
     opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
     moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 2; i++) {
-        opt_nodes[i]->spawn(D);
+        opt_nodes[i]->spawn_depth_first(D);
         opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
         moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
@@ -75,13 +75,13 @@ TEST_CASE("mate in three")      // has a real round about solution LOL
     std::vector<Node *> opt_nodes;
     std::vector<Node *> moves;
 
-    n.spawn(D);
+    n.spawn_depth_first(D);
     opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
     moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 4; i++) {
-        opt_nodes[i]->spawn(D);
+        opt_nodes[i]->spawn_depth_first(D);
         opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
         moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
@@ -95,13 +95,13 @@ TEST_CASE("hanging piece ct#50966377")
     std::vector<Node *> opt_nodes;
     std::vector<Node *> moves;
 
-    n.spawn(D);
+    n.spawn_depth_first(D);
     opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
     moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 4; i++) {
-        opt_nodes[i]->spawn(D);
+        opt_nodes[i]->spawn_depth_first(D);
         opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
         moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
@@ -116,13 +116,13 @@ TEST_CASE("hanging piece ct#50966377 modified lol white first")
     std::vector<Node *> opt_nodes;
     std::vector<Node *> moves;
 
-    n.spawn(D);
+    n.spawn_depth_first(D);
     opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
     moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 4; i++) {
-        opt_nodes[i]->spawn(D);
+        opt_nodes[i]->spawn_depth_first(D);
         opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
         moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
@@ -137,13 +137,13 @@ TEST_CASE("hanging piece ct#50966377 modified lol black first")
     std::vector<Node *> opt_nodes;
     std::vector<Node *> moves;
 
-    n.spawn(D);
+    n.spawn_depth_first(D);
     opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
     moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 4; i++) {
-        opt_nodes[i]->spawn(D);
+        opt_nodes[i]->spawn_depth_first(D);
         opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
         moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
