@@ -5,11 +5,17 @@
 #include "tree.hpp"
 #include "search.hpp"
 
+// TODO determine depth using complexity of the board and time left in the game
+
 void string_to_move(const std::string *string, Square *from, Square *to, char *ch);
 void preamble(const std::string *in);
 void startpos_moves(Node *n, std::string *in);
 
+// is the active color white?
 bool is_maxing(Node *n) { return n->_board.game_state.active_color == Color::white; }
+
+// does the string conatin the given substring?
+bool simon_says(const std::string *s, const std::string& has) { return s->find(has) != std::string::npos; }
 
 // PARAMS
 const bool INFO = true;
@@ -37,39 +43,20 @@ void uci::loop()
         preamble(&in);
 
         // set up a board in the given position, wait for "go" to search, a fen or a list of moves may follow
-        if (in.find("position") != std::string::npos) {
-
-            // TODO import fen, should be as easy as just grabbing the rest of the line
-            if (in.find("fen") != std::string::npos) { }
-
-            else if (in.find("startpos") != std::string::npos) {
-                n = new Node;   // start a new tree TODO is the import necessary?
-                n->_board.import_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-
-                // if there are moves to make, make them
-                if (in.find("moves") != std::string::npos) { startpos_moves(n, &in); }
+        if (simon_says(&in, "position")) {
+            if (simon_says(&in, "fen")) { }                                     // TODO start from position
+            else if (simon_says(&in, "startpos")) {
+                n = new Node;
+                if (simon_says(&in, "moves")) { startpos_moves(n, &in); }
             }
         }
+        else if (simon_says(&in, "go") && n != nullptr) {
 
-        if (in.find("go") != std::string::npos) {
-            //start calculating for current position
-            // TODO determine depth using complexity of the board and time left in the game
-            // if there is plenty of time, dig deeper
             n->_board.update_move_maps();
-            uint D;
-            uint pieces = 0;
-            for (const auto& [sq, moves] : n->_board.maps->move_map_white) {
-                if (!moves.empty()) { pieces++; }
-            }
-            for (const auto& [sq, moves] : n->_board.maps->move_map_black) {
-                if (!moves.empty()) { pieces++; }
-            }
-            D = 3;
 
-            if (INFO) { std::cout << "info branch depth " << D << "\n"; }
-            if (INFO) { std::cout << "info moving pieces on the board: " << pieces << "\n"; }
-
+            uint D = 3;
             n->spawn(D);
+
             std::vector<Node *> opt_nodes{min_max(n, D, neg_inf, pos_inf, is_maxing(n))};
             uint depth_counter = 1;
             std::vector<Node *> moves{(n->next_step(opt_nodes[0], &depth_counter))};
@@ -77,9 +64,11 @@ void uci::loop()
             if (INFO) { std::cout << "info depth " << depth_counter << "\n"; }
 
             std::cout << "bestmove " << moves[0]->_move << "\n";
+
             delete n;
+            n = nullptr;
         }
-        if (in.find("stop") != std::string::npos) { }   // TODO stop calculating
+        else if (in.find("stop") != std::string::npos) { }   // TODO stop calculating
         else if (in == "quit") { break; }               // quit the loop, ends the program
     }
 }
