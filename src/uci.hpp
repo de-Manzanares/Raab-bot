@@ -41,12 +41,12 @@ void status_update_thread(uint update_interval_ms)
         uint generated = current - previous;
         auto now = std::chrono::high_resolution_clock::now();
 
-        std::cerr << "info"
+        std::cout << "info"
                   // << " depth "
                   << " time " << std::chrono::duration_cast<std::chrono::milliseconds>(now - Counter::start).count()
                   << " nodes " << Counter::node
                   << " nps " << current - previous
-                  << "\n";
+                  << std::endl;     // GOTTA FLUSH THE BUFFER!!!
         std::this_thread::sleep_for(std::chrono::milliseconds(update_interval_ms));
 
         previous = current;
