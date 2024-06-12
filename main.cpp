@@ -1,4 +1,4 @@
-#include "uci.hpp"
+#include "include/UCI.h"
 
 int main()
 {

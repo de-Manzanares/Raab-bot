@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
 #include <iostream>
 #include <sstream>
-#include "../src/uci.hpp"
+#include "../../src/UCI.cpp"
 
 TEST_CASE("bruh")
 {

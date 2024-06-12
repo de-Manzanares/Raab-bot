@@ -1,6 +1,6 @@
 #include <catch2/catch_all.hpp>
 #include <iostream>
-#include "../src/uci.hpp"
+#include "../../src/UCI.cpp"
 
 uint placeholder{};
 
@@ -16,7 +16,7 @@ TEST_CASE("mate in one")
     n.spawn_depth_first(D);
     std::vector<Node *> opt_nodes;
     std::vector<Node *> moves;
-    opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
+    opt_nodes.push_back(Search::min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
     moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move;
 }
@@ -30,13 +30,13 @@ TEST_CASE("mate in two")
     std::vector<Node *> moves;
 
     n.spawn_depth_first(D);
-    opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
+    opt_nodes.push_back(Search::min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
     moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 2; i++) {
         opt_nodes[i]->spawn_depth_first(D);
-        opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
+        opt_nodes.push_back(Search::min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
         moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
     }
@@ -56,13 +56,13 @@ TEST_CASE("mate in two, part 2")
     std::vector<Node *> moves;
 
     n.spawn_depth_first(D);
-    opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
+    opt_nodes.push_back(Search::min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
     moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 2; i++) {
         opt_nodes[i]->spawn_depth_first(D);
-        opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
+        opt_nodes.push_back(Search::min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
         moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
     }
@@ -76,13 +76,13 @@ TEST_CASE("mate in three")      // has a real round about solution LOL
     std::vector<Node *> moves;
 
     n.spawn_depth_first(D);
-    opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
+    opt_nodes.push_back(Search::min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
     moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 4; i++) {
         opt_nodes[i]->spawn_depth_first(D);
-        opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
+        opt_nodes.push_back(Search::min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
         moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
     }
@@ -96,13 +96,13 @@ TEST_CASE("hanging piece ct#50966377")
     std::vector<Node *> moves;
 
     n.spawn_depth_first(D);
-    opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
+    opt_nodes.push_back(Search::min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
     moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 4; i++) {
         opt_nodes[i]->spawn_depth_first(D);
-        opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
+        opt_nodes.push_back(Search::min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
         moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
     }
@@ -117,13 +117,13 @@ TEST_CASE("hanging piece ct#50966377 modified lol white first")
     std::vector<Node *> moves;
 
     n.spawn_depth_first(D);
-    opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
+    opt_nodes.push_back(Search::min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
     moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 4; i++) {
         opt_nodes[i]->spawn_depth_first(D);
-        opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
+        opt_nodes.push_back(Search::min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
         moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
     }
@@ -138,13 +138,13 @@ TEST_CASE("hanging piece ct#50966377 modified lol black first")
     std::vector<Node *> moves;
 
     n.spawn_depth_first(D);
-    opt_nodes.push_back(min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
+    opt_nodes.push_back(Search::min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
     moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move << "\n";
 
     for (int i = 0; i < 4; i++) {
         opt_nodes[i]->spawn_depth_first(D);
-        opt_nodes.push_back(min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
+        opt_nodes.push_back(Search::min_max(opt_nodes[i], D, neg_inf, pos_inf, is_maxing(opt_nodes[i])));
         moves.push_back(moves[i]->next_step(opt_nodes[i + 1], &placeholder));
         std::cout << moves[i + 1]->_move << "\n";
     }

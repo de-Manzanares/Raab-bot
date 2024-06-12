@@ -1,15 +1,9 @@
-#ifndef CHESSENGINE_UCI_HPP
-#define CHESSENGINE_UCI_HPP
+#ifndef CHESSENGINE_UCI_CPP
+#define CHESSENGINE_UCI_CPP
 
-#include <iostream>
-#include "tree.hpp"
-#include "search.hpp"
+#include "../include/UCI.h"
 
 // TODO determine depth using complexity of the board and time left in the game
-
-void string_to_move(const std::string *string, Square *from, Square *to, char *ch);
-void preamble(const std::string *in);
-void startpos_moves(Node *n, std::string *in);
 
 // is the active color white?
 bool is_maxing(Node *n) { return n->_board.game_state.active_color == Color::white; }
@@ -20,14 +14,6 @@ bool simon_says(const std::string *s, const std::string& has) { return s->find(h
 // PARAMS
 double neg_inf = -100'000;
 double pos_inf = 100'000;
-
-/**
- * @class uci
- * @brief Implements the UCI (Universal Chess Interface) protocol.
- */
-struct uci {
-    static void loop();
-};
 
 bool continue_status_updates = true;
 
@@ -81,11 +67,11 @@ void uci::loop()
             std::thread status_thread(status_update_thread, 1000);
             n->spawn_depth_first(D);
             continue_status_updates = false;
-            status_thread.join();
+            status_thread.join();       // TODO reduce sleep so that join can occur sooner
 
             // n->spawn_breadth_first(D);
 
-            std::vector<Node *> opt_nodes{min_max(n, D, neg_inf, pos_inf, is_maxing(n))};
+            std::vector<Node *> opt_nodes{Search::min_max(n, D, neg_inf, pos_inf, is_maxing(n))};
             uint depth_counter = 1;
             std::vector<Node *> moves{(n->next_step(opt_nodes[0], &depth_counter))};
 
@@ -124,11 +110,11 @@ void string_to_move(const std::string *string, Square *from, Square *to, char *c
             count++;
         }
         if (count == 2) {
-            *from = string_to_square(temp);
+            *from = Sq::string_to_square(temp);
             temp.clear();
         }
         else if (count == 4) {
-            *to = string_to_square(temp);
+            *to = Sq::string_to_square(temp);
             temp.clear();
         }
         else if (count == 5) {
@@ -172,4 +158,4 @@ void startpos_moves(Node *n, std::string *in)
     }
 }
 
-#endif //CHESSENGINE_UCI_HPP
+#endif //CHESSENGINE_UCI_CPP

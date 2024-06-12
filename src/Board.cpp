@@ -1,184 +1,5 @@
-#ifndef SRC_BITBOARD_H_
-#define SRC_BITBOARD_H_
+#include "../include/Board.h"
 
-#include <cstdint>
-#include <string>
-#include <sstream>
-#include <unordered_map>
-#include <utility>
-#include <vector>
-#include <algorithm>
-
-// BEGIN Square
-//----------------------------------------------------------------------------------------------------------------------
-
-/**
- * @enum Square
- * @brief Represents a square on a chessboard.
- *
- * The Square enumeration represents the 64 squares on a chessboard. Each square is identified by its file
- * (a-h) and rank (1-8). The underlying type of Square is int.
- *
- * The squares are defined in the following order:
- *   - From h1 to a1
- *   - From h2 to a2
- *   - From h3 to a3
- *   - ...
- *   - From h8 to a8
- *
- * The values of the squares are consecutive integers from 0 to 63.
- */
-// do not make underlying uint8_t
-enum class Square : int {
-    h1, g1, f1, e1, d1, c1, b1, a1,
-    h2, g2, f2, e2, d2, c2, b2, a2,
-    h3, g3, f3, e3, d3, c3, b3, a3,
-    h4, g4, f4, e4, d4, c4, b4, a4,
-    h5, g5, f5, e5, d5, c5, b5, a5,
-    h6, g6, f6, e6, d6, c6, b6, a6,
-    h7, g7, f7, e7, d7, c7, b7, a7,
-    h8, g8, f8, e8, d8, c8, b8, a8,
-};
-
-Square& operator--(Square& square)
-{
-    square = static_cast<Square>(static_cast<int>(square) - 1);
-    return square;
-}
-
-Square& operator++(Square& square)
-{
-    square = static_cast<Square>(static_cast<int>(square) + 1);
-    return square;
-}
-
-template<class T>
-Square operator+(Square lhs, T rhs)
-{
-    static_assert(std::is_integral<T>::value);
-    Square copy = lhs;
-    for (auto i = 0; i < rhs; i++) {
-        rhs > 0 ? ++copy : --copy;
-    }
-    return copy;
-}
-
-template<class T>
-Square operator-(Square lhs, T rhs)
-{
-    static_assert(std::is_integral<T>::value);
-    Square copy = lhs;
-    for (auto i = 0; i < rhs; i++) {
-        rhs > 0 ? --copy : ++copy;
-    }
-    return copy;
-}
-
-std::unordered_map<std::string, Square> string_square = {
-        {"h1", Square::h1},
-        {"g1", Square::g1},
-        {"f1", Square::f1},
-        {"e1", Square::e1},
-        {"d1", Square::d1},
-        {"c1", Square::c1},
-        {"b1", Square::b1},
-        {"a1", Square::a1},
-        {"h2", Square::h2},
-        {"g2", Square::g2},
-        {"f2", Square::f2},
-        {"e2", Square::e2},
-        {"d2", Square::d2},
-        {"c2", Square::c2},
-        {"b2", Square::b2},
-        {"a2", Square::a2},
-        {"h3", Square::h3},
-        {"g3", Square::g3},
-        {"f3", Square::f3},
-        {"e3", Square::e3},
-        {"d3", Square::d3},
-        {"c3", Square::c3},
-        {"b3", Square::b3},
-        {"a3", Square::a3},
-        {"h4", Square::h4},
-        {"g4", Square::g4},
-        {"f4", Square::f4},
-        {"e4", Square::e4},
-        {"d4", Square::d4},
-        {"c4", Square::c4},
-        {"b4", Square::b4},
-        {"a4", Square::a4},
-        {"h5", Square::h5},
-        {"g5", Square::g5},
-        {"f5", Square::f5},
-        {"e5", Square::e5},
-        {"d5", Square::d5},
-        {"c5", Square::c5},
-        {"b5", Square::b5},
-        {"a5", Square::a5},
-        {"h6", Square::h6},
-        {"g6", Square::g6},
-        {"f6", Square::f6},
-        {"e6", Square::e6},
-        {"d6", Square::d6},
-        {"c6", Square::c6},
-        {"b6", Square::b6},
-        {"a6", Square::a6},
-        {"h7", Square::h7},
-        {"g7", Square::g7},
-        {"f7", Square::f7},
-        {"e7", Square::e7},
-        {"d7", Square::d7},
-        {"c7", Square::c7},
-        {"b7", Square::b7},
-        {"a7", Square::a7},
-        {"h8", Square::h8},
-        {"g8", Square::g8},
-        {"f8", Square::f8},
-        {"e8", Square::e8},
-        {"d8", Square::d8},
-        {"c8", Square::c8},
-        {"b8", Square::b8},
-        {"a8", Square::a8}
-};
-
-/**
- * @brief Convert a string representation of a square to a Square enum value.
- * @param string The string representation of the square.
- * @return The corresponding Square enum value.
- */
-Square string_to_square(const std::string& string)
-{
-    Square square{};
-
-    for (const auto& [s, sq] : string_square) {
-        if (string == s) {
-            square = sq;
-            break;
-        }
-    }
-    return square;
-}
-
-/**
- * @brief Converts a Square enum value to its corresponding string representation.
- * @param square The Square enum value to convert.
- * @return std::string The string representation of the Square enum value.
- */
-std::string square_to_string(const Square& square)
-{
-    std::string string{};
-
-    for (const auto& [s, sq] : string_square) {
-        if (square == sq) {
-            string = s;
-            break;
-        }
-    }
-    return string;
-}
-
-
-// END Square
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Boundary detection
 
@@ -228,178 +49,6 @@ bool is_corner(Square sq)
 
 // END Boundary detection
 //----------------------------------------------------------------------------------------------------------------------
-// BEGIN Color
-
-enum class Color {
-    white, black, none
-};
-
-Color& operator!(Color& color)
-{
-    color == Color::white ? color = Color::black : color = Color::white;
-    return color;
-}
-
-// END Color
-//----------------------------------------------------------------------------------------------------------------------
-// BEGIN Game_State
-
-/**
- * @brief Represents the current state of a game.
- * @details  Stores information such as the active color, castling ability, en passant targets,
- * half move clock, and full move number.
- */
-struct Game_State {
-    Game_State& operator=(const Game_State& rhs);
-
-    [[nodiscard]] char fen_active_color() const { return active_color == Color::white ? 'w' : 'b'; }
-
-    [[nodiscard]] std::string fen_castling_ability() const;
-    [[nodiscard]] std::string fen_en_passant_targets() const;
-    [[nodiscard]] std::string fen_half_move_clock() const;
-    [[nodiscard]] std::string fen_full_move_number() const;
-    void clear();
-    void set_castling_ability(const std::string& s);
-
-    Color active_color = Color::white;  // flips after every move. starts with white.
-    bool castle_K = true;       // white can castle king side
-    bool castle_Q = true;       // white can castle queen side
-    bool castle_k = true;       // black can castle king side
-    bool castle_q = true;       // black can castle queen side
-    std::string en_passant_target;   // en passant target
-    bool en_passant_set = false;    // to note if en passant was just set during the turn
-    uint half_move_clock{};     // for the 50 move rule
-    uint full_move_number = 1;  // starts at 1, increments after black moves
-
-    bool in_check_black = false;
-    bool in_check_white = false;
-};
-
-/**
- * @brief Returns the castling ability of the game state in Forsyth-Edwards Notation (FEN).
- * @return A string representing the castling ability in FEN notation.
- */
-std::string Game_State::fen_castling_ability() const
-{
-    std::string s;
-    if (!castle_K && !castle_Q && !castle_k && !castle_q) { s += '-'; }
-    else {
-        if (castle_K) { s += 'K'; }
-        if (castle_Q) { s += 'Q'; }
-        if (castle_k) { s += 'k'; }
-        if (castle_q) { s += 'q'; }
-    }
-    return s;
-}
-
-/**
- * @brief Returns a string in FEN notation for the en passant targets.
- * @return A string in FEN notation for the en passant targets.
- *         If there are no en passant targets, "-" is returned.
- */
-std::string Game_State::fen_en_passant_targets() const
-{
-    return en_passant_target.empty() ? "-" : en_passant_target;
-}
-
-/**
- * @brief Returns the value of the half move clock.
- * @details The half move clock represents the number of half moves since the last capture or pawn advance, and is used
- * for the fifty move rule.
- * @return The value of the half move clock as a string.
- */
-std::string Game_State::fen_half_move_clock() const
-{
-    return std::to_string(half_move_clock);
-}
-
-/**
- * @brief Returns the full move number as a string.
- * @details The full move number represents the number of full moves made in the game.
- * It starts at 1 and increments after black's move.
- * @return The full move number as a string.
- */
-std::string Game_State::fen_full_move_number() const
-{
-    return std::to_string(full_move_number);
-}
-
-/**
- * @brief Clears the current game state.
- * @details set everything to 0/false/empty
- */
-void Game_State::clear()
-{
-    half_move_clock = full_move_number = 0;
-    castle_K = castle_Q = castle_k = castle_q = false;
-    en_passant_target.clear();
-}
-
-/**
- * @brief Sets the castling ability based on the given string.
- * If the input string is "-", all castling abilities are set to false. Otherwise,
- * each character in the string represents a castling ability. The characters 'K', 'Q', 'k', 'q'
- * correspond to castle_K, castle_Q, castle_k, castle_q respectively. If a character is present
- * in the string, the corresponding castling ability is set to true.
- * @param s The input string representing the castling ability.
- */
-void Game_State::set_castling_ability(const std::string& s)
-{
-    if (s == "-") {
-        castle_K = castle_Q = false;
-        castle_k = castle_q = false;
-    }
-    else {
-        std::unordered_map<char, bool&> castling_map = {
-                {'K', castle_K},
-                {'Q', castle_Q},
-                {'k', castle_k},
-                {'q', castle_q}
-        };
-        for (const auto& ch : s) {
-            for (auto& [key, value] : castling_map) {
-                if (ch == key) {
-                    value = true;
-                }
-            }
-        }
-    }
-}
-
-Game_State& Game_State::operator=(const Game_State& rhs)
-{
-    active_color = rhs.active_color;
-    castle_K = rhs.castle_K;
-    castle_Q = rhs.castle_Q;
-    castle_k = rhs.castle_k;
-    castle_q = rhs.castle_q;
-    en_passant_target = rhs.en_passant_target;
-    en_passant_set = rhs.en_passant_set;
-    half_move_clock = rhs.half_move_clock;
-    full_move_number = rhs.full_move_number;
-    in_check_black = rhs.in_check_black;
-    in_check_white = rhs.in_check_white;
-    return *this;
-}
-
-// END Game_State
-//----------------------------------------------------------------------------------------------------------------------
-// BEGIN Board
-
-struct Maps {
-    std::unordered_map<Square, std::vector<Square>> move_map_white{};           // all white moves
-    std::unordered_map<Square, std::vector<Square>> move_map_black{};           // all black moves
-    std::unordered_map<Square, std::vector<Square>> influence_map_white{};      // all white influence
-    std::unordered_map<Square, std::vector<Square>> influence_map_black{};      // all black influence
-    std::unordered_map<Square, Square> pinned_pieces_white{};                   // {pinned piece, pinning piece}
-    std::unordered_map<Square, Square> pinned_pieces_black{};                   // {pinned piece, pinning piece}
-    // {square, squares in pinned lane}
-    std::unordered_map<Square, std::vector<Square>> pinned_piece_lane_map_white{};
-    // {square, squares in pinned lane}
-    std::unordered_map<Square, std::vector<Square>> pinned_piece_lane_map_black{};
-
-    void clear();
-};
 
 void Maps::clear()
 {
@@ -413,162 +62,23 @@ void Maps::clear()
     pinned_piece_lane_map_black.clear();
 }
 
-/**
- * @brief Represents the chessboard
- * @details Stores all relevant game-state data and enforces rules
- */
-struct Board {
-    Board& operator=(const Board& rhs);
-    // bitboards
-    uint64_t b_pawn = 0b00000000'11111111'00000000'00000000'00000000'00000000'00000000'00000000;
-    uint64_t b_night = 0b01000010'00000000'00000000'00000000'00000000'00000000'00000000'00000000;
-    uint64_t b_bishop = 0b00100100'00000000'00000000'00000000'00000000'00000000'00000000'00000000;
-    uint64_t b_rook = 0b10000001'00000000'00000000'00000000'00000000'00000000'00000000'00000000;
-    uint64_t b_queen = 0b00010000'00000000'00000000'00000000'00000000'00000000'00000000'00000000;
-    uint64_t b_king = 0b00001000'00000000'00000000'00000000'00000000'00000000'00000000'00000000;
-    uint64_t w_Pawn = 0b00000000'00000000'00000000'00000000'00000000'00000000'11111111'00000000;
-    uint64_t w_Night = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'01000010;
-    uint64_t w_Bishop = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'00100100;
-    uint64_t w_Rook = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'10000001;
-    uint64_t w_Queen = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'00010000;
-    uint64_t w_King = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'00001000;
-
-    // game conditions aside from piece placement
-    Game_State game_state;
-
-    Maps *maps = new Maps;
-
-    // map character code to bitboard
-    std::unordered_map<char, uint64_t&> piece_map = {
-            {'p', b_pawn},
-            {'n', b_night},
-            {'b', b_bishop},
-            {'r', b_rook},
-            {'q', b_queen},
-            {'k', b_king},
-            {'P', w_Pawn},
-            {'N', w_Night},
-            {'B', w_Bishop},
-            {'R', w_Rook},
-            {'Q', w_Queen},
-            {'K', w_King}};
-
-    // utility
-    void clear();
-
-    // bitwise movement
-    void place_piece(Square square, const char& ch);
-
-    // piece detection
-    char what_piece(Square sq) const;
-    char what_piece(uint sq) const;
-    bool is_white_rook(Square sq) const;
-    bool is_black_rook(Square sq) const;
-    bool is_rook(Square sq) const;
-    bool is_white_bishop(Square sq) const;
-    bool is_black_bishop(Square sq) const;
-    bool is_bishop(Square sq) const;
-    bool is_white_queen(Square sq) const;
-    bool is_black_queen(Square sq) const;
-    bool is_queen(Square sq) const;
-    bool is_white_knight(Square sq) const;
-    bool is_black_knight(Square sq) const;
-    bool is_knight(Square sq) const;
-    bool is_white_king(Square sq) const;
-    bool is_black_king(Square sq) const;
-    bool is_king(Square sq) const;
-    bool is_white_pawn(Square sq) const;
-    bool is_black_pawn(Square sq) const;
-    bool is_pawn(Square sq) const;
-    bool is_black(Square sq) const;
-    bool is_white(Square sq) const;
-    bool is_empty(Square sq) const;
-    Color what_color(Square sq) const;
-    bool is_same_color(Square sq, Color color) const;
-    bool is_opposite_king(Square sq, Color c) const;
-    int is_in_row(Square sq);
-    int is_in_row(Square sq) const;
-    int is_in_column(Square sq);
-    bool is_in_same_row(Square sq1, Square sq2);
-    bool is_in_same_column(Square sq1, Square sq2);
-    static bool is_in_same_diagonal_left_right(Square sq1, Square sq2);
-    static bool is_in_same_diagonal_right_left(Square sq1, Square sq2);
-    bool is_in_same_row(Square sq1, Square sq2, Square sq3);
-    bool is_in_same_column(Square sq1, Square sq2, Square sq3);
-    static bool is_in_same_diagonal_left_right(Square sq1, Square sq2, Square sq3);
-    static bool is_in_same_diagonal_right_left(Square sq1, Square sq2, Square sq3);
-
-    // fen
-    // fen out
-    [[nodiscard]] std::string fen_piece_placement() const;
-    std::string export_fen() const;
-    // fen in
-    uint set_pieces(const std::string& fen);
-    void import_fen(const std::string& fen);
-
-    // begin move generation     ----------------------------------------
-    // auxiliary // TODO rename and trim these two functions
-    std::vector<Square> legal_moves_pawn(Square sq) const;
-    std::vector<Square> legal_moves(Square sq);
-
-    // influence
-    std::vector<Square> influence_rook(Square sq) const;
-    std::vector<Square> influence_bishop(Square sq) const;
-    std::vector<Square> influence_queen(Square sq) const;
-    static std::vector<Square> influence_knight(Square sq);
-    static std::vector<Square> influence_king(Square sq);
-    std::vector<Square> influence_pawn(Square sq) const;
-    std::vector<Square> influence(Square sq) const;;
-    void update_influence_maps();
-
-    // pinned pieces
-    Square pinned_piece_rook(Square sq) const;
-    Square pinned_piece_bishop(Square sq) const;
-    Square pinned_piece_queen(Square sq) const;
-    Square pinned_piece(Square sq) const;
-    void update_pinned_pieces(const Square& square_K, const Square& square_k);
-
-    // influence reduction
-    std::vector<Square> update_white_king_moves(Square square_K);
-    std::vector<Square> update_black_king_moves(Square square_k);
-    Square assign_from_influence_map_exclude_pawns_and_kings(std::unordered_map<Square, std::vector<Square>> *to,
-            std::unordered_map<Square, std::vector<Square>> *from) const;
-    void remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color) const;
-    void update_move_maps();
-    // end move generation     ----------------------------------------
-
-    // uci
-
-
-    // diagnostic
-    void print_move_map(Color color) const;
-    ulong nodes_at_depth_1(Color color);
-    void move(Square from, Square to, char ch);
-    void move_pawn(Square from, Square to, char ch);
-    void remove_piece(Square square);
-    void move_piece(Square from, Square to);
-    void move_king(Square from, Square to);
-    void move_rook(Square from, Square to);
-};
-
-// END Board
-
 Board& Board::operator=(const Board& rhs)
 {
-    b_pawn = rhs.b_pawn;
-    b_night = rhs.b_night;
-    b_bishop = rhs.b_bishop;
-    b_rook = rhs.b_rook;
-    b_queen = rhs.b_queen;
-    b_king = rhs.b_king;
-    w_Pawn = rhs.w_Pawn;
-    w_Night = rhs.w_Night;
-    w_Bishop = rhs.w_Bishop;
-    w_Rook = rhs.w_Rook;
-    w_Queen = rhs.w_Queen;
-    w_King = rhs.w_King;
-
-    game_state = rhs.game_state;
+    if (this != &rhs) {
+        b_pawn = rhs.b_pawn;
+        b_night = rhs.b_night;
+        b_bishop = rhs.b_bishop;
+        b_rook = rhs.b_rook;
+        b_queen = rhs.b_queen;
+        b_king = rhs.b_king;
+        w_Pawn = rhs.w_Pawn;
+        w_Night = rhs.w_Night;
+        w_Bishop = rhs.w_Bishop;
+        w_Rook = rhs.w_Rook;
+        w_Queen = rhs.w_Queen;
+        w_King = rhs.w_King;
+        game_state = rhs.game_state;
+    }
 
     return *this;
 }
@@ -1101,7 +611,7 @@ std::vector<Square> Board::legal_moves(Square sq)
         Square ept{};
         bool en_passant = false;
         if (!game_state.en_passant_target.empty()) {
-            ept = string_to_square(game_state.en_passant_target);
+            ept = Sq::string_to_square(game_state.en_passant_target);
             en_passant = true;
         }
         for (const auto& square : temp) {
@@ -2103,20 +1613,20 @@ void Board::move_pawn(Square from, Square to, char ch)
     else if (!promoted) {
         if (is_white_pawn(from)) {
             if (static_cast<int>(to) - static_cast<int>(from) == 16) {
-                game_state.en_passant_target = square_to_string(from + 8);
+                game_state.en_passant_target = Sq::square_to_string(from + 8);
                 game_state.en_passant_set = true;
             }
-            else if (square_to_string(to) == game_state.en_passant_target) {
-                remove_piece(string_to_square(game_state.en_passant_target) - 8);
+            else if (Sq::square_to_string(to) == game_state.en_passant_target) {
+                remove_piece(Sq::string_to_square(game_state.en_passant_target) - 8);
             }
         }
         else if (is_black_pawn(from)) {
             if (static_cast<int>(from) - static_cast<int>(to) == 16) {
-                game_state.en_passant_target = square_to_string(from - 8);
+                game_state.en_passant_target = Sq::square_to_string(from - 8);
                 game_state.en_passant_set = true;
             }
-            else if (square_to_string(to) == game_state.en_passant_target) {
-                remove_piece(string_to_square(game_state.en_passant_target) + 8);
+            else if (Sq::square_to_string(to) == game_state.en_passant_target) {
+                remove_piece(Sq::string_to_square(game_state.en_passant_target) + 8);
             }
         }
 
@@ -2243,9 +1753,9 @@ void Board::print_move_map(Color color) const
 {
     auto map = color == Color::white ? maps->move_map_white : maps->move_map_black;
     for (const auto& [sq, moves] : map) {
-        std::cout << square_to_string(sq) << " : ";
+        std::cout << Sq::square_to_string(sq) << " : ";
         for (const auto& square : moves) {
-            std::cout << square_to_string(square) << " ";
+            std::cout << Sq::square_to_string(square) << " ";
         }
         std::cout << "\n";
     }
@@ -2260,5 +1770,3 @@ ulong Board::nodes_at_depth_1(Color color)
     }
     return nodes;
 }
-
-#endif  // SRC_BITBOARD_H_

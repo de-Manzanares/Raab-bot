@@ -1,10 +1,10 @@
 #include <catch2/catch_all.hpp>
 #include <iostream>
-#include "../src/Board.hpp"
-#include "../src/tree.hpp"
-#include "../src/uci.hpp"
+#include "../../include/Board.h"
+#include "../../src/Node.cpp"
+#include "../../src/UCI.cpp"
 
-void generate_and_sort(Board& board, const Square& sq, std::vector<Square>& v)
+void generate_and_sort_omt(Board& board, const Square& sq, std::vector<Square>& v)
 {
     v.clear();
     board.update_move_maps();
@@ -16,38 +16,38 @@ void generate_and_sort(Board& board, const Square& sq, std::vector<Square>& v)
 
 using s = Square;
 
-Board board;
-std::vector<Square> v;
+Board board_omt;
+std::vector<Square> v_omt;
 
 TEST_CASE("en passant")
 {
     SECTION("single target white") {
-        board.import_fen("4k3/8/8/8/2Pp4/8/8/4K3 w - - 0 1");                 // no target
-        generate_and_sort(board, s::d4, v);
-        CHECK(v == std::vector<Square>{s::d3});
-        board.import_fen("4k3/8/8/8/2Pp4/8/8/4K3 w - c3 0 1");                // target
-        generate_and_sort(board, s::d4, v);
-        CHECK(v == std::vector<Square>{s::d3, s::c3});
+        board_omt.import_fen("4k3/8/8/8/2Pp4/8/8/4K3 w - - 0 1");                 // no target
+        generate_and_sort_omt(board_omt, s::d4, v_omt);
+        CHECK(v_omt == std::vector<Square>{s::d3});
+        board_omt.import_fen("4k3/8/8/8/2Pp4/8/8/4K3 w - c3 0 1");                // target
+        generate_and_sort_omt(board_omt, s::d4, v_omt);
+        CHECK(v_omt == std::vector<Square>{s::d3, s::c3});
     }SECTION("single target black") {
-        board.import_fen("4k3/8/8/2Pp4/8/8/8/4K3 w - d6 0 1");
-        generate_and_sort(board, s::c5, v);
-        CHECK(v == std::vector<Square>{s::d6, s::c6});
+        board_omt.import_fen("4k3/8/8/2Pp4/8/8/8/4K3 w - d6 0 1");
+        generate_and_sort_omt(board_omt, s::c5, v_omt);
+        CHECK(v_omt == std::vector<Square>{s::d6, s::c6});
     }SECTION("double target white") {
-        board.import_fen("4k3/8/8/8/1pPp4/8/8/4K3 w - c3 0 1");
-        generate_and_sort(board, s::d4, v);
-        CHECK(v == std::vector<Square>{s::d3, s::c3});
-        generate_and_sort(board, s::b4, v);
-        CHECK(v == std::vector<Square>{s::c3, s::b3});
+        board_omt.import_fen("4k3/8/8/8/1pPp4/8/8/4K3 w - c3 0 1");
+        generate_and_sort_omt(board_omt, s::d4, v_omt);
+        CHECK(v_omt == std::vector<Square>{s::d3, s::c3});
+        generate_and_sort_omt(board_omt, s::b4, v_omt);
+        CHECK(v_omt == std::vector<Square>{s::c3, s::b3});
     }SECTION("double target black") {
-        board.import_fen("4k3/8/8/2PpP3/8/8/8/4K3 w - d6 0 1");
-        generate_and_sort(board, s::e5, v);
-        CHECK(v == std::vector<Square>{s::e6, s::d6});
-        generate_and_sort(board, s::c5, v);
-        CHECK(v == std::vector<Square>{s::d6, s::c6});
+        board_omt.import_fen("4k3/8/8/2PpP3/8/8/8/4K3 w - d6 0 1");
+        generate_and_sort_omt(board_omt, s::e5, v_omt);
+        CHECK(v_omt == std::vector<Square>{s::e6, s::d6});
+        generate_and_sort_omt(board_omt, s::c5, v_omt);
+        CHECK(v_omt == std::vector<Square>{s::d6, s::c6});
     }SECTION("remove en passant pawn") {
-        board.import_fen("8/8/2Pp4/6K1/8/8/2k5/8 w - d7 0 1");
-        board.move(s::c6, s::d7, 0);
-        CHECK(board.is_empty(Square::d6));
+        board_omt.import_fen("8/8/2Pp4/6K1/8/8/2k5/8 w - d7 0 1");
+        board_omt.move(s::c6, s::d7, 0);
+        CHECK(board_omt.is_empty(Square::d6));
     }
 }
 
@@ -155,6 +155,6 @@ TEST_CASE(
 
 TEST_CASE("pinned pieces rook")
 {
-    board.import_fen("8/8/8/1k1pR2K/8/8/8/8 w - - 0 1");
-    CHECK(board.pinned_piece_rook(s::e5) == s::d5);
+    board_omt.import_fen("8/8/8/1k1pR2K/8/8/8/8 w - - 0 1");
+    CHECK(board_omt.pinned_piece_rook(s::e5) == s::d5);
 }

@@ -1,6 +1,6 @@
 #include <catch2/catch_all.hpp>
 #include <iostream>
-#include "../src/Board.hpp"
+#include "../../include/Board.h"
 
 TEST_CASE("clear")
 {
