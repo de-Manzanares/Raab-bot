@@ -959,7 +959,7 @@ Square Board::pinned_piece_rook(Square sq) const
     bool found_one;                 // xray through ONE enemy piece
     Color c = what_color(sq);
 
-    //vertical up
+    // vertical up
     found_one = false;
     for (auto square = sq + 8; !is_upper_vertical_boundary(square - 8); square = square + 8) {
         if (!is_empty(square) && is_same_color(square, c)) { break; }
@@ -1450,7 +1450,6 @@ void Board::update_move_maps()
 
     // if one piece is giving check, it can be captured or blocked
     if (giving_check.size() == 1) {
-
         // if it's not a knight or pawn, it might be able to be blocked
         if (!is_knight(giving_check[0]) && !is_pawn(giving_check[0])) {
             if (is_in_same_row(giving_check[0], square_K)) {
@@ -1743,8 +1742,8 @@ void Board::move(Square from, Square to, char ch)
         game_state.en_passant_target.clear();
     }
     if (game_state.en_passant_set) { game_state.en_passant_set = false; }
-
 }
+
 // END move
 //----------------------------------------------------------------------------------------------------------------------
 

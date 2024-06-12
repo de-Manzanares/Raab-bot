@@ -1,5 +1,5 @@
-#ifndef CHESSENGINE_SEARCH_H
-#define CHESSENGINE_SEARCH_H
+#ifndef INCLUDE_SEARCH_H_
+#define INCLUDE_SEARCH_H_
 
 #include "Board.h"
 #include "Eval.h"
@@ -9,4 +9,4 @@ struct Search {
     static Node *min_max(Node *n, uint depth, double alpha, double beta, bool maximizing);
 };
 
-#endif //CHESSENGINE_SEARCH_H
+#endif  // INCLUDE_SEARCH_H_

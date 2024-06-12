@@ -1,5 +1,5 @@
-#ifndef SRC_SQUARE_H_
-#define SRC_SQUARE_H_
+#ifndef INCLUDE_SQUARE_H_
+#define INCLUDE_SQUARE_H_
 
 #include <type_traits>
 #include <unordered_map>
@@ -24,9 +24,6 @@
  *
  * The values of the squares are consecutive integers from 0 to 63.
  */
-
-// do not make underlying uint8_t
-
 enum class Square : int {
     h1, g1, f1, e1, d1, c1, b1, a1,
     h2, g2, f2, e2, d2, c2, b2, a2,
@@ -38,9 +35,9 @@ enum class Square : int {
     h8, g8, f8, e8, d8, c8, b8, a8,
 };
 
-Square& operator--(Square& square);
+Square& operator--(Square& square);     // NOLINT
 
-Square& operator++(Square& square);
+Square& operator++(Square& square);     // NOLINT
 
 template<class T>
 Square operator-(Square lhs, T rhs)
@@ -64,15 +61,23 @@ Square operator+(Square lhs, T rhs)
     return copy;
 }
 
+/**
+ * @enum Color
+ * @brief Color of a piece : white, black, or none (absence of a piece)
+ */
 enum class Color {
     white, black, none
 };
 
-Color& operator!(Color& color);
+Color& operator!(Color& color);     // NOLINT
 
+/**
+ * @class Sq
+ * @brief Ror converting between string representations and enum values of Square.
+ */
 struct Sq {
     static Square string_to_square(const std::string& string);
     static std::string square_to_string(const Square& square);
 };
 
-#endif  // SRC_SQUARE_H_
+#endif  // INCLUDE_SQUARE_H_

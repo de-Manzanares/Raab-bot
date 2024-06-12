@@ -1,22 +1,30 @@
-#ifndef CHESSENGINE_UCI_CPP
-#define CHESSENGINE_UCI_CPP
-
 #include "../include/UCI.h"
 
 // TODO determine depth using complexity of the board and time left in the game
 
-// is the active color white?
+/**
+ * @return True - white to move \n False - black to move
+ */
 bool is_maxing(Node *n) { return n->_board.game_state.active_color == Color::white; }
 
-// does the string conatin the given substring?
+/**
+ * @brief Does given string contains another string.
+ * @param s A pointer to the string being searched.
+ * @param has The string to search for.
+ * @return True - the substring is found \n False - the substring is not found
+ */
 bool simon_says(const std::string *s, const std::string& has) { return s->find(has) != std::string::npos; }
 
-// PARAMS
+// parameters
 double neg_inf = -100'000;
 double pos_inf = 100'000;
 
 bool continue_status_updates = true;
 
+/**
+ * @brief Gives info's to stdcout
+ * @param update_interval_ms The update interval in milliseconds.
+ */
 void status_update_thread(uint update_interval_ms)
 {
     uint previous = 0;
@@ -24,7 +32,6 @@ void status_update_thread(uint update_interval_ms)
 
     while (continue_status_updates) {
         uint current = Counter::node;
-        uint generated = current - previous;
         auto now = std::chrono::high_resolution_clock::now();
 
         std::cout << "info"
@@ -48,7 +55,6 @@ void uci::loop()
     Node *n;            // root node is a pointer for easy deletion and rebuilding of decision tree
 
     while (std::getline(std::cin, in)) {
-
         preamble(&in);
 
         // set up a board in the given position, wait for "go" to search, a fen or a list of moves may follow
@@ -60,7 +66,6 @@ void uci::loop()
             }
         }
         else if (simon_says(&in, "go") && n != nullptr) {
-
             Counter::node = 0;
             n->_board.update_move_maps();
             uint D = 3;
@@ -157,5 +162,3 @@ void startpos_moves(Node *n, std::string *in)
         n->_board.move(from, to, ch);
     }
 }
-
-#endif //CHESSENGINE_UCI_CPP

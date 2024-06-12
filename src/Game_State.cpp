@@ -93,16 +93,18 @@ void Game_State::set_castling_ability(const std::string& s)
 
 Game_State& Game_State::operator=(const Game_State& rhs)
 {
-    active_color = rhs.active_color;
-    castle_K = rhs.castle_K;
-    castle_Q = rhs.castle_Q;
-    castle_k = rhs.castle_k;
-    castle_q = rhs.castle_q;
-    en_passant_target = rhs.en_passant_target;
-    en_passant_set = rhs.en_passant_set;
-    half_move_clock = rhs.half_move_clock;
-    full_move_number = rhs.full_move_number;
-    in_check_black = rhs.in_check_black;
-    in_check_white = rhs.in_check_white;
-    return *this;
+    if (this != &rhs) {
+        active_color = rhs.active_color;
+        castle_K = rhs.castle_K;
+        castle_Q = rhs.castle_Q;
+        castle_k = rhs.castle_k;
+        castle_q = rhs.castle_q;
+        en_passant_target = rhs.en_passant_target;
+        en_passant_set = rhs.en_passant_set;
+        half_move_clock = rhs.half_move_clock;
+        full_move_number = rhs.full_move_number;
+        in_check_black = rhs.in_check_black;
+        in_check_white = rhs.in_check_white;
+        return *this;
+    }
 }

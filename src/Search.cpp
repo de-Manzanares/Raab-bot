@@ -12,7 +12,6 @@
  */
 Node *Search::min_max(Node *n, uint depth, double alpha, double beta, bool maximizing)
 {
-    // n->_child.size() == 0 ??? maybe something else
     if (depth == 0 || n->_child.empty()) { return n; }
 
     Node *opt_node = nullptr;

@@ -1,8 +1,10 @@
-#ifndef CHESSENGINE_NODE_H
-#define CHESSENGINE_NODE_H
+#ifndef INCLUDE_NODE_H_
+#define INCLUDE_NODE_H_
 
-#include <cstdint>
 #include <chrono>
+#include <cstdint>
+#include <string>
+#include <vector>
 
 #include "Eval.h"
 #include "Board.h"
@@ -10,6 +12,10 @@
 // TODO make nodes as small as possible
 // TODO get rid of move, redundant with _from and _to
 
+/**
+ * @struct Counter
+ * @brief Tracks node count and time points for giving info's
+ */
 struct Counter {
     static uint node;
     static std::chrono::time_point<std::chrono::high_resolution_clock> start;
@@ -26,13 +32,13 @@ struct Node {
     Node(const Board *board, Square from, Square to, char ch);
     ~Node();
 
-    Square _from;
-    Square _to;
-    std::string _move{};
-    Node *parent{};
-    Board _board{};
-    double _eval{};
-    std::vector<Node *> _child{};
+    Square _from;                   // tracks the move that was made between the parent node and this node
+    Square _to;                     // tracks the move that was made between the parent node and this node
+    std::string _move{};            // tracks the move that was made between the parent node and this node
+    Node *parent{};                 // parent node
+    Board _board{};                 // board
+    double _eval{};                 // evaluation
+    std::vector<Node *> _child{};   // vector of nodes spawned from this node
 
     uint count_nodes();
     void spawn_depth_first(uint depth);
@@ -41,4 +47,4 @@ struct Node {
     void spawn_breadth_first(uint depth);
 };
 
-#endif //CHESSENGINE_NODE_H
+#endif  // INCLUDE_NODE_H_

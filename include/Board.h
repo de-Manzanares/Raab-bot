@@ -1,5 +1,5 @@
-#ifndef SRC_BITBOARD_H_
-#define SRC_BITBOARD_H_
+#ifndef INCLUDE_BOARD_H_
+#define INCLUDE_BOARD_H_
 
 #include <iostream>
 #include <cstdint>
@@ -13,26 +13,25 @@
 #include "Square.h"
 #include "Game_State.h"
 
+/**
+ * @class Maps
+ * @brief A collection of unordered maps used for move generation
+ */
 struct Maps {
-    std::unordered_map<Square, std::vector<Square>> move_map_white{};           // all white moves
-    std::unordered_map<Square, std::vector<Square>> move_map_black{};           // all black moves
-    std::unordered_map<Square, std::vector<Square>> influence_map_white{};      // all white influence
-    std::unordered_map<Square, std::vector<Square>> influence_map_black{};      // all black influence
-    std::unordered_map<Square, Square> pinned_pieces_white{};                   // {pinned piece, pinning piece}
-    std::unordered_map<Square, Square> pinned_pieces_black{};                   // {pinned piece, pinning piece}
-    // {square, squares in pinned lane}
-    std::unordered_map<Square, std::vector<Square>> pinned_piece_lane_map_white{};
-    // {square, squares in pinned lane}
-    std::unordered_map<Square, std::vector<Square>> pinned_piece_lane_map_black{};
-
-    void clear();
+    std::unordered_map<Square, std::vector<Square>> move_map_white{};               // all white moves
+    std::unordered_map<Square, std::vector<Square>> move_map_black{};               // all black moves
+    std::unordered_map<Square, std::vector<Square>> influence_map_white{};          // all white influence
+    std::unordered_map<Square, std::vector<Square>> influence_map_black{};          // all black influence
+    std::unordered_map<Square, Square> pinned_pieces_white{};                       // {pinned piece, pinning piece}
+    std::unordered_map<Square, Square> pinned_pieces_black{};                       // {pinned piece, pinning piece}
+    std::unordered_map<Square, std::vector<Square>> pinned_piece_lane_map_white{};  // {square, squares in pinned lane}
+    std::unordered_map<Square, std::vector<Square>> pinned_piece_lane_map_black{};  // {square, squares in pinned lane}
+    void clear();                                                                   // empty the maps
 };
-
-
 
 /**
  * @brief Represents the chessboard
- * @details Stores all relevant game-state data and enforces rules
+ * @details Stores all relevant game-state data and enforces rules during move generation
  */
 struct Board {
     Board& operator=(const Board& rhs);
@@ -50,25 +49,14 @@ struct Board {
     uint64_t w_Queen = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'00010000;
     uint64_t w_King = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'00001000;
 
-    // game conditions aside from piece placement
-    Game_State game_state;
+    Game_State game_state;  // game conditions aside from piece placement
 
-    Maps *maps = new Maps;
+    Maps *maps = new Maps;  // for move generation
 
-    // map character code to bitboard
+    // map character code to bitboard TODO make piece_map static
     std::unordered_map<char, uint64_t&> piece_map = {
-            {'p', b_pawn},
-            {'n', b_night},
-            {'b', b_bishop},
-            {'r', b_rook},
-            {'q', b_queen},
-            {'k', b_king},
-            {'P', w_Pawn},
-            {'N', w_Night},
-            {'B', w_Bishop},
-            {'R', w_Rook},
-            {'Q', w_Queen},
-            {'K', w_King}};
+            {'p', b_pawn}, {'n', b_night}, {'b', b_bishop}, {'r', b_rook}, {'q', b_queen}, {'k', b_king},
+            {'P', w_Pawn}, {'N', w_Night}, {'B', w_Bishop}, {'R', w_Rook}, {'Q', w_Queen}, {'K', w_King}};
 
     // utility
     void clear();
@@ -117,7 +105,7 @@ struct Board {
 
     // fen
     // fen out
-    [[nodiscard]] std::string fen_piece_placement() const;
+    std::string fen_piece_placement() const;
     std::string export_fen() const;
     // fen in
     uint set_pieces(const std::string& fen);
@@ -167,8 +155,4 @@ struct Board {
     void move_rook(Square from, Square to);
 };
 
-// END Board
-
-
-
-#endif  // SRC_BITBOARD_H_
+#endif  // INCLUDE_BOARD_H_

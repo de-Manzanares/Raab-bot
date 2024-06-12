@@ -1,18 +1,18 @@
 #include "../include/Square.h"
 
-Square& operator--(Square& square)
+Square& operator--(Square& square)      // NOLINT
 {
     square = static_cast<Square>(static_cast<int>(square) - 1);
     return square;
 }
 
-Square& operator++(Square& square)
+Square& operator++(Square& square)      // NOLINT
 {
     square = static_cast<Square>(static_cast<int>(square) + 1);
     return square;
 }
 
-Color& operator!(Color& color)
+Color& operator!(Color& color)          // NOLINT
 {
     color == Color::white ? color = Color::black : color = Color::white;
     return color;
