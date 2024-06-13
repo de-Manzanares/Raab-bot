@@ -256,14 +256,24 @@ bool Board::is_pawn(Square sq) const
 
 bool Board::is_white(Square sq) const
 {
-    return is_white_pawn(sq) || is_white_rook(sq) || is_white_bishop(sq) || is_white_knight(sq) ||
-            is_white_queen(sq) || is_white_king(sq);
+    if (w_Pawn & (1ULL << static_cast<int>(sq))) { return true; }
+    if (w_Night & (1ULL << static_cast<int>(sq))) { return true; }
+    if (w_Bishop & (1ULL << static_cast<int>(sq))) { return true; }
+    if (w_Rook & (1ULL << static_cast<int>(sq))) { return true; }
+    if (w_Queen & (1ULL << static_cast<int>(sq))) { return true; }
+    if (w_King & (1ULL << static_cast<int>(sq))) { return true; }
+    return false;
 }
 
 bool Board::is_black(Square sq) const
 {
-    return is_black_pawn(sq) || is_black_rook(sq) || is_black_bishop(sq) || is_black_knight(sq) ||
-            is_black_queen(sq) || is_black_king(sq);
+    if (b_pawn & (1ULL << static_cast<int>(sq))) { return true; }
+    if (b_night & (1ULL << static_cast<int>(sq))) { return true; }
+    if (b_bishop & (1ULL << static_cast<int>(sq))) { return true; }
+    if (b_rook & (1ULL << static_cast<int>(sq))) { return true; }
+    if (b_queen & (1ULL << static_cast<int>(sq))) { return true; }
+    if (b_king & (1ULL << static_cast<int>(sq))) { return true; }
+    return false;
 }
 
 Color Board::what_color(Square sq) const
