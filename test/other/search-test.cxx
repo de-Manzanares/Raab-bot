@@ -13,10 +13,11 @@ TEST_CASE("mate in one")
     D = 2;
     std::cout << delim;
     Node n("6k1/2R5/6K1/8/8/8/8/8 w - - 0 1");
+    bool maxing = is_maxing(&n);
     n.spawn_depth_first(D);
     std::vector<Node *> opt_nodes;
     std::vector<Node *> moves;
-    opt_nodes.push_back(Search::min_max(&n, D, neg_inf, pos_inf, is_maxing(&n)));
+    opt_nodes.push_back(Search::min_max(&n, D, neg_inf, pos_inf, maxing));
     moves.push_back(n.next_step(opt_nodes[0], &placeholder));
     std::cout << moves[0]->_move;
 }
@@ -156,10 +157,10 @@ TEST_CASE("depth three gives exit code -9")
     std::vector<uint> w{0};
     std::vector<uint> b{0};
 
-    for (const auto& [sq, moves] : n._board.maps->move_map_white) {
+    for (const auto& [sq, moves] : n._board->maps->move_map_white) {
         w[0] += moves.size();
     }
-    for (const auto& [sq, moves] : n._board.maps->move_map_black) {
+    for (const auto& [sq, moves] : n._board->maps->move_map_black) {
         b[0] += moves.size();
     }
 

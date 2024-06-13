@@ -40,7 +40,7 @@ double Eval::material_ratio(const Board *board)
  * @param board A pointer to the chess board to be evaluated.
  * @return The material value of the chess pieces on the board divided by 100.
  */
-double Eval::material_evaluation(const Board *board)
+double Eval::material_evaluation(const std::shared_ptr<Board>& board)
 {
     double sum = 0;
     for (Square sq = Square::a8; sq >= Square::h1; --sq) {
@@ -58,7 +58,7 @@ double Eval::material_evaluation(const Board *board)
  * @param board The chess board for which to detect checkmate.
  * @return -1 if White is in checkmate, 1 if Black is in checkmate, 0 if neither color is in checkmate.
  */
-int Eval::detect_checkmate(const Board *board)
+int Eval::detect_checkmate(const std::shared_ptr<Board>& board)
 {
     ulong number_of_moves = 0;
 
@@ -86,7 +86,7 @@ int Eval::detect_checkmate(const Board *board)
  * @param board A pointer to the chess board.
  * @return The mobility score.
  */
-double Eval::mobility_evaluation(const Board *board)
+double Eval::mobility_evaluation(const std::shared_ptr<Board>& board)
 {
     double score = 0;
     for (const auto& [sq, moves] : board->maps->move_map_white) {
@@ -103,7 +103,7 @@ double Eval::mobility_evaluation(const Board *board)
  * @param board The board to check for in-check status.
  * @return (+) score is black is in check, (-) score if white is in check
  */
-double Eval::check_bonus(const Board *board)
+double Eval::check_bonus(const std::shared_ptr<Board>& board)
 {
     double score = 0;
     if (board->game_state.in_check_white) { score -= CHECK_BONUS; }
@@ -114,7 +114,7 @@ double Eval::check_bonus(const Board *board)
 /**
  * Creates an aggregate score using all evaluation methods
  */
-double Eval::simple_evaluation(const Board *board)
+double Eval::simple_evaluation(const std::shared_ptr<Board>& board)
 {
     if (detect_checkmate(board) == 0) {
         double sum = material_evaluation(board)
@@ -128,7 +128,7 @@ double Eval::simple_evaluation(const Board *board)
 /**
  * wrapper for simple_evaluation()
  */
-double Eval::eval(const Board *board)
+double Eval::eval(const std::shared_ptr<Board>& board)
 {
     return simple_evaluation(board);
 }
@@ -140,21 +140,22 @@ double Eval::eval(const Board *board)
 double Eval::discourage_early_queen_movement(const Node *node)
 {
     double score = 0;
-    if (node->_board.game_state.full_move_number <= 10) {
+    if (node->_board->game_state.full_move_number <= 10) {
         if (node->parent != nullptr) {
-            if (node->parent->_board.is_queen(node->_from)) {
-                if (node->parent->_board.game_state.active_color == Color::white) { score -= .9; }
-                if (node->parent->_board.game_state.active_color == Color::black) { score += .9; }
+            if (node->parent->_board->is_queen(node->_from)) {
+                if (node->parent->_board->game_state.active_color == Color::white) { score -= .9; }
+                if (node->parent->_board->game_state.active_color == Color::black) { score += .9; }
             }
-            else if (!node->parent->_board.is_pawn(node->_from)) {
-                if (node->parent->_board.game_state.active_color == Color::white) { score += .5; }
-                if (node->parent->_board.game_state.active_color == Color::black) { score -= .5; }
+            else if (!node->parent->_board->is_pawn(node->_from)) {
+                if (node->parent->_board->game_state.active_color == Color::white) { score += .5; }
+                if (node->parent->_board->game_state.active_color == Color::black) { score -= .5; }
             }
         }
     }
     return score;
 }
 
+// TODO rewrite castle_bonus around deleted board
 /**
  * Encourage castling lol
  * I just wanted to see castling more often so I tacked some weight onto it.
@@ -163,10 +164,10 @@ double Eval::castle_bonus(Node *n)
 {
     double score = 0;
     if (n->parent != nullptr) {
-        if (n->parent->_board.is_white_king(n->_from) && n->_from == Square::e1) {
+        if (n->parent->_board->is_white_king(n->_from) && n->_from == Square::e1) {
             if (n->_to == Square::g1 || n->_to == Square::c1) { score += CASTLE_BONUS; }
         }
-        else if (n->parent->_board.is_black_king(n->_from) && n->_from == Square::e8) {
+        else if (n->parent->_board->is_black_king(n->_from) && n->_from == Square::e8) {
             if (n->_to == Square::g8 || n->_to == Square::c8) { score -= CASTLE_BONUS; }
         }
     }

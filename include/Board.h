@@ -34,6 +34,7 @@ struct Maps {
  * @details Stores all relevant game-state data and enforces rules during move generation
  */
 struct Board {
+    ~Board();
     Board& operator=(const Board& rhs);
     // bitboards
     uint64_t b_pawn = 0b00000000'11111111'00000000'00000000'00000000'00000000'00000000'00000000;

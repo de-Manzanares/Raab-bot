@@ -82,8 +82,11 @@ Board& Board::operator=(const Board& rhs)
 
     return *this;
 }
-//----------------------------------------------------------------------------------------------------------------------
-// BEGIN clear
+
+Board::~Board()
+{
+    delete maps;
+}
 
 /**
  * @brief Remove all pieces and clear the game state.

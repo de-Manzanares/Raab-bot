@@ -5,7 +5,7 @@
 /**
  * @return True - white to move \n False - black to move
  */
-bool is_maxing(Node *n) { return n->_board.game_state.active_color == Color::white; }
+bool is_maxing(Node *n) { return n->_board->game_state.active_color == Color::white; }
 
 /**
  * @brief Does given string contains another string.
@@ -66,17 +66,20 @@ void uci::loop()
             }
         }
         else if (simon_says(&in, "go") && n != nullptr) {
-            Counter::node = 0;
-            n->_board.update_move_maps();
             uint D = 3;
+            Counter::node = 0;
+
+            bool maxing = is_maxing(n);
+            n->_board->update_move_maps();
             std::thread status_thread(status_update_thread, 1000);
             n->spawn_depth_first(D);
+
             continue_status_updates = false;
             status_thread.join();       // TODO reduce sleep so that join can occur sooner
 
             // n->spawn_breadth_first(D);
 
-            std::vector<Node *> opt_nodes{Search::min_max(n, D, neg_inf, pos_inf, is_maxing(n))};
+            std::vector<Node *> opt_nodes{Search::min_max(n, D, neg_inf, pos_inf, maxing)};
             uint depth_counter = 1;
             std::vector<Node *> moves{(n->next_step(opt_nodes[0], &depth_counter))};
 
@@ -159,6 +162,6 @@ void startpos_moves(Node *n, std::string *in)
         Square from, to;
         char ch;
         string_to_move(&s, &from, &to, &ch);
-        n->_board.move(from, to, ch);
+        n->_board->move(from, to, ch);
     }
 }

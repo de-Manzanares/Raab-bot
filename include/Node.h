@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "Eval.h"
 #include "Board.h"
@@ -29,14 +30,15 @@ struct Counter {
 struct Node {
     Node();
     explicit Node(const std::string& fen);
-    Node(const Board *board, Square from, Square to, char ch);
+    Node(const std::shared_ptr<Board>& board, Square from, Square to, char ch);
     ~Node();
 
     Square _from;                   // tracks the move that was made between the parent node and this node
     Square _to;                     // tracks the move that was made between the parent node and this node
     std::string _move{};            // tracks the move that was made between the parent node and this node
     Node *parent{};                 // parent node
-    Board _board{};                 // board
+    // TODO may have to allocate memory lol
+    std::shared_ptr<Board> _board{};                // board
     double _eval{};                 // evaluation
     std::vector<Node *> _child{};   // vector of nodes spawned from this node
 

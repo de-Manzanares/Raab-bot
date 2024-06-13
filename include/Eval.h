@@ -25,13 +25,13 @@ struct Eval {
 
     // board argument
     static double material_ratio(const Board *board);
-    static double material_evaluation(const Board *board);
-    static int detect_checkmate(const Board *board);
-    static double mobility_evaluation(const Board *board);
-    static double check_bonus(const Board *board);
-    static double simple_evaluation(const Board *board);
+    static double material_evaluation(const std::shared_ptr<Board>& board);
+    static int detect_checkmate(const std::shared_ptr<Board>& board);
+    static double mobility_evaluation(const std::shared_ptr<Board>& board);
+    static double check_bonus(const std::shared_ptr<Board>& board);
+    static double simple_evaluation(const std::shared_ptr<Board>& board);
 
-    static double eval(const Board *board);
+    static double eval(const std::shared_ptr<Board>& board);
 };
 
 #endif  // INCLUDE_EVAL_H_
