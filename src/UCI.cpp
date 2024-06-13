@@ -66,6 +66,8 @@ void uci::loop()
             }
         }
         else if (simon_says(&in, "go") && n != nullptr) {
+            // TODO memory is better, but smaller still is needed
+            // move gen is too slow. 4ply is asking > 1M nodes in early middle-game positions
             uint D = 3;
             Counter::node = 0;
 
@@ -96,8 +98,8 @@ void uci::loop()
             delete n;
             n = nullptr;
         }
-        else if (in.find("stop") != std::string::npos) { }   // TODO stop calculating
-        else if (in == "quit") { break; }               // quit the loop, ends the program
+        else if (in.find("stop") != std::string::npos) { }      // TODO stop calculating
+        else if (in == "quit") { break; }                       // quit the loop, ends the program
     }
 }
 
