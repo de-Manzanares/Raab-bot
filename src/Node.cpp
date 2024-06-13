@@ -25,8 +25,8 @@ std::chrono::time_point<std::chrono::high_resolution_clock> Counter::start = std
 Node::Node()
         :_board(std::make_shared<Board>())
 {
-    _board->update_move_maps();
-    _eval = Eval::eval(_board) + Eval::discourage_early_queen_movement(this) + Eval::castle_bonus(this);
+    // _board->update_move_maps();
+    // _eval = Eval::eval(_board) + Eval::discourage_early_queen_movement(this) + Eval::castle_bonus(this);
 }
 
 /**
@@ -37,8 +37,8 @@ Node::Node(const std::string& fen)
         :_board(std::make_shared<Board>())
 {
     _board->import_fen(fen);
-    _board->update_move_maps();
-    _eval = Eval::eval(_board) + Eval::discourage_early_queen_movement(this) + Eval::castle_bonus(this);
+    // _board->update_move_maps();
+    // _eval = Eval::eval(_board) + Eval::discourage_early_queen_movement(this) + Eval::castle_bonus(this);
 }
 
 /**
@@ -56,9 +56,7 @@ Node::Node(const std::shared_ptr<Board>& board, Square from, Square to, char ch)
     _to = to;
     _board->move(from, to, ch);
     _move += Sq::square_to_string(from) += Sq::square_to_string(to);
-    if (ch != 0) {
-        _move += ch;
-    }
+    if (ch != 0) { _move += ch; }
 }
 
 /**
@@ -88,18 +86,20 @@ uint Node::count_nodes()
  */
 void Node::spawn_depth_first(uint depth)
 {
-    if (depth == 0) {
+    if (depth == 0) {                               // terminal nodes
         _board->update_move_maps();
         _eval = Eval::eval(_board);
-        delete _board->maps;
-        _board->maps = nullptr;
+        _board.reset();
         return;
     }
 
     _board->update_move_maps();
-    _eval = Eval::eval(_board);
 
-    if (Eval::detect_checkmate(_board) != 0) { return; }
+    if (Eval::detect_checkmate(_board) != 0) {      // not at specified depth, but still a terminal node
+        _eval = Eval::eval(_board);
+        _board.reset();
+        return;
+    }
 
     for (const auto& [sq, moves] :
             _board->game_state.active_color == Color::white ?
