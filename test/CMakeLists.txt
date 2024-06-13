@@ -15,7 +15,10 @@ add_executable(pinned-pieces-test ../src/Square.cpp ../src/Game_State.cpp ../src
 
 add_executable(sample-game-test ../src/Square.cpp ../src/Game_State.cpp ../src/Board.cpp basic/sample-game.cxx)
 
-add_executable(other-moves-test ../src/Square.cpp ../src/Game_State.cpp ../src/Board.cpp other/other-moves-test.cxx)
+add_executable(other-moves-test
+        ../src/Square.cpp ../src/Game_State.cpp ../src/Board.cpp ../src/Eval.cpp ../src/Node.cpp ../src/Search.cpp
+        ../src/UCI.cpp
+        other/other-moves-test.cxx)
 
 add_executable(basic-tests ../src/Square.cpp ../src/Game_State.cpp ../src/Board.cpp basic/general.cxx basic/influence-test.cxx
         basic/basic-moves-test.cxx basic/move-block-or-capture.cxx basic/pinned-pieces-test.cxx basic/sample-game.cxx)

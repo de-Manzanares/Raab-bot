@@ -93,7 +93,7 @@ void uci::loop()
                       << " time " << time
                       << " nodes " << Counter::node
                       << "\nbestmove "
-                      << moves[0]->_move << "\n";
+                      << moves[0]->_move << std::endl;
 
             delete n;
             n = nullptr;
