@@ -652,6 +652,7 @@ std::vector<Square> Board::legal_moves(Square sq)
 std::vector<Square> Board::influence_rook(Square sq) const
 {
     std::vector<Square> influence{};
+    influence.reserve(16);
     // vertical up
     for (auto square = sq + 8; !is_upper_vertical_boundary(square - 8); square = square + 8) {
         influence.push_back(square);
@@ -672,7 +673,6 @@ std::vector<Square> Board::influence_rook(Square sq) const
         influence.push_back(square);
         if (!is_empty(square) && !is_opposite_king(square, what_color(sq))) { break; }
     }
-
     return influence;
 }
 
@@ -688,6 +688,7 @@ std::vector<Square> Board::influence_rook(Square sq) const
 std::vector<Square> Board::influence_bishop(Square sq) const
 {
     std::vector<Square> influence{};
+    influence.reserve(16);
     // up left
     for (auto square = sq + 9;
          !is_upper_vertical_boundary(square - 9) && !is_left_horizontal_boundary(square - 9);
@@ -732,10 +733,11 @@ std::vector<Square> Board::influence_queen(Square sq) const
 {
     std::vector<Square> v1 = influence_rook(sq);
     std::vector<Square> v2 = influence_bishop(sq);
-
-    v1.insert(v1.end(), v2.begin(), v2.end());
-
-    return v1;
+    std::vector<Square> influence;
+    influence.reserve(32);
+    influence.insert(influence.end(), v1.begin(), v1.end());
+    influence.insert(influence.end(), v2.begin(), v2.end());
+    return influence;
 }
 
 // END influence queen
@@ -751,6 +753,7 @@ std::vector<Square> Board::influence_knight(Square sq)
 {
     using s = Square;
     std::vector<Square> influence{};
+    influence.reserve(8);
     int isq = static_cast<int>(sq);
 
     // center 4x4 - 16 squares
@@ -864,7 +867,7 @@ std::vector<Square> Board::influence_knight(Square sq)
 std::vector<Square> Board::influence_king(Square sq)
 {
     std::vector<Square> influence{};
-
+    influence.reserve(16);
     // vertical
     if (!is_upper_vertical_boundary(sq)) { influence.push_back(sq + 8); }
     if (!is_lower_vertical_boundary(sq)) { influence.push_back(sq - 8); }
@@ -892,6 +895,7 @@ std::vector<Square> Board::influence_king(Square sq)
 std::vector<Square> Board::influence_pawn(Square sq) const
 {
     std::vector<Square> influence{};
+    influence.reserve(8);
     int front_left = 9;
     int front_right = 7;
 
@@ -916,6 +920,7 @@ std::vector<Square> Board::influence_pawn(Square sq) const
 std::vector<Square> Board::influence(Square sq) const
 {
     std::vector<Square> influence{};
+    influence.reserve(32);
 
     // if the square is empty, there is no influence
     if (what_piece(sq) == ' ') { return influence; }
