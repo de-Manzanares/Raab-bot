@@ -35,9 +35,8 @@ struct Node {
 
     Square _from;                   // tracks the move that was made between the parent node and this node
     Square _to;                     // tracks the move that was made between the parent node and this node
-    std::string _move{};            // tracks the move that was made between the parent node and this node
+    char _ch;                       // pawn promotion
     Node *parent{};                 // parent node
-    // TODO may have to allocate memory lol
     std::shared_ptr<Board> _board{};                // board
     double _eval{};                 // evaluation
     std::vector<Node *> _child{};   // vector of nodes spawned from this node

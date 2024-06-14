@@ -93,7 +93,8 @@ void uci::loop()
                       << " time " << time
                       << " nodes " << Counter::node
                       << "\nbestmove "
-                      << moves[0]->_move << std::endl;
+                      << long_algebraic_notation(moves[0])
+                      << std::endl;
 
             delete n;
             n = nullptr;
@@ -131,6 +132,18 @@ void string_to_move(const std::string *string, Square *from, Square *to, char *c
             *ch = c;
         }
     }
+}
+
+/**
+ * @param n The node to convert.
+ * @return long algebraic notation of a node's move.
+ */
+std::string long_algebraic_notation(const Node *n)
+{
+    std::string s;
+    s += Sq::square_to_string(n->_from) += Sq::square_to_string(n->_to);
+    if (n->_ch != 0) { s += n->_ch; }
+    return s;
 }
 
 /**

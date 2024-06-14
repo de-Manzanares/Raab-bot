@@ -54,20 +54,14 @@ Node::Node(const std::shared_ptr<Board>& board, Square from, Square to, char ch)
     *_board = *board;
     _from = from;
     _to = to;
+    _ch = ch;
     _board->move(from, to, ch);
-    _move += Sq::square_to_string(from) += Sq::square_to_string(to);
-    if (ch != 0) { _move += ch; }
 }
 
 /**
  * @brief Destructor for the Node class
  */
-Node::~Node()
-{
-    for (auto& child : _child) {
-        delete child;
-    }
-}
+Node::~Node() { for (auto& child : _child) { delete child; }}
 
 /**
  * @brief Counts the total number of nodes in the tree starting from the node calling the function.
