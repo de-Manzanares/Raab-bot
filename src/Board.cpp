@@ -30,49 +30,29 @@ std::vector<std::vector<Square>> Diagonals::right_left = {
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Boundary detection
 
-bool is_upper_vertical_boundary(Square square)
-{
-    return static_cast<int>(square) > 55;
-}
+bool is_upper_vertical_boundary(Square square) { return static_cast<int>(square) > 55; }
 
-bool is_lower_vertical_boundary(Square square)
-{
-    return static_cast<int>(square) < 8;
-}
+bool is_lower_vertical_boundary(Square square) { return static_cast<int>(square) < 8; }
 
-bool is_vertical_boundary(Square sq)
-{
-    return is_upper_vertical_boundary(sq) || is_lower_vertical_boundary(sq);
-}
+bool is_vertical_boundary(Square sq) { return is_upper_vertical_boundary(sq) || is_lower_vertical_boundary(sq); }
 
 bool is_left_horizontal_boundary(Square sq)
 {
-    using s = Square;
-    return sq == s::a1 || sq == s::a2 || sq == s::a3 || sq == s::a4 || sq == s::a5 || sq == s::a6 || sq == s::a7
-            || sq == s::a8;
+    return sq == s::a1 || sq == s::a2 || sq == s::a3 || sq == s::a4
+            || sq == s::a5 || sq == s::a6 || sq == s::a7 || sq == s::a8;
 }
 
 bool is_right_horizontal_boundary(Square sq)
 {
-    using s = Square;
-    return sq == s::h1 || sq == s::h2 || sq == s::h3 || sq == s::h4 || sq == s::h5 || sq == s::h6 || sq == s::h7
-            || sq == s::h8;
+    return sq == s::h1 || sq == s::h2 || sq == s::h3 || sq == s::h4
+            || sq == s::h5 || sq == s::h6 || sq == s::h7 || sq == s::h8;
 }
 
-bool is_horizontal_boundary(Square sq)
-{
-    return is_left_horizontal_boundary(sq) || is_right_horizontal_boundary(sq);
-}
+bool is_horizontal_boundary(Square sq) { return is_left_horizontal_boundary(sq) || is_right_horizontal_boundary(sq); }
 
-bool is_boundary(Square sq)
-{
-    return is_vertical_boundary(sq) || is_horizontal_boundary(sq);
-}
+bool is_boundary(Square sq) { return is_vertical_boundary(sq) || is_horizontal_boundary(sq); }
 
-bool is_corner(Square sq)
-{
-    return is_vertical_boundary(sq) && is_horizontal_boundary(sq);
-}
+bool is_corner(Square sq) { return is_vertical_boundary(sq) && is_horizontal_boundary(sq); }
 
 // END Boundary detection
 //----------------------------------------------------------------------------------------------------------------------
@@ -191,116 +171,52 @@ char Board::what_piece(uint sq) const
     return ' ';
 }
 
-bool Board::is_white_rook(Square sq) const
-{
-    return what_piece(sq) == 'R';
-}
+bool Board::is_white_rook(Square sq) const { return w_Rook & (1ULL << static_cast<int>(sq)); }
 
-bool Board::is_black_rook(Square sq) const
-{
-    return what_piece(sq) == 'r';
-}
+bool Board::is_black_rook(Square sq) const { return b_rook & (1ULL << static_cast<int>(sq)); }
 
-bool Board::is_rook(Square sq) const
-{
-    return is_white_rook(sq) || is_black_rook(sq);
-}
+bool Board::is_rook(Square sq) const { return is_white_rook(sq) || is_black_rook(sq); }
 
-bool Board::is_white_bishop(Square sq) const
-{
-    return what_piece(sq) == 'B';
-}
+bool Board::is_white_bishop(Square sq) const { return w_Bishop & (1ULL << static_cast<int>(sq)); }
 
-bool Board::is_black_bishop(Square sq) const
-{
-    return what_piece(sq) == 'b';
-}
+bool Board::is_black_bishop(Square sq) const { return b_bishop & (1ULL << static_cast<int>(sq)); }
 
-bool Board::is_bishop(Square sq) const
-{
-    return is_white_bishop(sq) || is_black_bishop(sq);
-}
+bool Board::is_bishop(Square sq) const { return is_white_bishop(sq) || is_black_bishop(sq); }
 
-bool Board::is_white_queen(Square sq) const
-{
-    return what_piece(sq) == 'Q';
-}
+bool Board::is_white_queen(Square sq) const { return w_Queen & (1ULL << static_cast<int>(sq)); }
 
-bool Board::is_black_queen(Square sq) const
-{
-    return what_piece(sq) == 'q';
-}
+bool Board::is_black_queen(Square sq) const { return b_queen & (1ULL << static_cast<int>(sq)); }
 
-bool Board::is_queen(Square sq) const
-{
-    return is_white_queen(sq) || is_black_queen(sq);
-}
+bool Board::is_queen(Square sq) const { return is_white_queen(sq) || is_black_queen(sq); }
 
-bool Board::is_white_knight(Square sq) const
-{
-    return what_piece(sq) == 'N';
-}
+bool Board::is_white_knight(Square sq) const { return w_Night & (1ULL << static_cast<int>(sq)); }
 
-bool Board::is_black_knight(Square sq) const
-{
-    return what_piece(sq) == 'n';
-}
+bool Board::is_black_knight(Square sq) const { return b_night & (1ULL << static_cast<int>(sq)); }
 
-bool Board::is_knight(Square sq) const
-{
-    return is_white_knight(sq) || is_black_knight(sq);
-}
+bool Board::is_knight(Square sq) const { return is_white_knight(sq) || is_black_knight(sq); }
 
-bool Board::is_white_king(Square sq) const
-{
-    return what_piece(sq) == 'K';
-}
+bool Board::is_white_king(Square sq) const { return w_King & (1ULL << static_cast<int>(sq)); }
 
-bool Board::is_black_king(Square sq) const
-{
-    return what_piece(sq) == 'k';
-}
+bool Board::is_black_king(Square sq) const { return b_king & (1ULL << static_cast<int>(sq)); }
 
-bool Board::is_king(Square sq) const
-{
-    return is_white_king(sq) || is_black_king(sq);
-}
+bool Board::is_king(Square sq) const { return is_white_king(sq) || is_black_king(sq); }
 
-bool Board::is_white_pawn(Square sq) const
-{
-    return what_piece(sq) == 'P';
-}
+bool Board::is_white_pawn(Square sq) const { return w_Pawn & (1ULL << static_cast<int>(sq)); }
 
-bool Board::is_black_pawn(Square sq) const
-{
-    return what_piece(sq) == 'p';
-}
+bool Board::is_black_pawn(Square sq) const { return b_pawn & (1ULL << static_cast<int>(sq)); }
 
-bool Board::is_pawn(Square sq) const
-{
-    return is_white_pawn(sq) || is_black_pawn(sq);
-}
+bool Board::is_pawn(Square sq) const { return is_white_pawn(sq) || is_black_pawn(sq); }
 
 bool Board::is_white(Square sq) const
 {
-    if (w_Pawn & (1ULL << static_cast<int>(sq))) { return true; }
-    if (w_Night & (1ULL << static_cast<int>(sq))) { return true; }
-    if (w_Bishop & (1ULL << static_cast<int>(sq))) { return true; }
-    if (w_Rook & (1ULL << static_cast<int>(sq))) { return true; }
-    if (w_Queen & (1ULL << static_cast<int>(sq))) { return true; }
-    if (w_King & (1ULL << static_cast<int>(sq))) { return true; }
-    return false;
+    return is_white_pawn(sq) || is_white_king(sq) || is_white_knight(sq)
+            || is_white_bishop(sq) || is_white_rook(sq) || is_white_queen(sq);
 }
 
 bool Board::is_black(Square sq) const
 {
-    if (b_pawn & (1ULL << static_cast<int>(sq))) { return true; }
-    if (b_night & (1ULL << static_cast<int>(sq))) { return true; }
-    if (b_bishop & (1ULL << static_cast<int>(sq))) { return true; }
-    if (b_rook & (1ULL << static_cast<int>(sq))) { return true; }
-    if (b_queen & (1ULL << static_cast<int>(sq))) { return true; }
-    if (b_king & (1ULL << static_cast<int>(sq))) { return true; }
-    return false;
+    return is_black_pawn(sq) || is_black_king(sq) || is_black_knight(sq)
+            || is_black_bishop(sq) || is_black_rook(sq) || is_black_queen(sq);
 }
 
 Color Board::what_color(Square sq) const
@@ -312,15 +228,9 @@ Color Board::what_color(Square sq) const
     return color;
 }
 
-bool Board::is_same_color(Square sq, Color color) const
-{
-    return what_color(sq) == color;
-}
+bool Board::is_same_color(Square sq, Color color) const { return what_color(sq) == color; }
 
-bool Board::is_empty(Square sq) const
-{
-    return what_piece(sq) == ' ';
-}
+bool Board::is_empty(Square sq) const { return what_piece(sq) == ' '; }
 
 bool Board::is_opposite_king(Square sq, Color c) const
 {
@@ -329,7 +239,6 @@ bool Board::is_opposite_king(Square sq, Color c) const
 
 int Board::is_in_row(Square sq)
 {
-    using s = Square;
     if (sq >= s::h1 && sq <= s::a1) { return 1; }
     if (sq >= s::h2 && sq <= s::a2) { return 2; }
     if (sq >= s::h3 && sq <= s::a3) { return 3; }
@@ -342,7 +251,6 @@ int Board::is_in_row(Square sq)
 
 int Board::is_in_row(Square sq) const
 {
-    using s = Square;
     if (sq >= s::h1 && sq <= s::a1) { return 1; }
     if (sq >= s::h2 && sq <= s::a2) { return 2; }
     if (sq >= s::h3 && sq <= s::a3) { return 3; }
@@ -355,7 +263,6 @@ int Board::is_in_row(Square sq) const
 
 int Board::is_in_column(Square sq)
 {
-    using s = Square;
     if (static_cast<int>(sq) % 8 == 0) { return 8; }
     if (static_cast<int>(sq) % 8 == 1) { return 7; }
     if (static_cast<int>(sq) % 8 == 2) { return 6; }
@@ -366,15 +273,9 @@ int Board::is_in_column(Square sq)
     if (static_cast<int>(sq) % 8 == 7) { return 1; }
 }
 
-bool Board::is_in_same_row(Square sq1, Square sq2)
-{
-    return is_in_row(sq1) == is_in_row(sq2);
-}
+bool Board::is_in_same_row(Square sq1, Square sq2) { return is_in_row(sq1) == is_in_row(sq2); }
 
-bool Board::is_in_same_column(Square sq1, Square sq2)
-{
-    return is_in_column(sq1) == is_in_column(sq2);
-}
+bool Board::is_in_same_column(Square sq1, Square sq2) { return is_in_column(sq1) == is_in_column(sq2); }
 
 bool Board::is_in_same_diagonal_left_right(Square sq1, Square sq2)
 {
@@ -390,7 +291,6 @@ bool Board::is_in_same_diagonal_left_right(Square sq1, Square sq2)
 
 bool Board::is_in_same_diagonal_right_left(Square sq1, Square sq2)
 {
-
     for (const auto& v : Diagonals::right_left) {
         for (const auto& e : v) {
             if (sq1 == e) {
