@@ -1,21 +1,21 @@
 #ifndef INCLUDE_BOARD_H_
 #define INCLUDE_BOARD_H_
 
-#include <iostream>
+#include <algorithm>
 #include <cstdint>
+#include <iostream>
 #include <string>
 #include <sstream>
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include <algorithm>
 
 #include "Square.h"
 #include "Game_State.h"
 
 /**
  * @struct Diagonals
- * @brief Groups the diagonals of the board for answering the question "are in the same diagonal?"
+ * @brief Groups the diagonals of the board for answering the question "are these squares in the same diagonal?"
  */
 struct Diagonals {
     using s = Square;
@@ -64,7 +64,7 @@ struct Board {
 
     Maps *maps = new Maps;  // for move generation
 
-    // map character code to bitboard TODO make piece_map static
+    // map character code to bitboard
     std::unordered_map<char, uint64_t&> piece_map = {
             {'p', b_pawn}, {'n', b_night}, {'b', b_bishop}, {'r', b_rook}, {'q', b_queen}, {'k', b_king},
             {'P', w_Pawn}, {'N', w_Night}, {'B', w_Bishop}, {'R', w_Rook}, {'Q', w_Queen}, {'K', w_King}};

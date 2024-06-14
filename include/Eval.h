@@ -1,6 +1,7 @@
 #ifndef INCLUDE_EVAL_H_
 #define INCLUDE_EVAL_H_
 
+#include <memory>
 #include <unordered_map>
 
 #include "Board.h"
@@ -24,7 +25,7 @@ struct Eval {
     static double castle_bonus(Node *n);
 
     // board argument
-    static double material_ratio(const Board *board);
+    [[maybe_unused]] static double material_ratio(const Board *board);
     static double material_evaluation(const std::shared_ptr<Board>& board);
     static int detect_checkmate(const std::shared_ptr<Board>& board);
     static double mobility_evaluation(const std::shared_ptr<Board>& board);

@@ -34,8 +34,6 @@ bool is_upper_vertical_boundary(Square square) { return static_cast<int>(square)
 
 bool is_lower_vertical_boundary(Square square) { return static_cast<int>(square) < 8; }
 
-bool is_vertical_boundary(Square sq) { return is_upper_vertical_boundary(sq) || is_lower_vertical_boundary(sq); }
-
 bool is_left_horizontal_boundary(Square sq)
 {
     return sq == s::a1 || sq == s::a2 || sq == s::a3 || sq == s::a4
@@ -47,12 +45,6 @@ bool is_right_horizontal_boundary(Square sq)
     return sq == s::h1 || sq == s::h2 || sq == s::h3 || sq == s::h4
             || sq == s::h5 || sq == s::h6 || sq == s::h7 || sq == s::h8;
 }
-
-bool is_horizontal_boundary(Square sq) { return is_left_horizontal_boundary(sq) || is_right_horizontal_boundary(sq); }
-
-bool is_boundary(Square sq) { return is_vertical_boundary(sq) || is_horizontal_boundary(sq); }
-
-bool is_corner(Square sq) { return is_vertical_boundary(sq) && is_horizontal_boundary(sq); }
 
 // END Boundary detection
 //----------------------------------------------------------------------------------------------------------------------
@@ -158,19 +150,6 @@ char Board::what_piece(Square sq) const
     return ' ';
 }
 
-/**
- * @brief Get the piece on the specified square
- * @param sq The square to check
- * @return char The piece on the square, ' ' if empty
- */
-char Board::what_piece(uint sq) const
-{
-    for (const auto& [key, value] : piece_map) {
-        if (value & (1ULL << sq)) { return key; }
-    }
-    return ' ';
-}
-
 bool Board::is_white_rook(Square sq) const { return w_Rook & (1ULL << static_cast<int>(sq)); }
 
 bool Board::is_black_rook(Square sq) const { return b_rook & (1ULL << static_cast<int>(sq)); }
@@ -247,18 +226,7 @@ int Board::is_in_row(Square sq)
     if (sq >= s::h6 && sq <= s::a6) { return 6; }
     if (sq >= s::h7 && sq <= s::a7) { return 7; }
     if (sq >= s::h8 && sq <= s::a8) { return 8; }
-}
-
-int Board::is_in_row(Square sq) const
-{
-    if (sq >= s::h1 && sq <= s::a1) { return 1; }
-    if (sq >= s::h2 && sq <= s::a2) { return 2; }
-    if (sq >= s::h3 && sq <= s::a3) { return 3; }
-    if (sq >= s::h4 && sq <= s::a4) { return 4; }
-    if (sq >= s::h5 && sq <= s::a5) { return 5; }
-    if (sq >= s::h6 && sq <= s::a6) { return 6; }
-    if (sq >= s::h7 && sq <= s::a7) { return 7; }
-    if (sq >= s::h8 && sq <= s::a8) { return 8; }
+    return 0;
 }
 
 int Board::is_in_column(Square sq)
@@ -271,6 +239,7 @@ int Board::is_in_column(Square sq)
     if (static_cast<int>(sq) % 8 == 5) { return 3; }
     if (static_cast<int>(sq) % 8 == 6) { return 2; }
     if (static_cast<int>(sq) % 8 == 7) { return 1; }
+    return 0;
 }
 
 bool Board::is_in_same_row(Square sq1, Square sq2) { return is_in_row(sq1) == is_in_row(sq2); }
@@ -442,7 +411,6 @@ uint Board::set_pieces(const std::string& fen)
  * @param board  A pointer to the Board object.
  * @param fen    The FEN string to import.
  */
-// TODO check if fen is valid before/during import
 void Board::import_fen(const std::string& fen)
 {
     std::string game_state_string;
@@ -651,7 +619,6 @@ std::vector<Square> Board::influence_queen(Square sq) const
  */
 std::vector<Square> Board::influence_knight(Square sq)
 {
-    using s = Square;
     std::vector<Square> influence{};
     influence.reserve(8);
     int isq = static_cast<int>(sq);
@@ -966,7 +933,7 @@ Square Board::pinned_piece_rook(Square sq) const
 Square Board::pinned_piece_bishop(Square sq) const
 {
     Square pinned;                  // potentially pinned piece
-    bool found_one{};                 // xray through ONE enemy piece
+    bool found_one;                 // xray through ONE enemy piece
     Color c = what_color(sq);
 
     // up left
@@ -1119,7 +1086,6 @@ void Board::update_pinned_pieces(const Square& square_K, const Square& square_k)
  **/
 std::vector<Square> Board::update_white_king_moves(Square square_K)
 {
-    using s = Square;
     using c = Color;
 
     std::vector<Square> giving_check{};
@@ -1200,7 +1166,6 @@ std::vector<Square> Board::update_white_king_moves(Square square_K)
 
 std::vector<Square> Board::update_black_king_moves(Square square_k)
 {
-    using s = Square;
     using c = Color;
 
     std::vector<Square> giving_check{};
@@ -1664,8 +1629,8 @@ void Board::move(Square from, Square to, char ch)
 
 // END move
 //----------------------------------------------------------------------------------------------------------------------
-
 // BEGIN diagnostic
+
 void Board::print_move_map(Color color) const
 {
     auto map = color == Color::white ? maps->move_map_white : maps->move_map_black;

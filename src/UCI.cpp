@@ -1,7 +1,5 @@
 #include "../include/UCI.h"
 
-// TODO determine depth using complexity of the board and time left in the game
-
 /**
  * @return True - white to move \n False - black to move
  */
@@ -22,7 +20,7 @@ double pos_inf = 100'000;
 bool continue_status_updates = true;
 
 /**
- * @brief Gives info's to stdcout
+ * @brief Gives info's to std out
  * @param update_interval_ms The update interval in milliseconds.
  */
 void status_update_thread(uint update_interval_ms)
@@ -66,7 +64,6 @@ void uci::loop()
             }
         }
         else if (simon_says(&in, "go") && n != nullptr) {
-            // TODO memory is better, but smaller still is needed
             // move gen is too slow. 4ply is asking > 1M nodes in early middle-game positions
             uint D = 3;
             Counter::node = 0;
@@ -77,7 +74,7 @@ void uci::loop()
             n->spawn_depth_first(D);
 
             continue_status_updates = false;
-            status_thread.join();       // TODO reduce sleep so that join can occur sooner
+            status_thread.join();       // TODO reduce sleep so that join can occur sooner ?
 
             // n->spawn_breadth_first(D);
 

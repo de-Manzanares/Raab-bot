@@ -1,19 +1,19 @@
 #include "../include/Node.h"
 
-// TODO add node count, nps, time controls on tree gen
-
+// TODO add time controls on tree gen
+// TODO ponder (will help on predictable exchanges at least)
+// TODO timing profiles - depth based on time controls
+// spawn based on time left and complexity (predicted nodes)
 // TODO iterative deepening
 // TODO give weight to controlling opposing king's squares
-// spawn based on time left and complexity (predicted nodes)
 // TODO give weight to stalemate
 // TODO passed pawns good
 // TODO stacked pawns bad
 // TODO avoid pawn forks LOL
 // TODO move order
 // TODO influencing the center
-// TODO include influence as well as legal moves (instead of ?)
+// TODO include influence as well as legal moves (instead of ?) would allow for attack/defender counting
 // TODO enable time control on analysis
-
 
 // initialize static counter variables
 uint Counter::node = 0;
@@ -22,23 +22,21 @@ std::chrono::time_point<std::chrono::high_resolution_clock> Counter::start = std
 /**
  * @brief Default constructor for Node class
  */
-Node::Node()
-        :_board(std::make_shared<Board>())
+Node::Node() :_board(std::make_shared<Board>())
 {
-    // _board->update_move_maps();
-    // _eval = Eval::eval(_board) + Eval::discourage_early_queen_movement(this) + Eval::castle_bonus(this);
+    _from = _to = Square::h1;                               // TODO make null squares?
+    _ch = 0;
 }
 
 /**
  * @brief Create a Node with the given FEN string.
  * @param fen The FEN string representing a game state
  */
-Node::Node(const std::string& fen)
-        :_board(std::make_shared<Board>())
+Node::Node(const std::string& fen) :_board(std::make_shared<Board>())
 {
     _board->import_fen(fen);
-    // _board->update_move_maps();
-    // _eval = Eval::eval(_board) + Eval::discourage_early_queen_movement(this) + Eval::castle_bonus(this);
+    _from = _to = Square::h1;
+    _ch = 0;
 }
 
 /**
@@ -48,8 +46,7 @@ Node::Node(const std::string& fen)
  * @param to The ending square of the move to be made.
  * @param ch The character representation of the piece to promote the pawn to, if the move is a pawn promotion.
  */
-Node::Node(const std::shared_ptr<Board>& board, Square from, Square to, char ch)
-        :_board(std::make_shared<Board>())
+Node::Node(const std::shared_ptr<Board>& board, Square from, Square to, char ch) :_board(std::make_shared<Board>())
 {
     *_board = *board;
     _from = from;
@@ -67,18 +64,19 @@ Node::~Node() { for (auto& child : _child) { delete child; }}
  * @brief Counts the total number of nodes in the tree starting from the node calling the function.
  * @return The total number of nodes in the tree "below" the calling node.
  */
-uint Node::count_nodes()
+uint Node::count_nodes()                            // NOLINT(misc-no-recursion)
 {
     uint count = _child.size();
     for (const auto& child : _child) { count += child->count_nodes(); }
     return count;
 }
 
+// TODO clean up spawn_depth_first
 /**
  * @brief Creates a decision tree of n layers.
  * @param depth The depth of the tree to spawn child nodes for.
  */
-void Node::spawn_depth_first(uint depth)
+void Node::spawn_depth_first(uint depth)            // NOLINT(misc-no-recursion)
 {
     if (depth == 0) {                               // terminal nodes
         _board->update_move_maps();
@@ -123,8 +121,6 @@ void Node::spawn_depth_first(uint depth)
     // auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - Counter::start).count();
     // if (elapsed_ms > 15000) { return; }
 
-    // delete _board->maps;
-    // _board->maps = nullptr;
     _board.reset();
 
     for (auto& n : _child) {

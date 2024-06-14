@@ -3,15 +3,14 @@
 
 #include <chrono>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 #include "Eval.h"
 #include "Board.h"
 
 // TODO make nodes as small as possible
-// TODO get rid of move, redundant with _from and _to
 
 /**
  * @struct Counter

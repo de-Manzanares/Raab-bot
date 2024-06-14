@@ -105,6 +105,6 @@ Game_State& Game_State::operator=(const Game_State& rhs)
         full_move_number = rhs.full_move_number;
         in_check_black = rhs.in_check_black;
         in_check_white = rhs.in_check_white;
-        return *this;
     }
+    return *this;
 }

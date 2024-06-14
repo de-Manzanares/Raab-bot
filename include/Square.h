@@ -1,9 +1,9 @@
 #ifndef INCLUDE_SQUARE_H_
 #define INCLUDE_SQUARE_H_
 
+#include <string>
 #include <type_traits>
 #include <unordered_map>
-#include <string>
 
 // BEGIN Square
 //----------------------------------------------------------------------------------------------------------------------

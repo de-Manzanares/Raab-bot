@@ -10,7 +10,7 @@
  * @return The optimal node found based on the evaluation and specified depth.
  * @note This function assumes that the tree has been populated with valid nodes and evaluations.
  */
-Node *Search::min_max(Node *n, uint depth, double alpha, double beta, bool maximizing)
+Node *Search::min_max(Node *n, uint depth, double alpha, double beta, bool maximizing)  // NOLINT(misc-no-recursion)
 {
     if (depth == 0 || n->_child.empty()) { return n; }
 

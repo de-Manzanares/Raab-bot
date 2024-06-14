@@ -19,11 +19,10 @@ std::unordered_map<char, int> Eval::material_value = {
  * @return The ratio of material advantage to total material. Pos for white neg for black.
  * indicates an advantage for black.
  */
-double Eval::material_ratio(const Board *board)
+[[maybe_unused]] double Eval::material_ratio(const Board *board)
 {
     double wscore = 0;
     double bscore = 0;
-    double ratio = 0;
     for (Square sq = Square::a8; sq >= Square::h1; --sq) {
         if (!board->is_empty(sq)) {
             if (board->is_white(sq)) { wscore += material_value[board->what_piece(sq)]; }
@@ -128,16 +127,13 @@ double Eval::simple_evaluation(const std::shared_ptr<Board>& board)
 /**
  * wrapper for simple_evaluation()
  */
-double Eval::eval(const std::shared_ptr<Board>& board)
-{
-    return simple_evaluation(board);
-}
+double Eval::eval(const std::shared_ptr<Board>& board) { return simple_evaluation(board); }
 
 /**
  * In the first ten moves of the game, penalize queen movements, encourage other piece movements
  * @note is not needed when an opening book is in use
  */
-double Eval::discourage_early_queen_movement(const Node *node)
+[[maybe_unused]] double Eval::discourage_early_queen_movement(const Node *node)
 {
     double score = 0;
     if (node->_board->game_state.full_move_number <= 10) {
