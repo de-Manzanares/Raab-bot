@@ -14,6 +14,16 @@
 #include "Game_State.h"
 
 /**
+ * @struct Diagonals
+ * @brief Groups the diagonals of the board for answering the question "are in the same diagonal?"
+ */
+struct Diagonals {
+    using s = Square;
+    static std::vector<std::vector<Square>> left_right;
+    static std::vector<std::vector<Square>> right_left;
+};
+
+/**
  * @class Maps
  * @brief A collection of unordered maps used for move generation
  */

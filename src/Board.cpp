@@ -1,5 +1,32 @@
 #include "../include/Board.h"
 
+using s = Square;
+
+std::vector<std::vector<Square>> Diagonals::left_right = {
+        {s::a6, s::b7, s::c8},
+        {s::a5, s::b6, s::c7, s::d8},
+        {s::a4, s::b5, s::c6, s::d7, s::e8},
+        {s::a3, s::b4, s::c5, s::d6, s::e7, s::f8},
+        {s::a2, s::b3, s::c4, s::d5, s::e6, s::f7, s::g8},
+        {s::a1, s::b2, s::c3, s::d4, s::e5, s::f6, s::g7, s::h8},
+        {s::b1, s::c2, s::d3, s::e4, s::f5, s::g6, s::h7},
+        {s::c1, s::d2, s::e3, s::f4, s::g5, s::h6},
+        {s::d1, s::e2, s::f3, s::g4, s::h5},
+        {s::e1, s::f2, s::g3, s::h4},
+        {s::f1, s::g2, s::h3}};
+std::vector<std::vector<Square>> Diagonals::right_left = {
+        {s::h6, s::g7, s::f8},
+        {s::h5, s::g6, s::f7, s::e8},
+        {s::h4, s::g5, s::f6, s::e7, s::d8},
+        {s::h3, s::g4, s::f5, s::e6, s::d7, s::c8},
+        {s::h2, s::g3, s::f4, s::e5, s::d6, s::c7, s::b8},
+        {s::h1, s::g2, s::f3, s::e4, s::d5, s::c6, s::b7, s::a8},
+        {s::g1, s::f2, s::e3, s::d4, s::c5, s::b6, s::a7},
+        {s::f1, s::e2, s::d3, s::c4, s::b5, s::a6},
+        {s::e1, s::d2, s::c3, s::b4, s::a5},
+        {s::d1, s::c2, s::b3, s::a4},
+        {s::c1, s::b2, s::a3}};
+
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Boundary detection
 
@@ -351,21 +378,7 @@ bool Board::is_in_same_column(Square sq1, Square sq2)
 
 bool Board::is_in_same_diagonal_left_right(Square sq1, Square sq2)
 {
-    using s = Square;
-    std::vector<std::vector<Square>> diagonals = {
-            {s::a6, s::b7, s::c8},
-            {s::a5, s::b6, s::c7, s::d8},
-            {s::a4, s::b5, s::c6, s::d7, s::e8},
-            {s::a3, s::b4, s::c5, s::d6, s::e7, s::f8},
-            {s::a2, s::b3, s::c4, s::d5, s::e6, s::f7, s::g8},
-            {s::a1, s::b2, s::c3, s::d4, s::e5, s::f6, s::g7, s::h8},
-            {s::b1, s::c2, s::d3, s::e4, s::f5, s::g6, s::h7},
-            {s::c1, s::d2, s::e3, s::f4, s::g5, s::h6},
-            {s::d1, s::e2, s::f3, s::g4, s::h5},
-            {s::e1, s::f2, s::g3, s::h4},
-            {s::f1, s::g2, s::h3},
-    };
-    for (const auto& v : diagonals) {
+    for (const auto& v : Diagonals::left_right) {
         for (const auto& e : v) {
             if (sq1 == e) {
                 for (const auto& e2 : v) { if (sq2 == e2) { return true; }}
@@ -377,21 +390,8 @@ bool Board::is_in_same_diagonal_left_right(Square sq1, Square sq2)
 
 bool Board::is_in_same_diagonal_right_left(Square sq1, Square sq2)
 {
-    using s = Square;
-    std::vector<std::vector<Square>> diagonals = {
-            {s::h6, s::g7, s::f8},
-            {s::h5, s::g6, s::f7, s::e8},
-            {s::h4, s::g5, s::f6, s::e7, s::d8},
-            {s::h3, s::g4, s::f5, s::e6, s::d7, s::c8},
-            {s::h2, s::g3, s::f4, s::e5, s::d6, s::c7, s::b8},
-            {s::h1, s::g2, s::f3, s::e4, s::d5, s::c6, s::b7, s::a8},
-            {s::g1, s::f2, s::e3, s::d4, s::c5, s::b6, s::a7},
-            {s::f1, s::e2, s::d3, s::c4, s::b5, s::a6},
-            {s::e1, s::d2, s::c3, s::b4, s::a5},
-            {s::d1, s::c2, s::b3, s::a4},
-            {s::c1, s::b2, s::a3}
-    };
-    for (const auto& v : diagonals) {
+
+    for (const auto& v : Diagonals::right_left) {
         for (const auto& e : v) {
             if (sq1 == e) {
                 for (const auto& e2 : v) { if (sq2 == e2) { return true; }}
