@@ -80,15 +80,15 @@ void Node::spawn_depth_first(uint depth)            // NOLINT(misc-no-recursion)
 {
     if (depth == 0) {                               // terminal nodes
         _board->update_move_maps();
-        _eval = Eval::eval(_board);
+        _eval = Eval::eval(this);
         _board.reset();
         return;
     }
 
     _board->update_move_maps();
 
-    if (Eval::detect_checkmate(_board) != 0) {      // not at specified depth, but still a terminal node
-        _eval = Eval::eval(_board);
+    if (Eval::detect_checkmate(this) != 0) {      // not at specified depth, but still a terminal node
+        _eval = Eval::eval(this);
         _board.reset();
         return;
     }

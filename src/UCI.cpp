@@ -74,7 +74,7 @@ void uci::loop()
             n->spawn_depth_first(D);
 
             continue_status_updates = false;
-            status_thread.join();       // TODO reduce sleep so that join can occur sooner ?
+            status_thread.join();
 
             // n->spawn_breadth_first(D);
 
