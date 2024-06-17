@@ -14,7 +14,6 @@
 // TODO influencing the center
 // TODO include influence as well as legal moves (instead of ?) would allow for attack/defender counting
 // TODO enable time control on analysis
-// TODO something wrong with egtb? https://lichess.org/3etfPp3f/white#118
 
 // initialize static counter variables
 uint Counter::node = 0;
@@ -136,10 +135,13 @@ void Node::spawn_depth_first(uint depth)            // NOLINT(misc-no-recursion)
  * @return The next step node from the current node to the end node
  * @warning The function will result in an infinite loop if the current node is not a parent of the end node
  */
-Node *Node::next_step(Node *end)
+Node *Node::next_step(Node *end, uint *depth)
 {
     Node *current = end;
-    while (current->parent != this) { current = current->parent; }
+    while (current->parent != this) {
+        current = current->parent;
+        (*depth)++;
+    }
     return current;
 }
 

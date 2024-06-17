@@ -42,7 +42,7 @@ struct Node {
 
     uint count_nodes();
     void spawn_depth_first(uint depth);
-    Node *next_step(Node *end);
+    Node *next_step(Node *end, uint *depth);
     uint node_depth();
     void spawn_breadth_first(uint depth);
 };

@@ -1,7 +1,5 @@
 #include "../include/UCI.h"
 
-// TODO ponder ... HOW?!
-
 /**
  * @return True - white to move \n False - black to move
  */
@@ -59,62 +57,40 @@ void uci::loop()
 
         // set up a board in the given position, wait for "go" to search, a fen or a list of moves may follow
         if (simon_says(&in, "position")) {
-            if (simon_says(&in, "fen")) {
-                std::string fen_tag = "position fen ";
-                std::string moves_tag = " moves ";
-
-                size_t start_index = in.find(fen_tag);
-                size_t end_index = in.find(moves_tag);
-
-                std::string s_fen;
-                std::string s_moves;
-
-                if (start_index != std::string::npos) {
-                    if (end_index != std::string::npos) {
-                        s_fen = in.substr(start_index + fen_tag.length(), end_index - start_index - fen_tag.length());
-                        s_moves = in.substr(end_index + moves_tag.length());
-                    }
-                    else { s_fen = in.substr(start_index + fen_tag.length()); }
-                }
-
-                n = new Node(s_fen);
-                if (!s_moves.empty()) { moves(n, &s_moves); }
-            }
+            if (simon_says(&in, "fen")) { }                                     // TODO start from position
             else if (simon_says(&in, "startpos")) {
                 n = new Node;
-                if (simon_says(&in, "moves")) {
-                    in = in.substr(std::string("position startpos moves ").length());
-                    moves(n, &in);
-                }
+                if (simon_says(&in, "moves")) { startpos_moves(n, &in); }
             }
         }
         else if (simon_says(&in, "go") && n != nullptr) {
             // move gen is too slow. 4ply is asking > 1M nodes in early middle-game positions
-            uint D = 3;                                                 // set search depth
-            Counter::node = 0;                                          // reset node counter
-            bool maxing = is_maxing(n);                                 // for minmax search
-            n->_board->update_move_maps();                              // for move generation
-            std::thread status_thread(status_update_thread, 1000);      // start timer
-            n->spawn_depth_first(D);                                    // generate tree
-            continue_status_updates = false;                            // end timer
+            uint D = 3;
+            Counter::node = 0;
+
+            bool maxing = is_maxing(n);
+            n->_board->update_move_maps();
+            std::thread status_thread(status_update_thread, 1000);
+            n->spawn_depth_first(D);
+
+            continue_status_updates = false;
             status_thread.join();
 
-            // get the optimal node, and get the next steps on the path to the optimal node
-            // 1st step - best move, 2nd step - ponder
-            std::vector<Node *> opt_node{Search::min_max(n, D, neg_inf, pos_inf, maxing)};
-            std::vector<Node *> path{(n->next_step(opt_node[0]))};      // first step
-            path.push_back(path[0]->next_step(opt_node[0]));            // second step
+            // n->spawn_breadth_first(D);
+
+            std::vector<Node *> opt_nodes{Search::min_max(n, D, neg_inf, pos_inf, maxing)};
+            uint depth_counter = 1;
+            std::vector<Node *> moves{(n->next_step(opt_nodes[0], &depth_counter))};
 
             auto time = std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::high_resolution_clock::now() - Counter::start).count();
 
             std::cout << "info"
-                      << " depth " << opt_node[0]->node_depth()
+                      << " depth " << opt_nodes[0]->node_depth()
                       << " time " << time
                       << " nodes " << Counter::node
-                      << "\n"
-                      << "bestmove " << long_algebraic_notation(path[0])
-                      << " ponder " << long_algebraic_notation(path[1])
+                      << "\nbestmove "
+                      << long_algebraic_notation(moves[0])
                       << std::endl;
 
             delete n;
@@ -174,12 +150,7 @@ std::string long_algebraic_notation(const Node *n)
 void preamble(const std::string *in)
 {
     // should give engine options to be configured ... we don't have any right now, so ... uciok!
-    if (*in == "uci") {
-        std::cout << "id name Raab-bot\n"
-                     "id author Schauss\n\n"
-                     "option name Ponder type check default true\n"
-                     "uciok\n";
-    }
+    if (*in == "uci") { std::cout << "id name Raab-bot\nid author Schauss\nuciok\n"; }
 
         // to give the engine time to set up stuff ... but we don't have any stuff!!!
     else if (*in == "isready") { std::cout << "readyok\n"; }
@@ -190,10 +161,13 @@ void preamble(const std::string *in)
  * @param n Pointer to a Node holding the board to be mutated.
  * @param in Pointer to a string containing the
  */
-void moves(Node *n, std::string *in)
+void startpos_moves(Node *n, std::string *in)
 {
     std::istringstream iss(*in);
     std::string s;
+
+    // get rid of "position startpos moves" so we can process the moves
+    for (auto i = 0; i < 3; i++) { iss >> s; }
 
     // the following "words" in the string will be moves
     while (iss >> s) {
