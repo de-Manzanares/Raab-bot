@@ -7,8 +7,8 @@ void generate_and_sort_ppt(Board& board, const Square& sq, std::vector<Square>& 
     v.clear();
     board.update_move_maps();
     Color c = board.what_color(sq);
-    if (c == Color::white) { v = board.maps->move_map_white[sq]; }
-    if (c == Color::black) { v = board.maps->move_map_black[sq]; }
+    if (c == Color::white) { v = board.maps->white_moves[sq]; }
+    if (c == Color::black) { v = board.maps->black_moves[sq]; }
     std::sort(v.begin(), v.end());
 }
 

@@ -35,8 +35,8 @@ struct Game_State {
     uint half_move_clock{};             // for the 50 move rule
     uint full_move_number = 1;          // starts at 1, increments after black moves
 
-    bool in_check_black = false;        // black king is in check
-    bool in_check_white = false;        // white king is in check
+    bool black_inCheck = false;        // black king is in check
+    bool white_inCheck = false;        // white king is in check
 };
 
 #endif  // INCLUDE_GAME_STATE_H_

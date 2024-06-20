@@ -5,8 +5,8 @@ void generate_and_sort_influence(Board& board, const Square& sq, std::vector<Squ
 {
     board.update_influence_maps();
     Color c = board.what_color(sq);
-    if (c == Color::white) { v = board.maps->influence_map_white[sq]; }
-    if (c == Color::black) { v = board.maps->influence_map_black[sq]; }
+    if (c == Color::white) { v = board.maps->white_influence[sq]; }
+    if (c == Color::black) { v = board.maps->black_influence[sq]; }
     std::sort(v.begin(), v.end());
 }
 

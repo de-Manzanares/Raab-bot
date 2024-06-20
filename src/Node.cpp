@@ -95,7 +95,7 @@ void Node::spawn_depth_first(uint depth)            // NOLINT(misc-no-recursion)
 
     for (const auto& [sq, moves] :
             _board->game_state.active_color == Color::white ?
-            _board->maps->move_map_white : _board->maps->move_map_black) {
+            _board->maps->white_moves : _board->maps->black_moves) {
         for (const auto& move : moves) {
             if ((_board->is_in_row(move) == 8 && _board->is_white_pawn(sq))
                     || _board->is_in_row(move) == 1 && _board->is_black_pawn(sq)) {

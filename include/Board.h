@@ -28,14 +28,14 @@ struct Diagonals {
  * @brief A collection of unordered maps used for move generation
  */
 struct Maps {
-    std::unordered_map<Square, std::vector<Square>> move_map_white{};               // all white moves
-    std::unordered_map<Square, std::vector<Square>> move_map_black{};               // all black moves
-    std::unordered_map<Square, std::vector<Square>> influence_map_white{};          // all white influence
-    std::unordered_map<Square, std::vector<Square>> influence_map_black{};          // all black influence
-    std::unordered_map<Square, Square> pinned_pieces_white{};                       // {pinned piece, pinning piece}
-    std::unordered_map<Square, Square> pinned_pieces_black{};                       // {pinned piece, pinning piece}
-    std::unordered_map<Square, std::vector<Square>> pinned_piece_lane_map_white{};  // {square, squares in pinned lane}
-    std::unordered_map<Square, std::vector<Square>> pinned_piece_lane_map_black{};  // {square, squares in pinned lane}
+    std::unordered_map<Square, std::vector<Square>> white_moves{};               // all white moves
+    std::unordered_map<Square, std::vector<Square>> black_moves{};               // all black moves
+    std::unordered_map<Square, std::vector<Square>> white_influence{};          // all white influence
+    std::unordered_map<Square, std::vector<Square>> black_influence{};          // all black influence
+    std::unordered_map<Square, Square> white_pinned{};                       // {pinned piece, pinning piece}
+    std::unordered_map<Square, Square> black_pinned{};                       // {pinned piece, pinning piece}
+    std::unordered_map<Square, std::vector<Square>> white_pinned_lane{};  // {square, squares in pinned lane}
+    std::unordered_map<Square, std::vector<Square>> black_pinned_lane{};  // {square, squares in pinned lane}
     void clear();                                                                   // empty the maps
 };
 
@@ -135,28 +135,27 @@ struct Board {
     static std::vector<Square> influence_king(Square sq);
     std::vector<Square> influence_pawn(Square sq) const;
     std::vector<Square> influence(Square sq) const;;
-    void update_influence_maps();
+    void update_influence_maps() const;
 
     // pinned pieces
     Square pinned_piece_rook(Square sq) const;
     Square pinned_piece_bishop(Square sq) const;
     Square pinned_piece_queen(Square sq) const;
     Square pinned_piece(Square sq) const;
-    void update_pinned_pieces(const Square& square_K, const Square& square_k);
+    void update_pinned_pieces(const Square& sq_w_King, const Square& sq_b_king) const;
 
     // influence reduction
-    std::vector<Square> update_white_king_moves(Square square_K);
-    std::vector<Square> update_black_king_moves(Square square_k);
-    Square assign_from_influence_map_exclude_pawns_and_kings(std::unordered_map<Square, std::vector<Square>> *to,
-            std::unordered_map<Square, std::vector<Square>> *from) const;
-    void remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color) const;
+    std::vector<Square> update_white_king_moves(Square sq_w_king);
+    std::vector<Square> update_black_king_moves(Square sq_b_king);
+    Square copy_influence(const Color c, std::unordered_map<Square, std::vector<Square>> *from,
+            std::unordered_map<Square, std::vector<Square>> *to) const;
+    void remove_same_color_squares(Color color, std::unordered_map<Square, std::vector<Square>> *map) const;
     void update_move_maps();
     // end move generation     ----------------------------------------
 
     // uci
 
     // diagnostic
-    void print_move_map(Color color) const;
     ulong nodes_at_depth_1(Color color);
     void move(Square from, Square to, char ch);
     void move_pawn(Square from, Square to, char ch);

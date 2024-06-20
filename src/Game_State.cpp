@@ -103,8 +103,8 @@ Game_State& Game_State::operator=(const Game_State& rhs)
         en_passant_set = rhs.en_passant_set;
         half_move_clock = rhs.half_move_clock;
         full_move_number = rhs.full_move_number;
-        in_check_black = rhs.in_check_black;
-        in_check_white = rhs.in_check_white;
+        black_inCheck = rhs.black_inCheck;
+        white_inCheck = rhs.white_inCheck;
     }
     return *this;
 }

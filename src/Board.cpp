@@ -1,6 +1,7 @@
 #include "../include/Board.h"
 
 using s = Square;
+using c = Color;
 
 std::vector<std::vector<Square>> Diagonals::left_right = {
         {s::a6, s::b7, s::c8},
@@ -30,9 +31,9 @@ std::vector<std::vector<Square>> Diagonals::right_left = {
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN Boundary detection
 
-bool is_upper_vertical_boundary(Square square) { return static_cast<int>(square) > 55; }
+bool is_upper_vertical_boundary(Square sq) { return static_cast<int>(sq) > 55; }
 
-bool is_lower_vertical_boundary(Square square) { return static_cast<int>(square) < 8; }
+bool is_lower_vertical_boundary(Square sq) { return static_cast<int>(sq) < 8; }
 
 bool is_left_horizontal_boundary(Square sq)
 {
@@ -51,14 +52,14 @@ bool is_right_horizontal_boundary(Square sq)
 
 void Maps::clear()
 {
-    move_map_white.clear();
-    move_map_black.clear();
-    influence_map_white.clear();
-    influence_map_black.clear();
-    pinned_pieces_white.clear();
-    pinned_pieces_black.clear();
-    pinned_piece_lane_map_white.clear();
-    pinned_piece_lane_map_black.clear();
+    white_moves.clear();
+    black_moves.clear();
+    white_influence.clear();
+    black_influence.clear();
+    white_pinned.clear();
+    black_pinned.clear();
+    white_pinned_lane.clear();
+    black_pinned_lane.clear();
 }
 
 Board& Board::operator=(const Board& rhs)
@@ -78,14 +79,10 @@ Board& Board::operator=(const Board& rhs)
         w_King = rhs.w_King;
         game_state = rhs.game_state;
     }
-
     return *this;
 }
 
-Board::~Board()
-{
-    delete maps;
-}
+Board::~Board() { delete maps; }
 
 /**
  * @brief Remove all pieces and clear the game state.
@@ -98,10 +95,6 @@ void Board::clear()
     // clear the game state
     game_state.clear();
 }
-
-// END clear
-//----------------------------------------------------------------------------------------------------------------------
-
 
 /**
  * @brief Removes a piece from the chessboard at the given square.
@@ -809,20 +802,20 @@ std::vector<Square> Board::influence(Square sq) const
  * This function resets the influence_map_white and influence_map_black maps, and then calculates the influence of each
  * white and black piece on the board. The influence is the set of squares that a piece can attack or control.
  */
-void Board::update_influence_maps()
+void Board::update_influence_maps() const
 {
     // reset the maps
-    maps->influence_map_white.clear();
-    maps->influence_map_black.clear();
+    maps->white_influence.clear();
+    maps->black_influence.clear();
 
-    for (Square square = Square::a8; square >= Square::h1; --square) {
+    for (Square sq = Square::a8; sq >= Square::h1; --sq) {
         // white moves
-        if (is_white(square)) {
-            maps->influence_map_white.insert({square, influence(square)});
+        if (is_white(sq)) {
+            maps->white_influence.insert({sq, influence(sq)});
         }
-        // black moves
-        if (is_black(square)) {
-            maps->influence_map_black.insert({square, influence(square)});
+            // black moves
+        else if (is_black(sq)) {
+            maps->black_influence.insert({sq, influence(sq)});
         }
     }
 }
@@ -1052,23 +1045,19 @@ Square Board::pinned_piece(Square sq) const
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN update pinned pieces
 
-void Board::update_pinned_pieces(const Square& square_K, const Square& square_k)
+void Board::update_pinned_pieces(const Square& sq_w_King, const Square& sq_b_king) const
 {
     // reset the maps
-    maps->pinned_pieces_white.clear();
-    maps->pinned_pieces_black.clear();
-    maps->pinned_piece_lane_map_white.clear();
-    maps->pinned_piece_lane_map_black.clear();
+    maps->white_pinned.clear();
+    maps->black_pinned.clear();
+    maps->white_pinned_lane.clear();
+    maps->black_pinned_lane.clear();
 
-    for (Square square = Square::a8; square >= Square::h1; --square) {
-        // white moves
-        if (is_white(square)) {
-            if (pinned_piece(square) != square) { maps->pinned_pieces_black.insert({pinned_piece(square), square}); }
-        }
-        // black moves
-        if (is_black(square)) {
-            if (pinned_piece(square) != square) { maps->pinned_pieces_white.insert({pinned_piece(square), square}); }
-        }
+    for (const auto& [sq, moves] : maps->white_influence) {
+        if (pinned_piece(sq) != sq) { maps->black_pinned.insert({pinned_piece(sq), sq}); }
+    }
+    for (const auto& [sq, moves] : maps->black_influence) {
+        if (pinned_piece(sq) != sq) { maps->white_pinned.insert({pinned_piece(sq), sq}); }
     }
 }
 
@@ -1080,14 +1069,12 @@ void Board::update_pinned_pieces(const Square& square_K, const Square& square_k)
  * @brief Detects if the king is in check and updates the legal moves
  * @details This function detects if the king is in check and updates the legal moves.
  * It returns a vector of squares from which the king is giving check. It works with a single king on the board.
- * @param square_K The current position of the white king.
+ * @param sq_w_King The current position of the white king.
  * @return A vector of squares from which the king is giving check.
  * @warning only one king per board
  **/
-std::vector<Square> Board::update_white_king_moves(Square square_K)
+std::vector<Square> Board::update_white_king_moves(Square sq_w_King)
 {
-    using c = Color;
-
     std::vector<Square> giving_check{};
     bool is_in_check;                           // king is in check
     bool under_attack;                          // flags a square as under attack
@@ -1101,14 +1088,15 @@ std::vector<Square> Board::update_white_king_moves(Square square_K)
     // piece giving check
 
     // get started
-    influence_kings = influence(square_K);
+    influence_kings = influence(sq_w_King);
 
     // detect whether king is in check
     is_in_check = false;
-    for (const auto& pair : maps->influence_map_black) {
-        if (std::find(pair.second.begin(), pair.second.end(), square_K) != pair.second.end()) {  // is the king in check
+    for (const auto& pair : maps->black_influence) {
+        if (std::find(pair.second.begin(), pair.second.end(), sq_w_King)
+                != pair.second.end()) {  // is the king in check
             is_in_check = true;
-            game_state.in_check_white = true;
+            game_state.white_inCheck = true;
             // keep track of who is giving check
             giving_check.push_back(pair.first);
         }
@@ -1121,7 +1109,7 @@ std::vector<Square> Board::update_white_king_moves(Square square_K)
     // remove square that are under attack
     for (const auto& s : influence_kings) {
         under_attack = false;   // reset search flag
-        for (const auto& pair : maps->influence_map_black) {
+        for (const auto& pair : maps->black_influence) {
             if (std::find(pair.second.begin(), pair.second.end(), s) != pair.second.end()) {
                 under_attack = true;
                 break;
@@ -1159,15 +1147,13 @@ std::vector<Square> Board::update_white_king_moves(Square square_K)
     }
 
     // add king moves to move map
-    maps->move_map_white.insert({square_K, legal_moves_kings});
+    maps->white_moves.insert({sq_w_King, legal_moves_kings});
 
     return giving_check;
 }
 
-std::vector<Square> Board::update_black_king_moves(Square square_k)
+std::vector<Square> Board::update_black_king_moves(Square sq_b_king)
 {
-    using c = Color;
-
     std::vector<Square> giving_check{};
     bool is_in_check;                           // king is in check
     bool under_attack;                          // flags a square as under attack
@@ -1176,14 +1162,15 @@ std::vector<Square> Board::update_black_king_moves(Square square_k)
     std::vector<Square> legal_moves_kings;      // temp vector to create king move list
 
     // get started
-    influence_kings = influence(square_k);
+    influence_kings = influence(sq_b_king);
 
     // detect whether king is in check
     is_in_check = false;
-    for (const auto& pair : maps->influence_map_white) {
-        if (std::find(pair.second.begin(), pair.second.end(), square_k) != pair.second.end()) {  // is the king in check
+    for (const auto& pair : maps->white_influence) {
+        if (std::find(pair.second.begin(), pair.second.end(), sq_b_king)
+                != pair.second.end()) {  // is the king in check
             is_in_check = true;
-            game_state.in_check_black = true;
+            game_state.black_inCheck = true;
             giving_check.push_back(pair.first);
         }
     }
@@ -1195,7 +1182,7 @@ std::vector<Square> Board::update_black_king_moves(Square square_k)
     // remove square that are under attack
     for (const auto& s : influence_kings) {
         under_attack = false;   // reset search flag
-        for (const auto& pair : maps->influence_map_white) {
+        for (const auto& pair : maps->white_influence) {
             if (std::find(pair.second.begin(), pair.second.end(), s) != pair.second.end()) {
                 under_attack = true;
                 break;
@@ -1233,7 +1220,7 @@ std::vector<Square> Board::update_black_king_moves(Square square_k)
     }
 
     // add king moves to move map
-    maps->move_map_black.insert({square_k, legal_moves_kings});
+    maps->black_moves.insert({sq_b_king, legal_moves_kings});
 
     return giving_check;
 }
@@ -1242,24 +1229,32 @@ std::vector<Square> Board::update_black_king_moves(Square square_k)
 // BEGIN update move maps
 
 /**
- * @brief Assigns squares from one unordered_map to another, excluding pawns and kings
- * @details This function iterates over the squares in the 'from' unordered_map and copies them to the 'to'
- * unordered_map, excluding any squares contain pawns or kings. If a king square is found, it is stored in a separate
- * variable and is returned at the end of the function.
+ * @brief Copies influence maps to move maps, excluding kings and pawns
+ * @details Move generation is done by starting with the influence maps and reducing the map by applying rules of the
+ * game. This function returns the square of (a) king because we will need that info later, and now is as good a time
+ * as any to get it.
  * @param to A pointer to the unordered_map where the squares will be assigned
- * @param from A pointer to the unordered_map from where the squares will be copied
- * @return The square that represents the king, if found
+ * @param from A pointer to the unordered_map from which the squares will be copied
+ * @return The square in which the king resides
  */
-Square Board::assign_from_influence_map_exclude_pawns_and_kings(std::unordered_map<Square, std::vector<Square>> *to,
-        std::unordered_map<Square, std::vector<Square>> *from) const
+Square Board::copy_influence(const Color c, std::unordered_map<Square, std::vector<Square>> *from,
+        std::unordered_map<Square, std::vector<Square>> *to) const
 {
-    Square square_king{};
+    Square sq_king{};
     to->clear();
-    for (const auto& pair : *from) {
-        if (!is_pawn(pair.first) && !is_king(pair.first)) { to->insert(pair); }
-        else if (is_king(pair.first)) { square_king = pair.first; }
+    if (c == c::white) {
+        for (const auto& pair : *from) {
+            if (!is_white_pawn(pair.first) && !is_white_king(pair.first)) { to->insert(pair); }
+            else if (is_white_king(pair.first)) { sq_king = pair.first; }
+        }
     }
-    return square_king;
+    else if (c == c::black) {
+        for (const auto& pair : *from) {
+            if (!is_black_pawn(pair.first) && !is_black_king(pair.first)) { to->insert(pair); }
+            else if (is_black_king(pair.first)) { sq_king = pair.first; }
+        }
+    }
+    return sq_king;
 }
 
 /**
@@ -1268,58 +1263,59 @@ Square Board::assign_from_influence_map_exclude_pawns_and_kings(std::unordered_m
  * @param map A pointer to the unordered_map storing squares and their corresponding vectors of squares
  * @param color The color of the squares to be removed
  */
-void Board::remove_same_color_squares(std::unordered_map<Square, std::vector<Square>> *map, Color color) const
+void Board::remove_same_color_squares(Color color, std::unordered_map<Square, std::vector<Square>> *map) const
 {
     std::unordered_map<Square, std::vector<Square>> temp;   // to reassign original after cleaning
     std::vector<Square> temp_squares{};                     // to store non-same-colored squares
+    temp_squares.reserve(16);
 
     for (const auto& pair : *map) {
         temp_squares.clear();                               // reset temp vector
         // record every non-same-colored square
-        for (const auto& square : pair.second) { if (!is_same_color(square, color)) { temp_squares.push_back(square); }}
+        for (const auto& sq : pair.second) { if (!is_same_color(sq, color)) { temp_squares.push_back(sq); }}
         temp.insert({pair.first, temp_squares});            // insert into "scrubbed" map
     }
     *map = temp;                                            // reassign original map
 }
 
+/**
+ * @brief Move generation.
+ * @details Move maps are created by starting with all possible moves for a piece using update_influence_maps(), then
+ * reducing this list by applying various rules of the game
+ * @note Mutates `Maps`
+ */
 void Board::update_move_maps()
 {
-    // clear move maps
-    maps->clear();
+    maps->clear();                          // clear move maps
+    game_state.white_inCheck = false;       // reset check flags
+    game_state.black_inCheck = false;
+    update_influence_maps();                // update influence maps
 
-    // reset check flags
-    game_state.in_check_white = false;
-    game_state.in_check_black = false;
+    // copy influence maps, exclude pawns and kings; we have a special treatment for them
+    Square sq_w_King = copy_influence(Color::white, &maps->white_influence, &maps->white_moves);
+    Square sq_b_king = copy_influence(Color::black, &maps->black_influence, &maps->black_moves);
 
-    // update influence maps
-    update_influence_maps();
-
-    // assign from influence maps exclude pawns and kings
-    Square square_K = assign_from_influence_map_exclude_pawns_and_kings(
-            &maps->move_map_white, &maps->influence_map_white);
-    Square square_k = assign_from_influence_map_exclude_pawns_and_kings(
-            &maps->move_map_black, &maps->influence_map_black);
-
-    // update pinned pieces
-    update_pinned_pieces(square_K, square_k);
+    update_pinned_pieces(sq_w_King, sq_b_king);   // update pinned pieces
 
     // remove same colored squares (can't capture own pieces)
-    remove_same_color_squares(&maps->move_map_white, Color::white);
-    remove_same_color_squares(&maps->move_map_black, Color::black);
+    remove_same_color_squares(Color::white, &maps->white_moves);
+    remove_same_color_squares(Color::black, &maps->black_moves);
 
-    // add pawn moves directly
-    for (auto sq = Square::a8; sq >= Square::h1; --sq) {
-        if (is_white_pawn(sq)) { maps->move_map_white.insert({sq, legal_moves(sq)}); }
-        if (is_black_pawn(sq)) { maps->move_map_black.insert({sq, legal_moves(sq)}); }
+    // TODO refactor legal_moves
+    for (const auto& [sq, moves] : maps->white_influence) {
+        if (is_white_pawn(sq)) { maps->white_moves.insert({sq, legal_moves(sq)}); }     // generate white pawn moves
+    }
+    for (const auto& [sq, moves] : maps->black_influence) {
+        if (is_black_pawn(sq)) { maps->black_moves.insert({sq, legal_moves(sq)}); }     // generate black pawn moves
     }
 
-    // add king moves
+    // generate king moves
     // if king is in check, go through and "scrub" the move map
     std::vector<Square> giving_check{};
     std::vector<Square> blocking_squares{};
 
     // white
-    giving_check = update_white_king_moves(square_K);
+    giving_check = update_white_king_moves(sq_w_King);
 
     // search for pinned pieces
     // the piece can only move along the line of the pin
@@ -1335,34 +1331,34 @@ void Board::update_move_maps()
     if (giving_check.size() == 1) {
         // if it's not a knight or pawn, it might be able to be blocked
         if (!is_knight(giving_check[0]) && !is_pawn(giving_check[0])) {
-            if (is_in_same_row(giving_check[0], square_K)) {
-                for (auto sq = square_K; sq != giving_check[0]; square_K > giving_check[0] ? --sq : ++sq) {
+            if (is_in_same_row(giving_check[0], sq_w_King)) {
+                for (auto sq = sq_w_King; sq != giving_check[0]; sq_w_King > giving_check[0] ? --sq : ++sq) {
                     blocking_squares.push_back(sq);
                 }
             }
-            else if (is_in_same_column(giving_check[0], square_K)) {
-                for (auto sq = square_K;
+            else if (is_in_same_column(giving_check[0], sq_w_King)) {
+                for (auto sq = sq_w_King;
                      sq != giving_check[0];
-                     square_K > giving_check[0] ? sq = sq - 8 : sq = sq + 8) {
+                     sq_w_King > giving_check[0] ? sq = sq - 8 : sq = sq + 8) {
                     blocking_squares.push_back(sq);
                 }
             }
-            else if (is_in_same_diagonal_left_right(giving_check[0], square_K)) {
-                for (auto sq = square_K;
+            else if (is_in_same_diagonal_left_right(giving_check[0], sq_w_King)) {
+                for (auto sq = sq_w_King;
                      sq != giving_check[0];
-                     square_K > giving_check[0] ? sq = sq - 7 : sq = sq + 7) {
+                     sq_w_King > giving_check[0] ? sq = sq - 7 : sq = sq + 7) {
                     blocking_squares.push_back(sq);
                 }
             }
-            else if (is_in_same_diagonal_right_left(giving_check[0], square_K)) {
-                for (auto sq = square_K;
+            else if (is_in_same_diagonal_right_left(giving_check[0], sq_w_King)) {
+                for (auto sq = sq_w_King;
                      sq != giving_check[0];
-                     square_K > giving_check[0] ? sq = sq - 9 : sq = sq + 9) {
+                     sq_w_King > giving_check[0] ? sq = sq - 9 : sq = sq + 9) {
                     blocking_squares.push_back(sq);
                 }
             }
         }
-        for (auto& pair : maps->move_map_white) {
+        for (auto& pair : maps->white_moves) {
             if (!is_king(pair.first)) {
                 std::vector<Square> temp{};
                 for (const auto& sq : pair.second) {
@@ -1378,46 +1374,46 @@ void Board::update_move_maps()
         // if more than once piece is giving check, the king must be moved
     else if (giving_check.size() > 1) {
         // clear all moves except king evasion
-        for (auto& pair : maps->move_map_white) {
+        for (auto& pair : maps->white_moves) {
             if (!is_king(pair.first)) { pair.second.clear(); }
         }
     }
 
     // black
     giving_check.clear();
-    giving_check = update_black_king_moves(square_k);
+    giving_check = update_black_king_moves(sq_b_king);
     blocking_squares.clear();   // reset
     // if one piece is giving check, it can be captured or blocked
     if (giving_check.size() == 1) {
         if (!is_knight(giving_check[0]) && !is_pawn(giving_check[0])) {
-            if (is_in_same_row(giving_check[0], square_k)) {
-                for (auto sq = square_k; sq != giving_check[0]; square_k > giving_check[0] ? --sq : ++sq) {
+            if (is_in_same_row(giving_check[0], sq_b_king)) {
+                for (auto sq = sq_b_king; sq != giving_check[0]; sq_b_king > giving_check[0] ? --sq : ++sq) {
                     blocking_squares.push_back(sq);
                 }
             }
-            else if (is_in_same_column(giving_check[0], square_k)) {
-                for (auto sq = square_k;
+            else if (is_in_same_column(giving_check[0], sq_b_king)) {
+                for (auto sq = sq_b_king;
                      sq != giving_check[0];
-                     square_k > giving_check[0] ? sq = sq - 8 : sq = sq + 8) {
+                     sq_b_king > giving_check[0] ? sq = sq - 8 : sq = sq + 8) {
                     blocking_squares.push_back(sq);
                 }
             }
-            else if (is_in_same_diagonal_left_right(giving_check[0], square_k)) {
-                for (auto sq = square_k;
+            else if (is_in_same_diagonal_left_right(giving_check[0], sq_b_king)) {
+                for (auto sq = sq_b_king;
                      sq != giving_check[0];
-                     square_k > giving_check[0] ? sq = sq - 7 : sq = sq + 7) {
+                     sq_b_king > giving_check[0] ? sq = sq - 7 : sq = sq + 7) {
                     blocking_squares.push_back(sq);
                 }
             }
-            else if (is_in_same_diagonal_right_left(giving_check[0], square_k)) {
-                for (auto sq = square_k;
+            else if (is_in_same_diagonal_right_left(giving_check[0], sq_b_king)) {
+                for (auto sq = sq_b_king;
                      sq != giving_check[0];
-                     square_k > giving_check[0] ? sq = sq - 9 : sq = sq + 9) {
+                     sq_b_king > giving_check[0] ? sq = sq - 9 : sq = sq + 9) {
                     blocking_squares.push_back(sq);
                 }
             }
         }
-        for (auto& pair : maps->move_map_black) {
+        for (auto& pair : maps->black_moves) {
             if (!is_king(pair.first)) {
                 std::vector<Square> temp{};
                 for (const auto& sq : pair.second) {
@@ -1433,39 +1429,39 @@ void Board::update_move_maps()
         // if more than once piece is giving check, the king must be moved
     else if (giving_check.size() > 1) {
         // clear all moves except king evasion
-        for (auto& pair : maps->move_map_black) {
+        for (auto& pair : maps->black_moves) {
             if (!is_king(pair.first)) { pair.second.clear(); }
         }
     }
 
     // pinned piece reduction
     // white
-    for (const auto& [pinned, pinner] : maps->pinned_pieces_white) {
-        for (auto& [key, squares] : maps->move_map_white) {
-            if (key == pinned) {
+    for (const auto& [pinned, pinner] : maps->white_pinned) {
+        for (auto& [piece, moves] : maps->white_moves) {
+            if (piece == pinned) {
                 std::vector<Square> temp{};
-                for (auto& square : squares) {
-                    if (is_in_same_row(square_K, pinner, square)) { temp.push_back(square); }
-                    if (is_in_same_column(square_K, pinner, square)) { temp.push_back(square); }
-                    if (is_in_same_diagonal_left_right(square_K, pinner, square)) { temp.push_back(square); }
-                    if (is_in_same_diagonal_right_left(square_K, pinner, square)) { temp.push_back(square); }
+                for (auto& sq : moves) {
+                    if (is_in_same_row(sq_w_King, pinner, sq)) { temp.push_back(sq); }
+                    if (is_in_same_column(sq_w_King, pinner, sq)) { temp.push_back(sq); }
+                    if (is_in_same_diagonal_left_right(sq_w_King, pinner, sq)) { temp.push_back(sq); }
+                    if (is_in_same_diagonal_right_left(sq_w_King, pinner, sq)) { temp.push_back(sq); }
                 }
-                squares = temp;
+                moves = temp;
             }
         }
     }
     // black
-    for (const auto& [pinned, pinner] : maps->pinned_pieces_black) {
-        for (auto& [key, squares] : maps->move_map_black) {
-            if (key == pinned) {
+    for (const auto& [pinned, pinner] : maps->black_pinned) {
+        for (auto& [piece, moves] : maps->black_moves) {
+            if (piece == pinned) {
                 std::vector<Square> temp{};
-                for (auto& square : squares) {
-                    if (is_in_same_row(square_k, pinner, square)) { temp.push_back(square); }
-                    if (is_in_same_column(square_k, pinner, square)) { temp.push_back(square); }
-                    if (is_in_same_diagonal_left_right(square_k, pinner, square)) { temp.push_back(square); }
-                    if (is_in_same_diagonal_right_left(square_k, pinner, square)) { temp.push_back(square); }
+                for (auto& sq : moves) {
+                    if (is_in_same_row(sq_b_king, pinner, sq)) { temp.push_back(sq); }
+                    if (is_in_same_column(sq_b_king, pinner, sq)) { temp.push_back(sq); }
+                    if (is_in_same_diagonal_left_right(sq_b_king, pinner, sq)) { temp.push_back(sq); }
+                    if (is_in_same_diagonal_right_left(sq_b_king, pinner, sq)) { temp.push_back(sq); }
                 }
-                squares = temp;
+                moves = temp;
             }
         }
     }
@@ -1631,23 +1627,11 @@ void Board::move(Square from, Square to, char ch)
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN diagnostic
 
-void Board::print_move_map(Color color) const
-{
-    auto map = color == Color::white ? maps->move_map_white : maps->move_map_black;
-    for (const auto& [sq, moves] : map) {
-        std::cout << Sq::square_to_string(sq) << " : ";
-        for (const auto& square : moves) {
-            std::cout << Sq::square_to_string(square) << " ";
-        }
-        std::cout << "\n";
-    }
-}
-
 ulong Board::nodes_at_depth_1(Color color)
 {
     update_move_maps();
     ulong nodes{};
-    for (const auto& [sq, moves] : color == Color::white ? maps->move_map_white : maps->move_map_black) {
+    for (const auto& [sq, moves] : color == Color::white ? maps->white_moves : maps->black_moves) {
         nodes += moves.size();
     }
     return nodes;

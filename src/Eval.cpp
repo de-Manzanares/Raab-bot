@@ -44,15 +44,15 @@ int Eval::detect_checkmate(const Node *n)
 
     // detect white checkmate
     if (n->_board->game_state.active_color == Color::white) {
-        if (n->_board->game_state.in_check_white) {
-            for (const auto& [sq, moves] : n->_board->maps->move_map_white) { number_of_moves += moves.size(); }
+        if (n->_board->game_state.white_inCheck) {
+            for (const auto& [sq, moves] : n->_board->maps->white_moves) { number_of_moves += moves.size(); }
             if (number_of_moves == 0) { return -1; }
         }
     }
     // detect black checkmate
     if (n->_board->game_state.active_color == Color::black) {
-        if (n->_board->game_state.in_check_black) {
-            for (const auto& [sq, moves] : n->_board->maps->move_map_black) { number_of_moves += moves.size(); }
+        if (n->_board->game_state.black_inCheck) {
+            for (const auto& [sq, moves] : n->_board->maps->black_moves) { number_of_moves += moves.size(); }
             if (number_of_moves == 0) { return 1; }
         }
     }
@@ -69,10 +69,10 @@ int Eval::detect_checkmate(const Node *n)
 double Eval::mobility_evaluation(const Node *n)
 {
     double score = 0;
-    for (const auto& [sq, moves] : n->_board->maps->move_map_white) {
+    for (const auto& [sq, moves] : n->_board->maps->white_moves) {
         score += static_cast<double>(moves.size());
     }
-    for (const auto& [sq, moves] : n->_board->maps->move_map_black) {
+    for (const auto& [sq, moves] : n->_board->maps->black_moves) {
         score -= static_cast<double>(moves.size());
     }
     return score * MOBILITY_MULTIPLIER;
@@ -86,8 +86,8 @@ double Eval::mobility_evaluation(const Node *n)
 double Eval::check_bonus(const Node *n)
 {
     double score = 0;
-    if (n->_board->game_state.in_check_white) { score -= CHECK_BONUS; }
-    if (n->_board->game_state.in_check_black) { score += CHECK_BONUS; }
+    if (n->_board->game_state.white_inCheck) { score -= CHECK_BONUS; }
+    if (n->_board->game_state.black_inCheck) { score += CHECK_BONUS; }
     return score;
 }
 
