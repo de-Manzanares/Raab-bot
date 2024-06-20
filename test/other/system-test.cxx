@@ -1,9 +1,8 @@
 #include <catch2/catch_all.hpp>
 #include <iostream>
-#include <sstream>
 #include "../../src/UCI.cpp"
 
-TEST_CASE("bruh")
+TEST_CASE("system test")
 {
     // Save original cout and cin
     std::streambuf *original_cout = std::cout.rdbuf();
@@ -11,7 +10,7 @@ TEST_CASE("bruh")
 
     // Set up input and output streams
     std::istringstream test_input(
-            "position startpos moves e2e4 e7e5 g1f3 d7d5 e4d5 h7h5 d2d4 g7g6 g2g4 a7a5 b1c3 b7b6\ngo");
+            "position startpos moves b1a3 e7e6 f2f4 d7d5 g1f3 g8f6 e2e3 a7a6 f1e2 b8c6\ngo\n");
     std::cin.rdbuf(test_input.rdbuf());
     std::ostringstream test_output;
     std::cout.rdbuf(test_output.rdbuf());
