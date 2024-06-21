@@ -1517,7 +1517,6 @@ void Board::update_move_maps()
     remove_same_color_squares(Color::white, &maps->white_moves);    // remove same colored squares
     remove_same_color_squares(Color::black, &maps->black_moves);    // remove same colored squares
 
-    // TODO refactor legal_moves
     for (const auto& [sq, moves] : maps->white_influence) {
         if (is_white_pawn(sq)) { maps->white_moves.insert({sq, legal_moves(sq)}); }     // generate white pawn moves
     }

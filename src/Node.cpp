@@ -1,20 +1,5 @@
 #include "../include/Node.h"
 
-// TODO add time controls on tree gen
-// TODO ponder (will help on predictable exchanges at least)
-// TODO timing profiles - depth based on time controls
-// spawn based on time left and complexity (predicted nodes)
-// TODO iterative deepening
-// TODO give weight to controlling opposing king's squares
-// TODO give weight to stalemate
-// TODO passed pawns good
-// TODO stacked pawns bad
-// TODO avoid pawn forks LOL
-// TODO move order
-// TODO influencing the center
-// TODO include influence as well as legal moves (instead of ?) would allow for attack/defender counting
-// TODO enable time control on analysis
-
 // initialize static counter variables
 uint Counter::node = 0;
 std::chrono::time_point<std::chrono::high_resolution_clock> Counter::start = std::chrono::high_resolution_clock::now();
@@ -24,7 +9,7 @@ std::chrono::time_point<std::chrono::high_resolution_clock> Counter::start = std
  */
 Node::Node() :_board(std::make_shared<Board>())
 {
-    _from = _to = Square::h1;                               // TODO make null squares?
+    _from = _to = Square::h1;
     _ch = 0;
 }
 
@@ -71,7 +56,6 @@ uint Node::count_nodes()                            // NOLINT(misc-no-recursion)
     return count;
 }
 
-// TODO clean up spawn_depth_first
 /**
  * @brief Creates a decision tree of n layers.
  * @param depth The depth of the tree to spawn child nodes for.
@@ -116,7 +100,6 @@ void Node::spawn_depth_first(uint depth)            // NOLINT(misc-no-recursion)
         }
     }
 
-    // TODO partial tree gen is only good for breadth first?
     // auto now = std::chrono::high_resolution_clock::now();
     // auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - Counter::start).count();
     // if (elapsed_ms > 15000) { return; }

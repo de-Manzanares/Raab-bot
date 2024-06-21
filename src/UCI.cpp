@@ -57,7 +57,7 @@ void uci::loop()
 
         // set up a board in the given position, wait for "go" to search, a fen or a list of moves may follow
         if (simon_says(&in, "position")) {
-            if (simon_says(&in, "fen")) { }                                     // TODO start from position
+            if (simon_says(&in, "fen")) { }
             else if (simon_says(&in, "startpos")) {
                 n = new Node;
                 if (simon_says(&in, "moves")) { startpos_moves(n, &in); }
@@ -96,7 +96,7 @@ void uci::loop()
             delete n;
             n = nullptr;
         }
-        else if (in.find("stop") != std::string::npos) { }      // TODO stop calculating
+        else if (in.find("stop") != std::string::npos) { }
         else if (in == "quit") { break; }                       // quit the loop, ends the program
     }
 }

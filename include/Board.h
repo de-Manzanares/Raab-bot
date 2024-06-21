@@ -122,7 +122,6 @@ struct Board {
     void import_fen(const std::string& fen);
 
     // begin move generation     ----------------------------------------
-    // auxiliary // TODO rename and trim these two functions
     std::vector<Square> legal_moves_pawn(Square sq) const;
     std::vector<Square> legal_moves(Square sq);
 

@@ -10,8 +10,6 @@
 #include "Eval.h"
 #include "Board.h"
 
-// TODO make nodes as small as possible
-
 /**
  * @struct Counter
  * @brief Tracks node count and time points for giving infos
@@ -41,13 +39,11 @@ struct Node {
     std::vector<Node *> _child{};       ///< children nodes
 
     void spawn_depth_first(uint depth);
-    // TODO spawn_breadth_first - overload an operator?, use a queue?, ...
     void spawn_breadth_first(uint depth);   ///< Create a decision tree
 
     uint count_nodes();
     Node *next_step(Node *end, uint *depth);
     uint node_depth();
-
 };
 
 #endif  // INCLUDE_NODE_H_
