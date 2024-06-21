@@ -9,14 +9,18 @@
 
 struct Node;
 
+/**
+ * @struct Eval
+ * @brief Evaluates a position
+ */
 struct Eval {
     static std::unordered_map<char, int> material_value;
 
     // evaluation parameters
-    static double CHECK_BONUS;
-    static double MOBILITY_MULTIPLIER;
-    static double CASTLE_BONUS;
-    static double RATIO_MULTIPLIER;
+    static double CHECK_BONUS;          ///< weight of check
+    static double MOBILITY_MULTIPLIER;  ///< weight of count of legal moves
+    static double CASTLE_BONUS;         ///< weight on castle
+    static double RATIO_MULTIPLIER;     ///< weight on material ratio
 
     // evaluation functions ----------------------------------------
 

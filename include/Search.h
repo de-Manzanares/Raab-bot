@@ -5,6 +5,10 @@
 #include "Eval.h"
 #include "Node.h"
 
+/**
+ * @struct Search
+ * @brief min-max alpha-beta pruning search algorithm.
+ */
 struct Search {
     static Node *min_max(Node *n, uint depth, double alpha, double beta, bool maximizing);
 };

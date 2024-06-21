@@ -7,12 +7,12 @@
 std::string Game_State::fen_castling_ability() const
 {
     std::string s;
-    if (!castle_K && !castle_Q && !castle_k && !castle_q) { s += '-'; }
+    if (!castle_w_K && !castle_w_Q && !castle_b_k && !castle_b_q) { s += '-'; }
     else {
-        if (castle_K) { s += 'K'; }
-        if (castle_Q) { s += 'Q'; }
-        if (castle_k) { s += 'k'; }
-        if (castle_q) { s += 'q'; }
+        if (castle_w_K) { s += 'K'; }
+        if (castle_w_Q) { s += 'Q'; }
+        if (castle_b_k) { s += 'k'; }
+        if (castle_b_q) { s += 'q'; }
     }
     return s;
 }
@@ -56,7 +56,7 @@ std::string Game_State::fen_full_move_number() const
 void Game_State::clear()
 {
     half_move_clock = full_move_number = 0;
-    castle_K = castle_Q = castle_k = castle_q = false;
+    castle_w_K = castle_w_Q = castle_b_k = castle_b_q = false;
     en_passant_target.clear();
 }
 
@@ -71,15 +71,15 @@ void Game_State::clear()
 void Game_State::set_castling_ability(const std::string& s)
 {
     if (s == "-") {
-        castle_K = castle_Q = false;
-        castle_k = castle_q = false;
+        castle_w_K = castle_w_Q = false;
+        castle_b_k = castle_b_q = false;
     }
     else {
         std::unordered_map<char, bool&> castling_map = {
-                {'K', castle_K},
-                {'Q', castle_Q},
-                {'k', castle_k},
-                {'q', castle_q}
+                {'K', castle_w_K},
+                {'Q', castle_w_Q},
+                {'k', castle_b_k},
+                {'q', castle_b_q}
         };
         for (const auto& ch : s) {
             for (auto& [key, value] : castling_map) {
@@ -91,14 +91,19 @@ void Game_State::set_castling_ability(const std::string& s)
     }
 }
 
+/**
+ * @brief Copy assignment operator
+ * @param rhs The Game_State object to be copied
+ * @return A reference to the lhs object after assignment
+ */
 Game_State& Game_State::operator=(const Game_State& rhs)
 {
     if (this != &rhs) {
         active_color = rhs.active_color;
-        castle_K = rhs.castle_K;
-        castle_Q = rhs.castle_Q;
-        castle_k = rhs.castle_k;
-        castle_q = rhs.castle_q;
+        castle_w_K = rhs.castle_w_K;
+        castle_w_Q = rhs.castle_w_Q;
+        castle_b_k = rhs.castle_b_k;
+        castle_b_q = rhs.castle_b_q;
         en_passant_target = rhs.en_passant_target;
         en_passant_set = rhs.en_passant_set;
         half_move_clock = rhs.half_move_clock;

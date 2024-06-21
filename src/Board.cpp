@@ -3,7 +3,7 @@
 using s = Square;
 using c = Color;
 
-std::vector<std::vector<Square>> Diagonals::left_right = {
+std::vector<std::vector<Square>> Diagonals::leftRight = {
         {s::a6, s::b7, s::c8},
         {s::a5, s::b6, s::c7, s::d8},
         {s::a4, s::b5, s::c6, s::d7, s::e8},
@@ -15,7 +15,7 @@ std::vector<std::vector<Square>> Diagonals::left_right = {
         {s::d1, s::e2, s::f3, s::g4, s::h5},
         {s::e1, s::f2, s::g3, s::h4},
         {s::f1, s::g2, s::h3}};
-std::vector<std::vector<Square>> Diagonals::right_left = {
+std::vector<std::vector<Square>> Diagonals::rightLeft = {
         {s::h6, s::g7, s::f8},
         {s::h5, s::g6, s::f7, s::e8},
         {s::h4, s::g5, s::f6, s::e7, s::d8},
@@ -50,18 +50,24 @@ bool is_right_horizontal_boundary(Square sq)
 // END Boundary detection
 //----------------------------------------------------------------------------------------------------------------------
 
+/**
+ * @brief Clear all the maps in a Maps object.
+ */
 void Maps::clear()
 {
-    white_moves.clear();
-    black_moves.clear();
     white_influence.clear();
     black_influence.clear();
     white_pinned.clear();
     black_pinned.clear();
-    white_pinned_lane.clear();
-    black_pinned_lane.clear();
+    white_moves.clear();
+    black_moves.clear();
 }
 
+/**
+ * @brief Copy assignment operator
+ * @param rhs The Board object to be copied
+ * @return A reference to the lhs object after assignment
+ */
 Board& Board::operator=(const Board& rhs)
 {
     if (this != &rhs) {
@@ -143,54 +149,159 @@ char Board::what_piece(Square sq) const
     return ' ';
 }
 
+/**
+ * @brief Check if a square contains a white rook
+ * @param sq The square to check
+ * @return True if the square contains a white rook, false otherwise
+ */
 bool Board::is_white_rook(Square sq) const { return w_Rook & (1ULL << static_cast<int>(sq)); }
 
+/**
+ * @brief Checks if a square contains a black rook.
+ * @param sq The square to check.
+ * @return True if the square contains a black rook, false otherwise.
+ */
 bool Board::is_black_rook(Square sq) const { return b_rook & (1ULL << static_cast<int>(sq)); }
 
+/**
+ * @brief Check if the given square is a rook
+ * @param sq The square to check
+ * @return True if the square contains a rook, False otherwise
+ */
 bool Board::is_rook(Square sq) const { return is_white_rook(sq) || is_black_rook(sq); }
 
+/**
+ * @brief Check if the given square is a white bishop
+ * @param sq The square to check
+ * @return True if the square contains a white bishop, false otherwise
+ */
 bool Board::is_white_bishop(Square sq) const { return w_Bishop & (1ULL << static_cast<int>(sq)); }
 
+/**
+ * @brief Check if a given square contains a black bishop
+ * @param sq The square to check
+ * @return True if the square contains a black bishop, false otherwise
+ */
 bool Board::is_black_bishop(Square sq) const { return b_bishop & (1ULL << static_cast<int>(sq)); }
 
+/**
+ * @brief Check if the given square is a bishop
+ * @param sq The square to check
+ * @return True if the square contains a bishop, false otherwise
+ */
 bool Board::is_bishop(Square sq) const { return is_white_bishop(sq) || is_black_bishop(sq); }
 
+/**
+ * @brief Check if the given square is a white queen
+ * @param sq The square to check
+ * @return True if the square contains a white queen, false otherwise
+ */
 bool Board::is_white_queen(Square sq) const { return w_Queen & (1ULL << static_cast<int>(sq)); }
 
+/**
+ * @brief Check if the given square is a black queen
+ * @param sq The square to check
+ * @return True if the square contains a black queen, false otherwise
+ */
 bool Board::is_black_queen(Square sq) const { return b_queen & (1ULL << static_cast<int>(sq)); }
 
+/**
+ * @brief Check if the given square is a queen
+ * @param sq The square to check
+ * @return True if the square contains a queen, false otherwise
+ */
 bool Board::is_queen(Square sq) const { return is_white_queen(sq) || is_black_queen(sq); }
 
+/**
+ * @brief Check if the given square is a white knight
+ * @param sq The square to check
+ * @return True if the square contains a white knight, false otherwise
+ */
 bool Board::is_white_knight(Square sq) const { return w_Night & (1ULL << static_cast<int>(sq)); }
 
+/**
+ * @brief Check if the given square is a black knight
+ * @param sq The square to check
+ * @return True if the square contains a black knight, false otherwise
+ */
 bool Board::is_black_knight(Square sq) const { return b_night & (1ULL << static_cast<int>(sq)); }
 
+/**
+ * @brief Check if the given square is a knight
+ * @param sq The square to check
+ * @return True if the square contains a knight, false otherwise
+ */
 bool Board::is_knight(Square sq) const { return is_white_knight(sq) || is_black_knight(sq); }
 
+/**
+ * @brief Check if the given square is a white king
+ * @param sq The square to check
+ * @return True if the square contains a white king, false otherwise
+ */
 bool Board::is_white_king(Square sq) const { return w_King & (1ULL << static_cast<int>(sq)); }
 
+/**
+ * @brief Check if the given square is a black king
+ * @param sq The square to check
+ * @return True if the square contains a black king, false otherwise
+ */
 bool Board::is_black_king(Square sq) const { return b_king & (1ULL << static_cast<int>(sq)); }
 
+/**
+ * @brief Check if the given square is a king
+ * @param sq The square to check
+ * @return True if the square contains a king, false otherwise
+ */
 bool Board::is_king(Square sq) const { return is_white_king(sq) || is_black_king(sq); }
 
+/**
+ * @brief Check if the given square is a white pawn
+ * @param sq The square to check
+ * @return True if the square contains a white pawn, false otherwise
+ */
 bool Board::is_white_pawn(Square sq) const { return w_Pawn & (1ULL << static_cast<int>(sq)); }
 
+/**
+ * @brief Check if the given square is a black pawn
+ * @param sq The square to check
+ * @return True if the square contains a black pawn, false otherwise
+ */
 bool Board::is_black_pawn(Square sq) const { return b_pawn & (1ULL << static_cast<int>(sq)); }
 
+/**
+ * @brief Check if the given square is a pawn
+ * @param sq The square to check
+ * @return True if the square contains a pawn, false otherwise
+ */
 bool Board::is_pawn(Square sq) const { return is_white_pawn(sq) || is_black_pawn(sq); }
 
+/**
+ * @brief Check if the given square is a white piece
+ * @param sq The square to check
+ * @return True if the square contains a white piece, false otherwise
+ */
 bool Board::is_white(Square sq) const
 {
     return is_white_pawn(sq) || is_white_king(sq) || is_white_knight(sq)
             || is_white_bishop(sq) || is_white_rook(sq) || is_white_queen(sq);
 }
 
+/**
+ * @brief Check if the given square is a black piece
+ * @param sq The square to check
+ * @return True if the square contains a black piece, false otherwise
+ */
 bool Board::is_black(Square sq) const
 {
     return is_black_pawn(sq) || is_black_king(sq) || is_black_knight(sq)
             || is_black_bishop(sq) || is_black_rook(sq) || is_black_queen(sq);
 }
 
+/**
+ * @brief Check the color of a piece on the given square
+ * @param sq The square to check
+ * @return The color of the piece on the square (white, black, or none)
+ */
 Color Board::what_color(Square sq) const
 {
     Color color;
@@ -200,16 +311,38 @@ Color Board::what_color(Square sq) const
     return color;
 }
 
+/**
+ * @brief Check if a square contains a piece of the same color as the specified color
+ * @param sq The square to check
+ * @param color The color to compare with
+ * @return True if the square has the same color as the specified color, false otherwise
+ */
 bool Board::is_same_color(Square sq, Color color) const { return what_color(sq) == color; }
 
+/**
+ * @brief Check if the given square is empty
+ * @param sq The square to check
+ * @return True if the square is empty, false otherwise
+ */
 bool Board::is_empty(Square sq) const { return what_piece(sq) == ' '; }
 
+/**
+ * @brief Checks if the enemy king is on a given square.
+ * @param sq The square to check.
+ * @param c Our color
+ * @return True if the enemy king is present on the square, false otherwise.
+ */
 bool Board::is_opposite_king(Square sq, Color c) const
 {
     return c == Color::white ? is_black_king(sq) : is_white_king(sq);
 }
 
-int Board::is_in_row(Square sq)
+/**
+ * @brief Get the row of a given square
+ * @param sq The square to check
+ * @return The number of the row
+ */
+int Board::get_row(Square sq)
 {
     if (sq >= s::h1 && sq <= s::a1) { return 1; }
     if (sq >= s::h2 && sq <= s::a2) { return 2; }
@@ -222,7 +355,12 @@ int Board::is_in_row(Square sq)
     return 0;
 }
 
-int Board::is_in_column(Square sq)
+/**
+ * @brief Get the column of a given square
+ * @param sq The square to check
+ * @return The column number. (a:h) = (1:8)
+ */
+int Board::get_column(Square sq)
 {
     if (static_cast<int>(sq) % 8 == 0) { return 8; }
     if (static_cast<int>(sq) % 8 == 1) { return 7; }
@@ -235,62 +373,116 @@ int Board::is_in_column(Square sq)
     return 0;
 }
 
-bool Board::is_in_same_row(Square sq1, Square sq2) { return is_in_row(sq1) == is_in_row(sq2); }
+/**
+ * @brief Check if two squares are in the same row.
+ * @param sq1 The first square.
+ * @param sq2 The second square.
+ * @return True if the squares are in the same row, false otherwise.
+ */
+bool Board::is_inSameRow(Square sq1, Square sq2) { return get_row(sq1) == get_row(sq2); }
 
-bool Board::is_in_same_column(Square sq1, Square sq2) { return is_in_column(sq1) == is_in_column(sq2); }
-
-bool Board::is_in_same_diagonal_left_right(Square sq1, Square sq2)
+/**
+ * @brief Check if three squares are in the same row
+ * @param sq1 First square
+ * @param sq2 Second square
+ * @param sq3 Third square
+ * @return True if all three squares are in the same row, false otherwise
+ */
+bool Board::is_inSameRow(Square sq1, Square sq2, Square sq3)
 {
-    for (const auto& v : Diagonals::left_right) {
+    return is_inSameRow(sq1, sq2) && is_inSameRow(sq2, sq3);
+}
+
+/**
+ * @brief Check if two squares are in the same column
+ * @param sq1 The first square
+ * @param sq2 The second square
+ * @return True if the squares are in the same column, false otherwise
+ */
+bool Board::is_inSameColumn(Square sq1, Square sq2) { return get_column(sq1) == get_column(sq2); }
+
+/**
+ * Check if three squares are in the same column.
+ * @param sq1 First square.
+ * @param sq2 Second square.
+ * @param sq3 Third square.
+ * @return True if all three squares are in the same column, false otherwise.
+ */
+bool Board::is_inSameColumn(Square sq1, Square sq2, Square sq3)
+{
+    return is_inSameColumn(sq1, sq2) && is_inSameColumn(sq2, sq3);
+}
+
+/**
+ * @brief Check if two squares are on the same diagonal in Diagonals::leftRight
+ * @param sq1 The first square
+ * @param sq2 The second square
+ * @return True if the squares are on the same diagonal false otherwise
+ */
+bool Board::is_inSameDiagonal_leftRight(Square sq1, Square sq2)
+{
+    for (const auto& v : Diagonals::leftRight) {
+        for (const auto& e : v) { if (sq1 == e) { for (const auto& e2 : v) { if (sq2 == e2) { return true; }}}}
+    }
+    return false;
+}
+
+/**
+ * @brief Check if three squares are in the same diagonal in Diagonals::leftRight
+ * @param sq1 The first square.
+ * @param sq2 The second square.
+ * @param sq3 The third square.
+ * @return True if the three squares are in the same diagonal, false otherwise.
+ */
+bool Board::is_inSameDiagonal_leftRight(Square sq1, Square sq2, Square sq3)
+{
+    return is_inSameDiagonal_leftRight(sq1, sq2) && is_inSameDiagonal_leftRight(sq2, sq3);
+}
+
+/**
+ * @brief Check if two squares are in the same diagonal in Diagonals::rightLeft
+ * @param sq1 The first square
+ * @param sq2 The second square
+ * @return True if the squares are in the same diagonal, false otherwise
+ */
+bool Board::is_inSameDiagonal_rightLeft(Square sq1, Square sq2)
+{
+    for (const auto& v : Diagonals::rightLeft) {
         for (const auto& e : v) {
             if (sq1 == e) {
-                for (const auto& e2 : v) { if (sq2 == e2) { return true; }}
+                for (const auto& e2 : v) {
+                    if (sq2 == e2) { return true; }
+                }
             }
         }
     }
     return false;
 }
 
-bool Board::is_in_same_diagonal_right_left(Square sq1, Square sq2)
+/**
+ * @brief Check if three squares are in the same diagonal in Diagonals::rightLeft
+ * @param sq1 The first square
+ * @param sq2 The second square
+ * @param sq3 The third square
+ * @return true if the three squares are in the same diagonal, false otherwise
+ */
+bool Board::is_inSameDiagonal_rightLeft(Square sq1, Square sq2, Square sq3)
 {
-    for (const auto& v : Diagonals::right_left) {
-        for (const auto& e : v) {
-            if (sq1 == e) {
-                for (const auto& e2 : v) { if (sq2 == e2) { return true; }}
-            }
-        }
-    }
-    return false;
-}
-
-bool Board::is_in_same_row(Square sq1, Square sq2, Square sq3)
-{
-    return is_in_same_row(sq1, sq2) && is_in_same_row(sq2, sq3);
-}
-
-bool Board::is_in_same_column(Square sq1, Square sq2, Square sq3)
-{
-    return is_in_same_column(sq1, sq2) && is_in_same_column(sq2, sq3);
-}
-
-bool Board::is_in_same_diagonal_left_right(Square sq1, Square sq2, Square sq3)
-{
-    return is_in_same_diagonal_left_right(sq1, sq2) && is_in_same_diagonal_left_right(sq2, sq3);
-}
-
-bool Board::is_in_same_diagonal_right_left(Square sq1, Square sq2, Square sq3)
-{
-    return is_in_same_diagonal_right_left(sq1, sq2) && is_in_same_diagonal_right_left(sq2, sq3);
+    return is_inSameDiagonal_rightLeft(sq1, sq2) && is_inSameDiagonal_rightLeft(sq2, sq3);
 }
 
 // END piece detection
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN FEN
 
-bool isBitSet(uint64_t n, Square sq)
-{
-    return n & (1ULL << static_cast<int>(sq));
-}
+/**
+ * @brief Check if a specific bit is set in a given unsigned 64-bit integer.
+ * @details A set bit means the a piece is on the board in that square, 0 bit means 0 piece
+ * @param n The unsigned 64-bit integer to check.
+ * @param sq The square (index of the uint64_t) to check.
+ * @return True if the bit at the specified square is set, false otherwise.
+ */
+bool isBitSet(uint64_t n, Square sq) { return n & (1ULL << static_cast<int>(sq)); }
 
 /**
  * @brief Returns the FEN representation of the piece placement on the board.
@@ -345,7 +537,6 @@ std::string Board::fen_piece_placement() const
  * 4. en passant target squares '-' if there are no target squares \n
  * 5. half move clock, for fifty move rule
  * 6. full move number
- * @param board Pointer to the board object.
  * @return std::string Returns the FEN string representing the board state.
  */
 std::string Board::export_fen() const
@@ -365,6 +556,12 @@ std::string Board::export_fen() const
     return fen;
 }
 
+/**
+ * @brief Helper function for Board::set_pieces
+ * @details Checks if a character is a valid chess piece.
+ * @param ch The character to be checked.
+ * @return True if the character is a valid chess piece, otherwise False.
+ */
 bool is_piece(const char& ch)
 {
     return ch == 'p' || ch == 'n' || ch == 'b' || ch == 'r' || ch == 'q' || ch == 'k' ||
@@ -401,7 +598,6 @@ uint Board::set_pieces(const std::string& fen)
 
 /**
  * Sets the board from a given FEN string.
- * @param board  A pointer to the Board object.
  * @param fen    The FEN string to import.
  */
 void Board::import_fen(const std::string& fen)
@@ -490,8 +686,8 @@ std::vector<Square> Board::legal_moves(Square sq)
         }
         for (const auto& square : temp) {
             if (!is_same_color(sq, what_color(square)) && !is_empty(square)) { moves.push_back(square); }
-            if (en_passant && square == ept) { if (is_in_row(ept) == 3 && is_black_pawn(sq)) { moves.push_back(ept); }}
-            if (en_passant && square == ept) { if (is_in_row(ept) == 6 && is_white_pawn(sq)) { moves.push_back(ept); }}
+            if (en_passant && square == ept) { if (get_row(ept) == 3 && is_black_pawn(sq)) { moves.push_back(ept); }}
+            if (en_passant && square == ept) { if (get_row(ept) == 6 && is_white_pawn(sq)) { moves.push_back(ept); }}
         }
         std::vector<Square> temp1 = legal_moves_pawn(sq);
         for (const auto& square : temp1) {
@@ -1016,6 +1212,13 @@ Square Board::pinned_piece_bishop(Square sq) const
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN pinned piece queen
 
+/**
+ * @brief Find the potentially pinned piece on the board from the given queen
+ * @details A queen moves like a rook and bishop combined, don't it?
+ * @param sq The square to start the search from.
+ * @return The square of the pinned piece, or the square of the queen if no piece is pinned.
+ * @see Board::pinned_piece_rook and Board::pinned_piece_bishop
+ */
 Square Board::pinned_piece_queen(Square sq) const
 {
     if (pinned_piece_rook(sq) != sq) { return pinned_piece_rook(sq); }
@@ -1045,13 +1248,16 @@ Square Board::pinned_piece(Square sq) const
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN update pinned pieces
 
-void Board::update_pinned_pieces(const Square& sq_w_King, const Square& sq_b_king) const
+/**
+ * @brief Update the maps of pinned pieces on the chessboard
+ * @details Checks every piece to find pins to the enemy king and records pinned pieces
+ * @note mutates Maps::black_pinned and Maps::white_pinned
+ */
+void Board::update_pinned_pieces() const
 {
     // reset the maps
     maps->white_pinned.clear();
     maps->black_pinned.clear();
-    maps->white_pinned_lane.clear();
-    maps->black_pinned_lane.clear();
 
     for (const auto& [sq, moves] : maps->white_influence) {
         if (pinned_piece(sq) != sq) { maps->black_pinned.insert({pinned_piece(sq), sq}); }
@@ -1066,12 +1272,12 @@ void Board::update_pinned_pieces(const Square& sq_w_King, const Square& sq_b_kin
 // BEGIN update king moves
 
 /**
- * @brief Detects if the king is in check and updates the legal moves
- * @details This function detects if the king is in check and updates the legal moves.
- * It returns a vector of squares from which the king is giving check. It works with a single king on the board.
+ * @brief Applies rules of the games to reduce the list of all possible moves for the white king to a list of legal
+ * moves for the white king
  * @param sq_w_King The current position of the white king.
- * @return A vector of squares from which the king is giving check.
- * @warning only one king per board
+ * @return A vector of squares containing pieces that are giving check to the white king.
+ * @note May mutate Game_State::white_inCheck
+ * @warning For move generation as a whole to function properly, there must be exactly 1 king of each color on the board
  **/
 std::vector<Square> Board::update_white_king_moves(Square sq_w_King)
 {
@@ -1102,8 +1308,8 @@ std::vector<Square> Board::update_white_king_moves(Square sq_w_King)
         }
     }
     if (!is_in_check) {     // if not in check, add castling moves (if available)
-        if (game_state.castle_K) { influence_kings.push_back(s::g1); }
-        if (game_state.castle_Q) { influence_kings.push_back(s::c1); }
+        if (game_state.castle_w_K) { influence_kings.push_back(s::g1); }
+        if (game_state.castle_w_Q) { influence_kings.push_back(s::c1); }
     }
 
     // remove square that are under attack
@@ -1122,7 +1328,7 @@ std::vector<Square> Board::update_white_king_moves(Square sq_w_King)
 
     // if the legal moves contain a castling square, but not the adjacent square necessary to legally castle
     // remove the castling square
-    if (game_state.castle_K) {
+    if (game_state.castle_w_K) {
         if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::g1) != legal_moves_kings.end()) {
             if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::f1) == legal_moves_kings.end()) {
                 // remove g1
@@ -1131,7 +1337,7 @@ std::vector<Square> Board::update_white_king_moves(Square sq_w_King)
             }
         }
     }
-    if (game_state.castle_Q) {
+    if (game_state.castle_w_Q) {
         if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::c1) != legal_moves_kings.end()) {
             if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::d1) == legal_moves_kings.end()) {
                 // remove c1
@@ -1152,10 +1358,18 @@ std::vector<Square> Board::update_white_king_moves(Square sq_w_King)
     return giving_check;
 }
 
+/**
+ * @brief Applies rules of the games to reduce the list of all possible moves for the black king to a list of legal
+ * moves for the black king
+ * @param sq_b_king The current position of the black king.
+ * @return A vector of squares containing pieces that are giving check to the white king.
+ * @note May mutate Game_State::black_inCheck
+ * @warning For move generation as a whole to function properly, there must be exactly 1 king of each color on the board
+ **/
 std::vector<Square> Board::update_black_king_moves(Square sq_b_king)
 {
     std::vector<Square> giving_check{};
-    bool is_in_check;                           // king is in check
+    bool is_inCheck;                           // king is in check
     bool under_attack;                          // flags a square as under attack
     std::vector<Square> influence_kings;        // temp vector to create king move list
     std::vector<Square> safe_squares;           // temp vector to create king move list
@@ -1165,18 +1379,18 @@ std::vector<Square> Board::update_black_king_moves(Square sq_b_king)
     influence_kings = influence(sq_b_king);
 
     // detect whether king is in check
-    is_in_check = false;
+    is_inCheck = false;
     for (const auto& pair : maps->white_influence) {
         if (std::find(pair.second.begin(), pair.second.end(), sq_b_king)
                 != pair.second.end()) {  // is the king in check
-            is_in_check = true;
+            is_inCheck = true;
             game_state.black_inCheck = true;
             giving_check.push_back(pair.first);
         }
     }
-    if (!is_in_check) {     // if not in check, add castling moves (if available)
-        if (game_state.castle_k) { influence_kings.push_back(s::g8); }
-        if (game_state.castle_q) { influence_kings.push_back(s::c8); }
+    if (!is_inCheck) {     // if not in check, add castling moves (if available)
+        if (game_state.castle_b_k) { influence_kings.push_back(s::g8); }
+        if (game_state.castle_b_q) { influence_kings.push_back(s::c8); }
     }
 
     // remove square that are under attack
@@ -1195,7 +1409,7 @@ std::vector<Square> Board::update_black_king_moves(Square sq_b_king)
 
     // if the legal moves contain a castling square, but not the adjacent square necessary to legally castle
     // remove the castling square
-    if (game_state.castle_k) {
+    if (game_state.castle_b_k) {
         if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::g8) != legal_moves_kings.end()) {
             if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::f8) == legal_moves_kings.end()) {
                 // remove g8
@@ -1204,7 +1418,7 @@ std::vector<Square> Board::update_black_king_moves(Square sq_b_king)
             }
         }
     }
-    if (game_state.castle_q) {
+    if (game_state.castle_b_q) {
         if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::c8) != legal_moves_kings.end()) {
             if (std::find(legal_moves_kings.begin(), legal_moves_kings.end(), s::d8) == legal_moves_kings.end()) {
                 // remove c1
@@ -1233,8 +1447,9 @@ std::vector<Square> Board::update_black_king_moves(Square sq_b_king)
  * @details Move generation is done by starting with the influence maps and reducing the map by applying rules of the
  * game. This function returns the square of (a) king because we will need that info later, and now is as good a time
  * as any to get it.
- * @param to A pointer to the unordered_map where the squares will be assigned
+ * @param c Indicates which map to copy
  * @param from A pointer to the unordered_map from which the squares will be copied
+ * @param to A pointer to the unordered_map where the squares will be assigned
  * @return The square in which the king resides
  */
 Square Board::copy_influence(const Color c, std::unordered_map<Square, std::vector<Square>> *from,
@@ -1286,6 +1501,7 @@ void Board::remove_same_color_squares(Color color, std::unordered_map<Square, st
  */
 void Board::update_move_maps()
 {
+    // setup ----------------------------------------------
     maps->clear();                          // clear move maps
     game_state.white_inCheck = false;       // reset check flags
     game_state.black_inCheck = false;
@@ -1295,11 +1511,11 @@ void Board::update_move_maps()
     Square sq_w_King = copy_influence(Color::white, &maps->white_influence, &maps->white_moves);
     Square sq_b_king = copy_influence(Color::black, &maps->black_influence, &maps->black_moves);
 
-    update_pinned_pieces(sq_w_King, sq_b_king);   // update pinned pieces
+    update_pinned_pieces();   // update pinned pieces
 
-    // remove same colored squares (can't capture own pieces)
-    remove_same_color_squares(Color::white, &maps->white_moves);
-    remove_same_color_squares(Color::black, &maps->black_moves);
+    // start reduction ------------------------------------
+    remove_same_color_squares(Color::white, &maps->white_moves);    // remove same colored squares
+    remove_same_color_squares(Color::black, &maps->black_moves);    // remove same colored squares
 
     // TODO refactor legal_moves
     for (const auto& [sq, moves] : maps->white_influence) {
@@ -1331,26 +1547,26 @@ void Board::update_move_maps()
     if (giving_check.size() == 1) {
         // if it's not a knight or pawn, it might be able to be blocked
         if (!is_knight(giving_check[0]) && !is_pawn(giving_check[0])) {
-            if (is_in_same_row(giving_check[0], sq_w_King)) {
+            if (is_inSameRow(giving_check[0], sq_w_King)) {
                 for (auto sq = sq_w_King; sq != giving_check[0]; sq_w_King > giving_check[0] ? --sq : ++sq) {
                     blocking_squares.push_back(sq);
                 }
             }
-            else if (is_in_same_column(giving_check[0], sq_w_King)) {
+            else if (is_inSameColumn(giving_check[0], sq_w_King)) {
                 for (auto sq = sq_w_King;
                      sq != giving_check[0];
                      sq_w_King > giving_check[0] ? sq = sq - 8 : sq = sq + 8) {
                     blocking_squares.push_back(sq);
                 }
             }
-            else if (is_in_same_diagonal_left_right(giving_check[0], sq_w_King)) {
+            else if (is_inSameDiagonal_leftRight(giving_check[0], sq_w_King)) {
                 for (auto sq = sq_w_King;
                      sq != giving_check[0];
                      sq_w_King > giving_check[0] ? sq = sq - 7 : sq = sq + 7) {
                     blocking_squares.push_back(sq);
                 }
             }
-            else if (is_in_same_diagonal_right_left(giving_check[0], sq_w_King)) {
+            else if (is_inSameDiagonal_rightLeft(giving_check[0], sq_w_King)) {
                 for (auto sq = sq_w_King;
                      sq != giving_check[0];
                      sq_w_King > giving_check[0] ? sq = sq - 9 : sq = sq + 9) {
@@ -1386,26 +1602,26 @@ void Board::update_move_maps()
     // if one piece is giving check, it can be captured or blocked
     if (giving_check.size() == 1) {
         if (!is_knight(giving_check[0]) && !is_pawn(giving_check[0])) {
-            if (is_in_same_row(giving_check[0], sq_b_king)) {
+            if (is_inSameRow(giving_check[0], sq_b_king)) {
                 for (auto sq = sq_b_king; sq != giving_check[0]; sq_b_king > giving_check[0] ? --sq : ++sq) {
                     blocking_squares.push_back(sq);
                 }
             }
-            else if (is_in_same_column(giving_check[0], sq_b_king)) {
+            else if (is_inSameColumn(giving_check[0], sq_b_king)) {
                 for (auto sq = sq_b_king;
                      sq != giving_check[0];
                      sq_b_king > giving_check[0] ? sq = sq - 8 : sq = sq + 8) {
                     blocking_squares.push_back(sq);
                 }
             }
-            else if (is_in_same_diagonal_left_right(giving_check[0], sq_b_king)) {
+            else if (is_inSameDiagonal_leftRight(giving_check[0], sq_b_king)) {
                 for (auto sq = sq_b_king;
                      sq != giving_check[0];
                      sq_b_king > giving_check[0] ? sq = sq - 7 : sq = sq + 7) {
                     blocking_squares.push_back(sq);
                 }
             }
-            else if (is_in_same_diagonal_right_left(giving_check[0], sq_b_king)) {
+            else if (is_inSameDiagonal_rightLeft(giving_check[0], sq_b_king)) {
                 for (auto sq = sq_b_king;
                      sq != giving_check[0];
                      sq_b_king > giving_check[0] ? sq = sq - 9 : sq = sq + 9) {
@@ -1441,10 +1657,10 @@ void Board::update_move_maps()
             if (piece == pinned) {
                 std::vector<Square> temp{};
                 for (auto& sq : moves) {
-                    if (is_in_same_row(sq_w_King, pinner, sq)) { temp.push_back(sq); }
-                    if (is_in_same_column(sq_w_King, pinner, sq)) { temp.push_back(sq); }
-                    if (is_in_same_diagonal_left_right(sq_w_King, pinner, sq)) { temp.push_back(sq); }
-                    if (is_in_same_diagonal_right_left(sq_w_King, pinner, sq)) { temp.push_back(sq); }
+                    if (is_inSameRow(sq_w_King, pinner, sq)) { temp.push_back(sq); }
+                    if (is_inSameColumn(sq_w_King, pinner, sq)) { temp.push_back(sq); }
+                    if (is_inSameDiagonal_leftRight(sq_w_King, pinner, sq)) { temp.push_back(sq); }
+                    if (is_inSameDiagonal_rightLeft(sq_w_King, pinner, sq)) { temp.push_back(sq); }
                 }
                 moves = temp;
             }
@@ -1456,10 +1672,10 @@ void Board::update_move_maps()
             if (piece == pinned) {
                 std::vector<Square> temp{};
                 for (auto& sq : moves) {
-                    if (is_in_same_row(sq_b_king, pinner, sq)) { temp.push_back(sq); }
-                    if (is_in_same_column(sq_b_king, pinner, sq)) { temp.push_back(sq); }
-                    if (is_in_same_diagonal_left_right(sq_b_king, pinner, sq)) { temp.push_back(sq); }
-                    if (is_in_same_diagonal_right_left(sq_b_king, pinner, sq)) { temp.push_back(sq); }
+                    if (is_inSameRow(sq_b_king, pinner, sq)) { temp.push_back(sq); }
+                    if (is_inSameColumn(sq_b_king, pinner, sq)) { temp.push_back(sq); }
+                    if (is_inSameDiagonal_leftRight(sq_b_king, pinner, sq)) { temp.push_back(sq); }
+                    if (is_inSameDiagonal_rightLeft(sq_b_king, pinner, sq)) { temp.push_back(sq); }
                 }
                 moves = temp;
             }
@@ -1471,6 +1687,13 @@ void Board::update_move_maps()
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN move
 
+/**
+ * @brief Move a pawn.
+ * @details Check for promotion, two square move, or en passant, then move the piece.
+ * @param from The square from which the pawn is moved.
+ * @param to The square to which the pawn is moved.
+ * @param ch If promoting, this gives the piece to promote to.
+ */
 void Board::move_pawn(Square from, Square to, char ch)
 {
     bool promoted = false;
@@ -1478,8 +1701,7 @@ void Board::move_pawn(Square from, Square to, char ch)
     // promotion
     if (ch == 'q' || ch == 'r' || ch == 'b' || ch == 'n') {
         Color c = what_color(from);
-        if (is_white_pawn(from) && is_in_row(to) == 8) { promoted = true; }
-        else if (is_black_pawn(from) && is_in_row(to) == 1) { promoted = true; }
+        if ((is_white_pawn(from) && get_row(to) == 8) || (is_black_pawn(from) && get_row(to) == 1)) { promoted = true; }
         if (promoted) {
             remove_piece(to);
             place_piece(to, c == Color::white ? static_cast<char>(std::toupper(ch)) : static_cast<char>(ch));
@@ -1515,48 +1737,57 @@ void Board::move_pawn(Square from, Square to, char ch)
     }
 }
 
+/**
+ * @brief Move a king.
+ * Check for castling, update castling rights, move the king.
+ * @param from The square from which the king is moved.
+ * @param to The square to which the king is moved.
+ */
 void Board::move_king(Square from, Square to)
 {
     bool castled = false;
-    if (is_black_king(from) && from == Square::e8) {
-        if (to == Square::g8 && game_state.castle_k && is_black_rook(Square::h8)) {
-            remove_piece(to);
-            place_piece(to, what_piece(from));
-            remove_piece(from);
-            move_rook(Square::h8, Square::f8);
-            castled = true;
-            game_state.castle_k = game_state.castle_q = false;
-        }
-        else if (to == Square::c8 && game_state.castle_q && is_black_rook(Square::a8)) {
-            remove_piece(to);
-            place_piece(to, what_piece(from));
-            remove_piece(from);
-            move_rook(Square::a8, Square::d8);
-            castled = true;
-            game_state.castle_k = game_state.castle_q = false;
-        }
-    }
+
+    // check for castling
     if (is_white_king(from) && from == Square::e1) {
-        if (to == Square::g1 && game_state.castle_K && is_white_rook(Square::h1)) {
+        if (game_state.castle_w_K && to == Square::g1 && is_white_rook(Square::h1)) {
             remove_piece(to);
             place_piece(to, what_piece(from));
             remove_piece(from);
             move_rook(Square::h1, Square::f1);
             castled = true;
-            game_state.castle_K = game_state.castle_Q = false;
+            game_state.castle_w_K = game_state.castle_w_Q = false;
         }
-        else if (to == Square::c1 && game_state.castle_Q && is_white_rook(Square::a1)) {
+        else if (game_state.castle_w_Q && to == Square::c1 && is_white_rook(Square::a1)) {
             remove_piece(to);
             place_piece(to, what_piece(from));
             remove_piece(from);
             move_rook(Square::a1, Square::d1);
             castled = true;
-            game_state.castle_K = game_state.castle_Q = false;
+            game_state.castle_w_K = game_state.castle_w_Q = false;
         }
     }
+    if (is_black_king(from) && from == Square::e8) {
+        if (game_state.castle_b_k && to == Square::g8 && is_black_rook(Square::h8)) {
+            remove_piece(to);
+            place_piece(to, what_piece(from));
+            remove_piece(from);
+            move_rook(Square::h8, Square::f8);
+            castled = true;
+            game_state.castle_b_k = game_state.castle_b_q = false;
+        }
+        else if (game_state.castle_b_q && to == Square::c8 && is_black_rook(Square::a8)) {
+            remove_piece(to);
+            place_piece(to, what_piece(from));
+            remove_piece(from);
+            move_rook(Square::a8, Square::d8);
+            castled = true;
+            game_state.castle_b_k = game_state.castle_b_q = false;
+        }
+    }
+
     // update castling rights
-    if (is_white_king(from)) { game_state.castle_K = game_state.castle_Q = false; }
-    else if (is_black_king(from)) { game_state.castle_k = game_state.castle_q = false; }
+    if (is_white_king(from)) { game_state.castle_w_K = game_state.castle_w_Q = false; }
+    else if (is_black_king(from)) { game_state.castle_b_k = game_state.castle_b_q = false; }
 
     // move piece
     if (!castled) {
@@ -1566,13 +1797,19 @@ void Board::move_king(Square from, Square to)
     }
 }
 
+/**
+ * @brief Move a rook
+ * Update castling rights, then move the piece.
+ * @param from The square from which the rook is moved
+ * @param to The square to which tht rook is moved
+ */
 void Board::move_rook(Square from, Square to)
 {
     // update castling rights
-    if (from == Square::a8 && is_black_rook(from) && game_state.castle_q) { game_state.castle_q = false; }
-    else if (from == Square::h8 && is_black_rook(from) && game_state.castle_k) { game_state.castle_k = false; }
-    else if (from == Square::a1 && is_white_rook(from) && game_state.castle_Q) { game_state.castle_Q = false; }
-    else if (from == Square::h1 && is_white_rook(from) && game_state.castle_K) { game_state.castle_K = false; }
+    if (game_state.castle_b_q && from == Square::a8 && is_black_rook(from)) { game_state.castle_b_q = false; }
+    else if (game_state.castle_b_k && from == Square::h8 && is_black_rook(from)) { game_state.castle_b_k = false; }
+    else if (game_state.castle_w_Q && from == Square::a1 && is_white_rook(from)) { game_state.castle_w_Q = false; }
+    else if (game_state.castle_w_K && from == Square::h1 && is_white_rook(from)) { game_state.castle_w_K = false; }
 
     // move piece
     remove_piece(to);
@@ -1580,6 +1817,13 @@ void Board::move_rook(Square from, Square to)
     remove_piece(from);
 }
 
+/**
+ * @brief Move a knight, bishop, or queen.
+ * @details There are no special rules to consider when moving these pieces,
+ * so we can simply pick them up and set them down
+ * @param from The square from which the piece is moved.
+ * @param to The square to which the piece is moved.
+ */
 void Board::move_piece(Square from, Square to)
 {
     remove_piece(to);
@@ -1587,6 +1831,16 @@ void Board::move_piece(Square from, Square to)
     remove_piece(from);
 }
 
+/**
+ * @brief Moves a piece on the chessboard
+ * @param from The square from which the piece is moved.
+ * @param to The square to which the piece is moved.
+ * @param ch If a pawn is promoting, this gives the piece to promote to.
+ * @see void Board::move_pawn(Square from, Square to, char ch)
+ * @see void Board::move_king(Square from, Square to)
+ * @see void Board::move_rook(Square from, Square to)
+ * @see void Board::move_piece(Square from, Square to)
+ */
 void Board::move(Square from, Square to, char ch)
 {
     // game state updates
@@ -1602,18 +1856,18 @@ void Board::move(Square from, Square to, char ch)
 
     // update castling rights if capturing rook
     if (is_white_rook(to)) {
-        if (to == Square::h1) { game_state.castle_K = false; }
-        else if (to == Square::a1) { game_state.castle_Q = false; }
+        if (to == Square::h1) { game_state.castle_w_K = false; }
+        else if (to == Square::a1) { game_state.castle_w_Q = false; }
     }
     else if (is_black_rook(to)) {
-        if (to == Square::h8) { game_state.castle_k = false; }
-        else if (to == Square::a8) { game_state.castle_q = false; }
+        if (to == Square::h8) { game_state.castle_b_k = false; }
+        else if (to == Square::a8) { game_state.castle_b_q = false; }
     }
 
     // move piece
     if (is_pawn(from)) { move_pawn(from, to, ch); }
-    if (is_king(from)) { move_king(from, to); }
-    if (is_rook(from)) { move_rook(from, to); }
+    else if (is_king(from)) { move_king(from, to); }
+    else if (is_rook(from)) { move_rook(from, to); }
     else if (!is_empty(from)) { move_piece(from, to); }    // for knights, bishops, queens
 
     // en passant expires
@@ -1627,6 +1881,12 @@ void Board::move(Square from, Square to, char ch)
 //----------------------------------------------------------------------------------------------------------------------
 // BEGIN diagnostic
 
+/**
+ * Calculates the number of nodes at depth 1 for a given color.
+ * @param color The color of the pieces.
+ * @return The number of nodes at depth 1.
+ * @note This is only in use in a test file sample-game.cxx
+ */
 ulong Board::nodes_at_depth_1(Color color)
 {
     update_move_maps();

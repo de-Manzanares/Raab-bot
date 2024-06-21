@@ -97,8 +97,8 @@ void Node::spawn_depth_first(uint depth)            // NOLINT(misc-no-recursion)
             _board->game_state.active_color == Color::white ?
             _board->maps->white_moves : _board->maps->black_moves) {
         for (const auto& move : moves) {
-            if ((_board->is_in_row(move) == 8 && _board->is_white_pawn(sq))
-                    || _board->is_in_row(move) == 1 && _board->is_black_pawn(sq)) {
+            if ((_board->get_row(move) == 8 && _board->is_white_pawn(sq))
+                    || _board->get_row(move) == 1 && _board->is_black_pawn(sq)) {
                 std::vector<char> promotions{'q', 'r', 'b', 'n'};
                 for (auto piece : promotions) {
                     Node *spawn = new Node(_board, sq, move, piece);

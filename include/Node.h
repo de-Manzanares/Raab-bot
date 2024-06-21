@@ -14,11 +14,11 @@
 
 /**
  * @struct Counter
- * @brief Tracks node count and time points for giving info's
+ * @brief Tracks node count and time points for giving infos
  */
 struct Counter {
-    static uint node;
-    static std::chrono::time_point<std::chrono::high_resolution_clock> start;
+    static uint node;    ///< Tracks the number of nodes in the tree
+    static std::chrono::time_point<std::chrono::high_resolution_clock> start;   ///< For calculating elapse and rates
 };
 
 /**
@@ -32,19 +32,22 @@ struct Node {
     Node(const std::shared_ptr<Board>& board, Square from, Square to, char ch);
     ~Node();
 
-    Square _from;                   // tracks the move that was made between the parent node and this node
-    Square _to;                     // tracks the move that was made between the parent node and this node
-    char _ch;                       // pawn promotion
-    Node *parent{};                 // parent node
-    std::shared_ptr<Board> _board{};                // board
-    double _eval{};                 // evaluation
-    std::vector<Node *> _child{};   // vector of nodes spawned from this node
+    Square _from;                       ///< from Square of move that created this position
+    Square _to;                         ///< to Square of move that created this position
+    char _ch;                           ///< if a pawn is promoting, this gives the piece to promote to
+    Node *parent{};                     ///< parent node
+    std::shared_ptr<Board> _board{};    ///< Board
+    double _eval{};                     ///< evaluation
+    std::vector<Node *> _child{};       ///< children nodes
+
+    void spawn_depth_first(uint depth);
+    // TODO spawn_breadth_first - overload an operator?, use a queue?, ...
+    void spawn_breadth_first(uint depth);   ///< Create a decision tree
 
     uint count_nodes();
-    void spawn_depth_first(uint depth);
     Node *next_step(Node *end, uint *depth);
     uint node_depth();
-    void spawn_breadth_first(uint depth);
+
 };
 
 #endif  // INCLUDE_NODE_H_

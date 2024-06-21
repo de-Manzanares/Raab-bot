@@ -4,10 +4,10 @@ using s = Square;
 
 struct Node;
 
-double Eval::CHECK_BONUS = 0.25;                    // gives weight to checks 0.25
-double Eval::MOBILITY_MULTIPLIER = 1.0 / 100.0;     // gives weight for each legal move 1.0
-double Eval::CASTLE_BONUS = 0.5;                    // gives weight to castling 0.5
-double Eval::RATIO_MULTIPLIER = 2.0;                // gives weight to ratio of material advantage
+double Eval::CHECK_BONUS = 0.25;
+double Eval::MOBILITY_MULTIPLIER = 1.0 / 100.0;
+double Eval::CASTLE_BONUS = 0.5;
+double Eval::RATIO_MULTIPLIER = 2.0;
 
 /// material value
 std::unordered_map<char, int> Eval::material_value = {
@@ -33,7 +33,7 @@ double Eval::material_evaluation(const Node *n)
 
 /**
  * @brief Detects if the given chess board is in a checkmate position.
- * @detlails Check whether there are any legal moves available for the active player. If there are no
+ * @details Check whether there are any legal moves available for the active player. If there are no
  * legal moves available, this is checkmate.
  * @param n The chess board for which to detect checkmate.
  * @return -1 if White is in checkmate, 1 if Black is in checkmate, 0 if neither color is in checkmate.
