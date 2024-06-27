@@ -1,10 +1,7 @@
-#include "../include/Game_State.h"
+#include "Game_State.h"
 
-/**
- * @brief Returns the castling ability of the game state in Forsyth-Edwards
- * Notation (FEN).
- * @return A string representing the castling ability in FEN notation.
- */
+#include <unordered_map>
+
 std::string Game_State::fen_castling_ability() const {
   std::string s;
   if (!castle_w_K && !castle_w_Q && !castle_b_k && !castle_b_q) {
@@ -26,54 +23,24 @@ std::string Game_State::fen_castling_ability() const {
   return s;
 }
 
-/**
- * @brief Returns a string in FEN notation for the en passant targets.
- * @return A string in FEN notation for the en passant targets.
- *         If there are no en passant targets, "-" is returned.
- */
 std::string Game_State::fen_en_passant_targets() const {
   return en_passant_target.empty() ? "-" : en_passant_target;
 }
 
-/**
- * @brief Returns the value of the half move clock.
- * @details The half move clock represents the number of half moves since the
- * last capture or pawn advance, and is used for the fifty move rule.
- * @return The value of the half move clock as a string.
- */
 std::string Game_State::fen_half_move_clock() const {
   return std::to_string(half_move_clock);
 }
 
-/**
- * @brief Returns the full move number as a string.
- * @details The full move number represents the number of full moves made in the
- * game. It starts at 1 and increments after black's move.
- * @return The full move number as a string.
- */
 std::string Game_State::fen_full_move_number() const {
   return std::to_string(full_move_number);
 }
 
-/**
- * @brief Clears the current game state.
- * @details set everything to 0/false/empty
- */
 void Game_State::clear() {
   half_move_clock = full_move_number = 0;
   castle_w_K = castle_w_Q = castle_b_k = castle_b_q = false;
   en_passant_target.clear();
 }
 
-/**
- * @brief Sets the castling ability based on the given string.
- * If the input string is "-", all castling abilities are set to false.
- * Otherwise, each character in the string represents a castling ability. The
- * characters 'K', 'Q', 'k', 'q' correspond to castle_K, castle_Q, castle_k,
- * castle_q respectively. If a character is present in the string, the
- * corresponding castling ability is set to true.
- * @param s The input string representing the castling ability.
- */
 void Game_State::set_castling_ability(const std::string &s) {
   if (s == "-") {
     castle_w_K = castle_w_Q = false;
@@ -93,11 +60,6 @@ void Game_State::set_castling_ability(const std::string &s) {
   }
 }
 
-/**
- * @brief Copy assignment operator
- * @param rhs The Game_State object to be copied
- * @return A reference to the lhs object after assignment
- */
 Game_State &Game_State::operator=(const Game_State &rhs) {
   if (this != &rhs) {
     active_color = rhs.active_color;

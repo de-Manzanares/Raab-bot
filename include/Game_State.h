@@ -1,7 +1,13 @@
+/*
+ * Copyright (c) 2024 de-Manzanares
+ * This work is released under the MIT license.
+ */
+
 #ifndef INCLUDE_GAME_STATE_H_
 #define INCLUDE_GAME_STATE_H_
 
 #include "Square.h"
+
 #include <string>
 
 /**
@@ -10,6 +16,11 @@
  * passant targets, half move clock, and full move number.
  */
 struct Game_State {
+  /**
+   * @brief Copy assignment operator
+   * @param rhs The object to be copied
+   * @return A reference to the lhs object after assignment
+   */
   Game_State &operator=(const Game_State &rhs);
 
   /// @return The the active color: w or b.
@@ -17,12 +28,44 @@ struct Game_State {
     return active_color == Color::white ? 'w' : 'b';
   }
 
+  /**
+   * @brief Get the castling ability.
+   * @return Castling ability in FEN format.
+   */
   [[nodiscard]] std::string fen_castling_ability() const;
+
+  /**
+   * @brief Get the en passant target.
+   * @return En passant target in FEN format.
+   */
   [[nodiscard]] std::string fen_en_passant_targets() const;
+
+  /**
+   * @brief Get the half move clock.
+   * @return Half move clock in FEN format.
+   */
   [[nodiscard]] std::string fen_half_move_clock() const;
+
+  /**
+   * @brief Get the full move number.
+   * @return The full move number as a string.
+   */
   [[nodiscard]] std::string fen_full_move_number() const;
 
+  /**
+   * @brief Clears the current game state.
+   * @details set everything to 0/false/empty
+   */
   void clear();
+
+  // TODO AHah
+  /**
+   * @brief Set castling abilities
+   * If the input string is "-", all castling abilities are set to false.
+   * Otherwise, each character in the string represents a castling ability.
+   * Valid characters are 'K', 'Q', 'k', and 'q'.
+   * @param s The input string representing the castling ability.
+   */
   void set_castling_ability(const std::string &s);
 
   // game-state data

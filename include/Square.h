@@ -1,9 +1,13 @@
+/*
+ * Copyright (c) 2024 de-Manzanares
+ * This work is released under the MIT license.
+ */
+
 #ifndef INCLUDE_SQUARE_H_
 #define INCLUDE_SQUARE_H_
 
 #include <string>
 #include <type_traits>
-#include <unordered_map>
 
 /**
  * @enum Square
@@ -35,12 +39,27 @@ enum class Square : int {
 };
 // clang-format on
 
+/**
+ * @brief Prefix Square decrement
+ * @return The decremented square
+ */
 Square &operator--(Square &square); // NOLINT
 
+/**
+ * @brief Prefix Square increment
+ * @return The incremented square
+ */
 Square &operator++(Square &square); // NOLINT
 
-template <class T> Square operator-(Square lhs, T rhs) {
-  static_assert(std::is_integral<T>::value);
+/**
+ * @brief Subtraction operator
+ * @tparam T Must be integral type
+ * @param lhs minuend
+ * @param rhs subtrahend
+ * @return difference
+ */
+template <class T> Square operator-(const Square lhs, T rhs) {
+  static_assert(std::is_integral_v<T>);
   Square copy = lhs;
   for (auto i = 0; i < rhs; i++) {
     rhs > 0 ? --copy : ++copy;
@@ -48,8 +67,15 @@ template <class T> Square operator-(Square lhs, T rhs) {
   return copy;
 }
 
+/**
+ * @brief Addition operator
+ * @tparam T Must be integral type
+ * @param lhs addend
+ * @param rhs addend
+ * @return sum
+ */
 template <class T> Square operator+(Square lhs, T rhs) {
-  static_assert(std::is_integral<T>::value);
+  static_assert(std::is_integral_v<T>);
   Square copy = lhs;
   for (auto i = 0; i < rhs; i++) {
     rhs > 0 ? ++copy : --copy;
@@ -63,15 +89,31 @@ template <class T> Square operator+(Square lhs, T rhs) {
  */
 enum class Color { white, black, none };
 
+/**
+ * @brief Color negation operator
+ * @return The negated color
+ * @note There is no negation for Color::none
+ */
 Color &operator!(Color &color); // NOLINT
 
 /**
- * @class Sq
- * @brief Ror converting between string representations and enum values of
+ * @struct Sq
+ * @brief For converting between string representations and enum values of
  * Square.
  */
 struct Sq {
+  /**
+   * @brief std::string "xy" to Square xy
+   * @param string The string representation of the square.
+   * @return The Square representation of the square.
+   */
   static Square string_to_square(const std::string &string);
+
+  /**
+   * @brief Square xy to std::string "xy"
+   * @param square The Square representation of the square
+   * @return The std::string representation of the square.
+   */
   static std::string square_to_string(const Square &square);
 };
 
