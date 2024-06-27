@@ -1,7 +1,6 @@
 #include "include/UCI.h"
 
-int main()
-{
-    uci::loop();
-    return 0;
+int main() {
+  uci::loop();
+  return 0;
 }

@@ -10,7 +10,8 @@
  * @brief min-max alpha-beta pruning search algorithm.
  */
 struct Search {
-    static Node *min_max(Node *n, uint depth, double alpha, double beta, bool maximizing);
+  static Node *min_max(Node *n, uint depth, double alpha, double beta,
+                       bool maximizing);
 };
 
-#endif  // INCLUDE_SEARCH_H_
+#endif // INCLUDE_SEARCH_H_
