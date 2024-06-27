@@ -1,10 +1,15 @@
+/*
+ * Copyright (c) 2024 de-Manzanares
+ * This work is released under the MIT license.
+ */
+
 #ifndef INCLUDE_EVAL_H_
 #define INCLUDE_EVAL_H_
 
-#include <unordered_map>
-
 #include "Board.h"
 #include "Node.h"
+
+#include <unordered_map>
 
 struct Node;
 
@@ -13,7 +18,7 @@ struct Node;
  * @brief Evaluates a position
  */
 struct Eval {
-  static std::unordered_map<char, int> material_value;
+  static std::unordered_map<char, int> material_value; ///< material value
 
   // evaluation parameters
   static double CHECK_BONUS;         ///< weight of check
@@ -23,18 +28,70 @@ struct Eval {
 
   // evaluation functions ----------------------------------------
 
+  /**
+   * @brief Computes balance of material on the board.
+   * @param n The node containing the board to evaluate.
+   * @return The material balance.
+   */
   static double material_evaluation(const Node *n);
+
+  /**
+   * @brief Detects checkmate.
+   * @details Check whether there are any legal moves available for the active
+   * player. If there are no legal moves available, this is checkmate.
+   * @param n The node containing the board to evaluate.
+   * @return -1 - White is in checkmate \n 1 - Black is in checkmate \n 0 -
+   * neither color is in checkmate.
+   */
   static int detect_checkmate(const Node *n);
+
+  /**
+   * @brief The number of legal moves available to a side.
+   * @details Adds score for each legal move available to a side.
+   * @param n The node containing the board to evaluate.
+   * @return The mobility score.
+   */
   static double mobility_evaluation(const Node *n);
+
+  /**
+   * @brief Gives weight to check
+   * @param n The node containing the board to evaluate.
+   * @return (+) - black is in check \n (-) - white is in check
+   */
   static double check_bonus(const Node *n);
+
+  /**
+   * Encourage castling lol
+   * I just wanted to see castling more often so I tacked some weight onto it.
+   */
   static double castle_bonus(const Node *n);
+
+  /**
+   * Creates an aggregate score using all evaluation methods
+   */
   static double simple_evaluation(const Node *n);
+
+  /**
+   * wrapper for simple_evaluation()
+   */
   static double eval(const Node *n);
 
   // unused
-  [[maybe_unused]] static double material_ratio(const Board *board);
-  [[maybe_unused]] static double
-  discourage_early_queen_movement(const Node *node);
+  /**
+   * @brief Calculates the material ratio for a given chess board.
+   * @details intended to encourage trading when up on material, and discourage
+   * trading when down on material
+   * @param board Pointer to the Board object representing the chess board.
+   * @return The ratio of material advantage to total material.
+   */
+  static double material_ratio(const Board *board);
+
+  /**
+   * In the first ten moves of the game, penalize queen movements, encourage
+   * other piece movements
+   * @note is not needed when an opening book is in use
+   */
+  static double discourage_early_queen_movement(const Node *node);
 };
 
 #endif // INCLUDE_EVAL_H_
