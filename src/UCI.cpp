@@ -96,8 +96,8 @@ void startpos_moves(const Node *n, const std::string *in) {
 
   // the following "words" in the string will be moves
   while (iss >> s) {
-    Square from, to;
-    char ch;
+    Square from{}, to{};
+    char ch{};
     string_to_move(&s, &from, &to, &ch);
     n->_board->do_move(from, to, ch);
   }

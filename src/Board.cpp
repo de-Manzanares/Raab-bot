@@ -647,8 +647,8 @@ std::vector<Square> Board::influence_knight(Square sq) {
 
   // center 4x4 - 16 squares
   if (const int isq = static_cast<int>(sq);
-      isq >= 18 && isq <= 21 || isq >= 26 && isq <= 29 ||
-      isq >= 34 && isq <= 37 || isq >= 42 && isq <= 45) {
+      (isq >= 18 && isq <= 21) || (isq >= 26 && isq <= 29) ||
+      (isq >= 34 && isq <= 37) || (isq >= 42 && isq <= 45)) {
     influence.push_back(sq - (2 * 8 + 1)); // down right
     influence.push_back(sq - (2 * 8 - 1)); // down left
     influence.push_back(sq - (8 + 2));     // right down
