@@ -1,8 +1,12 @@
+/*
+ * Copyright (c) 2024 de-Manzanares
+ * This work is released under the MIT license.
+ */
+
 #ifndef INCLUDE_SEARCH_H_
 #define INCLUDE_SEARCH_H_
 
 #include "Board.h"
-#include "Eval.h"
 #include "Node.h"
 
 /**
@@ -10,7 +14,19 @@
  * @brief min-max alpha-beta pruning search algorithm.
  */
 struct Search {
-    static Node *min_max(Node *n, uint depth, double alpha, double beta, bool maximizing);
+  /**
+   * @brief Find the optimal node in a decision tree.
+   * @param n The current node in the search tree.
+   * @param depth The remaining depth to explore in the search tree.
+   * @param alpha The alpha value used in alpha-beta pruning.
+   * @param beta The beta value used in alpha-beta pruning.
+   * @param maximizing Indicates whether the current node is white or black
+   * @return The optimal node found based on the evaluation and specified depth.
+   * @note This function assumes that the tree has been populated with valid
+   * nodes and evaluations.
+   */
+  static Node *min_max(Node *n, uint depth, double alpha, double beta,
+                       bool maximizing);
 };
 
-#endif  // INCLUDE_SEARCH_H_
+#endif // INCLUDE_SEARCH_H_
