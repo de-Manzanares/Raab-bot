@@ -1796,9 +1796,9 @@ void Board::do_move(const Square from, const Square to, const char ch) {
 //------------------------------------------------------------------------------
 // BEGIN diagnostic
 
-ulong Board::nodes_at_depth_1(const Color color) {
+uint Board::nodes_at_depth_1(Color color) {
   update_move_maps();
-  ulong nodes{};
+  uint nodes{};
   for (const auto &[sq, moves] :
        color == Color::white ? maps->white_moves : maps->black_moves) {
     nodes += moves.size();

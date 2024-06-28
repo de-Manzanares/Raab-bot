@@ -585,7 +585,7 @@ struct Board {
    * @return The number of nodes at depth 1.
    * @note This is only in use in a test file sample-game.cxx
    */
-  [[maybe_unused]] ulong nodes_at_depth_1(Color color);
+  [[maybe_unused]] uint nodes_at_depth_1(Color color);
 
   // mutate board
   /**

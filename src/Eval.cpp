@@ -26,7 +26,7 @@ double Eval::material_evaluation(const Node *n) {
 }
 
 int Eval::detect_checkmate(const Node *n) {
-  ulong number_of_moves = 0;
+  uint number_of_moves = 0;
 
   // detect white checkmate
   if (n->_board->game_state.active_color == Color::white) {
