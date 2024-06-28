@@ -105,7 +105,7 @@ void startpos_moves(const Node *n, const std::string *in) {
 
 } // namespace uciloop
 
-uint uci::DEPTH = 4;
+uint uci::DEPTH = 3;
 
 void uci::loop() {
   namespace ulp = uciloop;
