@@ -274,8 +274,6 @@ int Board::get_column(Square sq) {
   return 0;
 }
 
-// TODO variadic templates?
-
 bool Board::is_inSameRow(const Square sq1, const Square sq2) {
   return get_row(sq1) == get_row(sq2);
 }
@@ -1181,7 +1179,6 @@ void Board::update_pinned_pieces() const {
 //------------------------------------------------------------------------------
 // BEGIN update king moves
 
-// TODO test with ranges rewrite
 std::vector<Square> Board::update_white_king_moves(Square sq_w_King) {
   std::vector<Square> giving_check{};
 
@@ -1274,7 +1271,6 @@ std::vector<Square> Board::update_white_king_moves(Square sq_w_King) {
   return giving_check;
 }
 
-// TODO test with ranges rewrite
 std::vector<Square> Board::update_black_king_moves(Square sq_b_king) {
   std::vector<Square> giving_check{};
   std::vector<Square> safe_squares;      // temp vector to create king move list
@@ -1624,7 +1620,6 @@ void Board::update_move_maps() {
 //------------------------------------------------------------------------------
 // BEGIN move
 
-// TODO test move pawn
 void Board::move_pawn(Square from, Square to, const char ch) {
   // promotion
   if (ch == 'q' || ch == 'r' || ch == 'b' || ch == 'n') {

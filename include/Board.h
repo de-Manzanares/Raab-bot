@@ -298,7 +298,6 @@ struct Board {
    */
   static int get_column(Square sq);
 
-  // TODO variadic template?
   /**
    * @brief Check if two squares are in the same row.
    * @param sq1 The first square.

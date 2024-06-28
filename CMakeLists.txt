@@ -7,6 +7,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic")
 set(CMAKE_CXX_FLAGS_DEBUG "-Og")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -flto=auto -fuse-linker-plugin -march=native")
 set(CMAKE_VERBOSE_MAKEFILE ON)
+
 include_directories(include)
 
 add_executable(Raab-bot

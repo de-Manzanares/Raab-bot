@@ -69,7 +69,6 @@ std::string long_algebraic_notation(const Node *n);
  * @brief Handles the UCI (Universal Chess Interface) protocol.
  */
 struct uci {
-  // TODO info readouts only work for first go command ...
   /// @brief The main loop that listens for and processes UCI commands
   static void loop();
   static uint DEPTH; ///< predefined target depth

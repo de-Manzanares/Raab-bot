@@ -29,7 +29,6 @@ Node::Node(const std::shared_ptr<Board> &board, const Square from,
   _board->do_move(from, to, ch);
 }
 
-// TODO make node shared ptr
 Node::~Node() {
   for (auto &child : _child) {
     delete child;

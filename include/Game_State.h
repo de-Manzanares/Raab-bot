@@ -60,7 +60,6 @@ struct Game_State {
    */
   void clear();
 
-  // TODO AHah
   /**
    * @brief Set castling abilities
    * If the input string is "-", all castling abilities are set to false.
