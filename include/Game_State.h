@@ -10,6 +10,8 @@
 
 #include <string>
 
+using uint = unsigned int;
+
 /**
  * @brief Represents the current state of a game.
  * @details  Stores information such as the active color, castling ability, en
