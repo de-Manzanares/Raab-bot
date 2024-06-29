@@ -26,3 +26,9 @@ add_executable(system-test
         other/system-test.cxx)
 target_include_directories(system-test PRIVATE ../include)
 target_link_libraries(system-test PRIVATE Catch2::Catch2WithMain)
+
+include(CTest)
+include(Catch)
+
+add_test(NAME BasicTest COMMAND basic-tests)
+add_test(NAME SystemTest COMMAND system-test)
