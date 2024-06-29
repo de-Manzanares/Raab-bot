@@ -4,6 +4,7 @@ project(Raab-bot)
 add_subdirectory(test)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 add_executable(Raab-bot
         main.cpp
