@@ -1,7 +1,4 @@
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic")
-set(CMAKE_CXX_FLAGS_DEBUG "-Og")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -flto=auto -fuse-linker-plugin -march=native")
 
 find_package(Catch2 3 REQUIRED)
 
