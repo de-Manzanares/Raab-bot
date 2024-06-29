@@ -31,12 +31,12 @@ jobs:
             c_compiler: cl
             cpp_compiler: cl
             build_type: Release
-            cxx_flags: "-O3 -DNDEBUG -flto=auto -fuse-linker-plugin -march=native"
+            cxx_flags: "\"-O3 -DNDEBUG -flto=auto -fuse-linker-plugin -march=native\""
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
             build_type: Release
-            cxx_flags: "-O3 -DNDEBUG -flto=auto -fuse-linker-plugin -march=native"
+            cxx_flags: "\"-O3 -DNDEBUG -flto=auto -fuse-linker-plugin -march=native\""
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
@@ -45,6 +45,7 @@ jobs:
         exclude:
           - os: windows-latest
             c_compiler: gcc
+            build_type: Coverage
           - os: ubuntu-latest
             c_compiler: cl
 
