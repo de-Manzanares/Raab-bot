@@ -115,6 +115,7 @@ jobs:
       run: ctest --build-config ${{ matrix.build_type }}
 
     - name: Upload coverage reports to Codecov
+      if: matrix.os == 'ubuntu-latest' && matrix.build_type == 'Coverage'
       uses: codecov/codecov-action@v4.0.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
