@@ -43,8 +43,14 @@ jobs:
             build_type: coverage
             cxx_flags: "--coverage"
         exclude:
+          - os : windows-latest
+            c_compiler: gcc
+            build_type: Release
           - os: windows-latest
             c_compiler: gcc
+            build_type: Coverage
+          - os: windows-latest
+            c_compiler: cl
             build_type: Coverage
           - os: ubuntu-latest
             c_compiler: cl
