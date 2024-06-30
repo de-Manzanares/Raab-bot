@@ -44,6 +44,8 @@
 
 ### Build from source
 
+Because Raab-bot 🐰 is a UCI chess engine, it's pretty much useless without a GUI. Personally, I'd recommend [SCID vs. PC](https://scidvspc.sourceforge.net/).
+
 #### Prerequisites
 
 CMake version 3.20 or greater and GCC (I can't figure out how to get along with clang). 
