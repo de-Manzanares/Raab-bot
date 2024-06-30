@@ -23,7 +23,7 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         build_type: [Release, Coverage]
         c_compiler: [gcc, cl]
         include:
@@ -40,10 +40,15 @@ jobs:
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
-            build_type: coverage
+            build_type: Coverage
             cxx_flags: "--coverage"
+          - os: macos-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+            build_type: Release
+            cxx_flags: "\"-O3 -DNDEBUG -flto=auto -fuse-linker-plugin -march=native\""
         exclude:
-          - os : windows-latest
+          - os: windows-latest
             c_compiler: gcc
             build_type: Release
           - os: windows-latest
@@ -54,6 +59,10 @@ jobs:
             build_type: Coverage
           - os: ubuntu-latest
             c_compiler: cl
+          - os: macos-latest
+            c_compiler: cl
+          - os: macos-latest
+            build_type: Coverage
 
     steps:
     - uses: actions/checkout@v4
@@ -74,6 +83,12 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-vcpkg-
 
+    - name: Install GCC on macOS
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew info gcc
+        brew install gcc
+
     - name: Ubuntu vcpkg catch2
       if: matrix.os == 'ubuntu-latest'
       run: |
@@ -91,6 +106,15 @@ jobs:
           .\vcpkg\bootstrap-vcpkg.bat
         }
         .\vcpkg\vcpkg install catch2
+
+    - name: macOS vcpkg catch2
+      if: matrix.os == 'macos-latest'
+      run: |
+        if [ ! -d "vcpkg" ]; then
+          git clone https://github.com/microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.sh
+        fi
+        ./vcpkg/vcpkg install catch2
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
