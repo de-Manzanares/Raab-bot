@@ -65,4 +65,15 @@ git checkout v1.00
 #### Windows and Mac 🤷‍♂️ 
 I'm sure you can figure it out. CMake is supposed to be cross-platform, right?
 
-(The build-test workflow verfies that this project can be built on Windows and Mac. 👍)
+The build-test workflow ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/de-Manzanares/Raab-bot/cmake-multi-platform.yml) verfies that this project can be built on Windows and Mac. 👍
+
+## Acknowledgements
+
+Thank you to the contributors of [Lila](https://github.com/lichess-org/lila) (aka Lichess), the coolest online chess platform! 
+
+Thank you to the contributors of [lichess-bot](https://github.com/lichess-bot-devs/lichess-bot). There's no way I could have figured out the Lichess API on my own. 
+Come to think of it, I'm not sure what API stands for... 
+
+Most of all, a huge thank you to my CS professors and the CS department as a whole. Your well structured courses and welcoming community sparked a deep interest in C++. 😁
+
+Thank you! 🙏
