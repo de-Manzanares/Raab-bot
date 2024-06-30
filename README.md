@@ -41,3 +41,28 @@
 ###### (I only play the "Standard" variant with "Real time" time controls)
 
 </div>
+
+### Build from source
+
+#### Prerequisites
+
+CMake version 3.20 or greater and GCC (I can't figure out how to get along with clang). 
+
+There is a sprinkling of C++20 language features, so if your compiler isn't puttin' up with it, get a newer version! 
+To see if your package manager has one (for Ubuntu-style systems at least) try ```apt search g++```.
+
+#### Linux
+
+The easist way to build the latest release is as follows:
+
+```bash
+git clone https://github.com/de-Manzanares/Raab-bot.git
+cd Raab-bot
+git checkout v1.00
+./build.sh
+```
+
+#### Windows and Mac 🤷‍♂️ 
+I'm sure you can figure it out. CMake is supposed to be cross-platform, right?
+
+(The build-test workflow verfies that this project can be built on windows. 👍)
