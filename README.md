@@ -65,4 +65,4 @@ git checkout v1.00
 #### Windows and Mac 🤷‍♂️ 
 I'm sure you can figure it out. CMake is supposed to be cross-platform, right?
 
-(The build-test workflow verfies that this project can be built on windows. 👍)
+(The build-test workflow verfies that this project can be built on Windows and Mac. 👍)
