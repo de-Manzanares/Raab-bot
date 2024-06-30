@@ -18,7 +18,7 @@ bool simon_says(const std::string *s, const std::string &has) {
 double neg_inf = -100'000;
 double pos_inf = 100'000;
 
-bool continue_status_updates = true;
+bool continue_status_updates;
 
 void status_update_thread(const uint update_interval_ms) {
   uint previous = 0;
@@ -128,8 +128,8 @@ void uci::loop() {
       }
     } else if (ulp::simon_says(&in, "go") && n != nullptr) {
       // move gen is too slow. 4ply is asking > 1M nodes in early middle-game
-      // positions
-      Counter::node = 0;
+      Counter::node = 0;                   // reset counter
+      ulp::continue_status_updates = true; // reset flag
 
       const bool maxing = ulp::is_maxing(n);
       n->_board->update_move_maps();
