@@ -25,35 +25,36 @@ double Eval::material_evaluation(const Node *n) {
   return sum / 100;
 }
 
-int Eval::detect_checkmate(const Node *n) {
+int Eval::detect_stalemate_checkmate(const Node *n) {
   uint number_of_moves = 0;
 
-  // detect white checkmate
+  // count moves, white's turn
   if (n->_board->game_state.active_color == Color::white) {
-    if (n->_board->game_state.white_inCheck) {
-      for (const auto &moves :
-           n->_board->maps->white_moves | std::views::values) {
-        number_of_moves += moves.size();
-      }
-      if (number_of_moves == 0) {
+    for (const auto &moves :
+         n->_board->maps->white_moves | std::views::values) {
+      number_of_moves += moves.size();
+    }
+    if (number_of_moves == 0) { // possibly stalemate or checkmate
+      if (n->_board->game_state.white_inCheck) { // white is in checkmate
         return -1;
       }
+      return 0; // if not checkmate then stalemate
     }
   }
-  // detect black checkmate
+  // count moves, black's turn
   if (n->_board->game_state.active_color == Color::black) {
-    if (n->_board->game_state.black_inCheck) {
-      for (const auto &moves :
-           n->_board->maps->black_moves | std::views::values) {
-        number_of_moves += moves.size();
-      }
-      if (number_of_moves == 0) {
+    for (const auto &moves :
+         n->_board->maps->black_moves | std::views::values) {
+      number_of_moves += moves.size();
+    }
+    if (number_of_moves == 0) { // possibly stalemate or checkmate
+      if (n->_board->game_state.black_inCheck) { // black is in checkmate
         return 1;
       }
+      return 0; // if not checkmate then stalemate
     }
   }
-  // if neither is in checkmate
-  return 0;
+  return 2; // neither stalemate nor checkmate
 }
 
 double Eval::mobility_evaluation(const Node *n) {
@@ -99,12 +100,15 @@ double Eval::castle_bonus(const Node *n) {
 }
 
 double Eval::simple_evaluation(const Node *n) {
-  if (detect_checkmate(n) == 0) {
-    const double sum = material_evaluation(n) + mobility_evaluation(n) +
-                       check_bonus(n) + castle_bonus(n);
-    return sum;
+  if (detect_stalemate_checkmate(n) == -1 || // white is in checkmate
+      detect_stalemate_checkmate(n) == 1) {  // black is in checkmate
+    return 1000 * detect_stalemate_checkmate(n);
   }
-  return 1'000 * detect_checkmate(n);
+  if (detect_stalemate_checkmate(n) == 0) { // stalemate
+    return 0;
+  }
+  return material_evaluation(n) + mobility_evaluation(n) + check_bonus(n) +
+         castle_bonus(n);
 }
 
 double Eval::eval(const Node *n) { return simple_evaluation(n); }

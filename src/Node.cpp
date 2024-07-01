@@ -53,9 +53,9 @@ void Node::spawn_depth_first(const uint depth) { // NOLINT
 
   _board->update_move_maps();
 
-  if (Eval::detect_checkmate(this) !=
-      0) { // not at specified depth, but still a terminal node
-    _eval = Eval::eval(this);
+  // not at specified depth, but still a terminal node
+  if (Eval::detect_stalemate_checkmate(this) != 2) { // 2 means neither
+    _eval = Eval::eval(this);                        // stalemate nor checkmate
     _board.reset();
     return;
   }
@@ -90,6 +90,14 @@ void Node::spawn_depth_first(const uint depth) { // NOLINT
   for (auto &n : _child) {
     n->spawn_depth_first(depth - 1);
   }
+}
+
+Node *Node::next_step(Node *end) const {
+  Node *current = end;
+  while (current->parent != this) {
+    current = current->parent;
+  }
+  return current;
 }
 
 Node *Node::next_step(Node *end, uint *depth) const {

@@ -36,14 +36,19 @@ struct Eval {
   static double material_evaluation(const Node *n);
 
   /**
-   * @brief Detects checkmate.
+   * @brief Detects stalemate or checkmate.
    * @details Check whether there are any legal moves available for the active
-   * player. If there are no legal moves available, this is checkmate.
+   * player. If there are no legal moves available and the player's king is not
+   * in check, this is stalemate. If there are no legal moves available and the
+   * player's king is in check, this is checkmate.
    * @param n The node containing the board to evaluate.
-   * @return -1 - White is in checkmate \n 1 - Black is in checkmate \n 0 -
-   * neither color is in checkmate.
+   * @return \n
+   *         - -1: white is in checkmate \n
+   *         -  0: stalemate
+   *         -  1: black is in checkmate \n
+   *         -  2: neither stalemate nor checkmate
    */
-  static int detect_checkmate(const Node *n);
+  static int detect_stalemate_checkmate(const Node *n);
 
   /**
    * @brief The number of legal moves available to a side.

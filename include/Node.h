@@ -62,6 +62,8 @@ struct Node {
    * @brief Creates a decision tree of n layers.
    * @details Uses a depth-first recursive algorithm
    * @param depth The depth of the tree to spawn child nodes for.
+   * @note Resets (deletes) boards as additional layers are spawned. Don't try
+   * to access boards after creating the tree: they won't be there.
    */
   void spawn_depth_first(uint depth);
 
@@ -76,6 +78,14 @@ struct Node {
   /**
    * @brief Finds the next node between this node and the target node
    * @param end The target node
+   * @return The next node between this node and the target node
+   * @warning Target node must be a child of the calling node ... otherwise :~(
+   */
+  Node *next_step(Node *end) const;
+
+  /**
+   * @brief Finds the next node between this node and the target node
+   * @param end The target node
    * @param depth To track distance between nodes
    * @return The next node between this node and the target node
    * @warning Target node must be a child of the calling node ... otherwise :~(
@@ -85,7 +95,7 @@ struct Node {
   /**
    * @return The distance in ply from a this node to the root node.
    */
-  uint node_depth() const;
+  [[nodiscard]] uint node_depth() const;
 };
 
 #endif // INCLUDE_NODE_H_
