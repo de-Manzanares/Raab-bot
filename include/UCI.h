@@ -23,6 +23,8 @@ namespace uciloop {
 bool simon_says(const std::string *s, const std::string &has);
 
 /// @return True - white to move \n False - black to move
+bool is_maxing(const std::shared_ptr<Node> &n);
+/// @return True - white to move \n False - black to move
 bool is_maxing(const Node *n);
 
 /**
