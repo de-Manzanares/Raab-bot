@@ -6,6 +6,10 @@
 
 namespace uciloop {
 
+bool is_maxing(const std::shared_ptr<Node> &n) {
+  return n->_board->game_state.active_color == Color::white;
+}
+
 bool is_maxing(const Node *n) {
   return n->_board->game_state.active_color == Color::white;
 }
@@ -111,7 +115,7 @@ void uci::loop() {
   namespace ulp = uciloop;
   std::string in; // the command from the GUI
   Node *n{};      // root node is a pointer for easy deletion and rebuilding of
-                  // the decision tree
+  // the decision tree
 
   while (std::getline(std::cin, in)) {
     ulp::preamble(&in);
