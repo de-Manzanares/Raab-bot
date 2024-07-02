@@ -1,0 +1,23 @@
+name: Style Check
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run clang-format
+        run: "clang-format -n -Werror -style='{BasedOnStyle: LLVM, IndentWidth: 2, ColumnLimit: 80}' include/* src/*"
+
+      - name: Install cpplint
+        run: sudo apt install cpplint
+
+      - name: Run cpplint
+        run: cpplint --filter=$(tr '\n' ',' < CPPLINT.cfg) include/* src/*
