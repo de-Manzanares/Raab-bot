@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(Raab-bot)
+set(VERSION v1.01)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-add_executable(Raab-bot
+add_executable(Raab-bot-${VERSION}
         main.cpp
         src/Board.cpp
         src/Eval.cpp
@@ -14,7 +15,7 @@ add_executable(Raab-bot
         src/Search.cpp
         src/Square.cpp
         src/UCI.cpp)
-target_include_directories(Raab-bot PRIVATE include)
+target_include_directories(Raab-bot-${VERSION} PRIVATE include)
 
 enable_testing()
 include(CTest)
