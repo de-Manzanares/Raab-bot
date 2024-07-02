@@ -1,0 +1,11 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 0%  # test for good reason, not for an arbitrary target
+    patch:
+      default:
+        target: 0%  # test for good reason, not for an arbitrary target
+
+  ignore:
+    - "tests/*"     # artificially inflates coverage metric
