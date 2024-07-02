@@ -4,20 +4,20 @@ find_package(Catch2 3 QUIET)
 
 if (Catch2_FOUND)
     message(STATUS "Catch2 v3 found, tests will be built")
-    add_executable(basic-tests
+    add_executable(board-test
             ../src/Square.cpp
             ../src/Game_State.cpp
             ../src/Board.cpp
-            basic/general.cxx
-            basic/influence-test.cxx
-            basic/basic-moves-test.cxx
-            basic/move-block-or-capture.cxx
-            basic/pinned-pieces-test.cxx
-            basic/sample-game.cxx)
-    target_include_directories(basic-tests PRIVATE ../include)
-    target_link_libraries(basic-tests PRIVATE Catch2::Catch2WithMain)
+            board/general.cxx
+            board/influence-test.cxx
+            board/basic-moves-test.cxx
+            board/move-block-or-capture.cxx
+            board/pinned-pieces-test.cxx
+            board/sample-game.cxx)
+    target_include_directories(board-test PRIVATE ../include)
+    target_link_libraries(board-test PRIVATE Catch2::Catch2WithMain)
 
-    add_executable(system-test
+    add_executable(other-test
             ../src/Square.cpp
             ../src/Game_State.cpp
             ../src/Board.cpp
@@ -25,15 +25,15 @@ if (Catch2_FOUND)
             ../src/Node.cpp
             ../src/Search.cpp
             ../src/UCI.cpp
-            other/system-test.cxx)
-    target_include_directories(system-test PRIVATE ../include)
-    target_link_libraries(system-test PRIVATE Catch2::Catch2WithMain)
+            other/uci-test.cxx)
+    target_include_directories(other-test PRIVATE ../include)
+    target_link_libraries(other-test PRIVATE Catch2::Catch2WithMain)
 
     include(CTest)
     include(Catch)
 
-    add_test(NAME BasicTest COMMAND basic-tests)
-    add_test(NAME SystemTest COMMAND system-test)
+    add_test(NAME BoardTest COMMAND board-test)
+    add_test(NAME OtherTest COMMAND other-test)
 
 else ()
     message(STATUS "Catch2 v3 not found, tests will not be built.")
