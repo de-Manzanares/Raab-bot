@@ -9,3 +9,4 @@ coverage:
 
   ignore:
     - "test"        # artificially inflates coverage metric
+    
