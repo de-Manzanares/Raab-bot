@@ -12,6 +12,7 @@
 #include "Board.h"
 
 #include <algorithm>
+#include <ranges>
 #include <sstream>
 
 using s = Square;
@@ -102,7 +103,7 @@ void Board::clear() {
 
 void Board::remove_piece(Square square) {
   const uint64_t mask = ~(1ULL << static_cast<uint>(square));
-  for (auto &[ch, bits] : piece_map) {
+  for (auto &bits : piece_map | std::views::values) {
     bits &= mask;
   }
 }
@@ -1174,12 +1175,12 @@ void Board::update_pinned_pieces() const {
   maps->white_pinned.clear();
   maps->black_pinned.clear();
 
-  for (const auto &[sq, moves] : maps->white_influence) {
+  for (const auto &sq : maps->white_influence | std::views::keys) {
     if (pinned_piece(sq) != sq) {
       maps->black_pinned.insert({pinned_piece(sq), sq});
     }
   }
-  for (const auto &[sq, moves] : maps->black_influence) {
+  for (const auto &sq : maps->black_influence | std::views::keys) {
     if (pinned_piece(sq) != sq) {
       maps->white_pinned.insert({pinned_piece(sq), sq});
     }
@@ -1225,17 +1226,17 @@ std::vector<Square> Board::update_white_king_moves(Square sq_w_King) {
   }
 
   // remove square that are under attack
-  for (const auto &s : influence_kings) {
+  for (const auto &sq : influence_kings) {
     // flags a square as under attack
     bool under_attack = false; // reset search flag
-    for (const auto &[fst, snd] : maps->black_influence) {
-      if (std::ranges::find(snd, s) != snd.end()) {
+    for (const auto &moves : maps->black_influence | std::views::values) {
+      if (std::ranges::find(moves, sq) != moves.end()) {
         under_attack = true;
         break;
       }
     }
     if (!under_attack) {
-      safe_squares.push_back(s);
+      safe_squares.push_back(sq);
     }
   }
   // clean list of same color squares (cannot take own pieces)
@@ -1310,16 +1311,16 @@ std::vector<Square> Board::update_black_king_moves(Square sq_b_king) {
   }
 
   // remove square that are under attack
-  for (const auto &s : influence_kings) {
+  for (const auto &sq : influence_kings) {
     bool under_attack = false; // reset search flag
-    for (const auto &[fst, snd] : maps->white_influence) {
-      if (std::ranges::find(snd, s) != snd.end()) {
+    for (const auto &moves : maps->white_influence | std::views::values) {
+      if (std::ranges::find(moves, sq) != moves.end()) {
         under_attack = true;
         break;
       }
     }
     if (!under_attack) {
-      safe_squares.push_back(s);
+      safe_squares.push_back(sq);
     }
   }
   // clean list of same color squares (cannot take own pieces)
@@ -1439,12 +1440,12 @@ void Board::update_move_maps() {
   remove_same_color_squares(Color::black,
                             &maps->black_moves); // remove same colored squares
 
-  for (const auto &[sq, moves] : maps->white_influence) {
+  for (const auto &sq : maps->white_influence | std::views::keys) {
     if (is_white_pawn(sq)) {
       maps->white_moves.insert({sq, legal_moves(sq)});
     } // generate white pawn moves
   }
-  for (const auto &[sq, moves] : maps->black_influence) {
+  for (const auto &sq : maps->black_influence | std::views::keys) {
     if (is_black_pawn(sq)) {
       maps->black_moves.insert({sq, legal_moves(sq)});
     } // generate black pawn moves
@@ -1802,11 +1803,12 @@ void Board::do_move(const Square from, const Square to, const char ch) {
 //------------------------------------------------------------------------------
 // BEGIN diagnostic
 
-uint Board::nodes_at_depth_1(Color color) {
+uint Board::nodes_at_depth_1(const Color color) {
   update_move_maps();
   uint nodes{};
-  for (const auto &[sq, moves] :
-       color == Color::white ? maps->white_moves : maps->black_moves) {
+  for (const auto &moves :
+       (color == Color::white ? maps->white_moves : maps->black_moves) |
+           std::views::values) {
     nodes += moves.size();
   }
   return nodes;

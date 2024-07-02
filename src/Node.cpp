@@ -41,7 +41,7 @@ Node::Node(const std::shared_ptr<Board> &board, const Square from,
 }
 
 Node::~Node() {
-  for (auto &child : _child) {
+  for (const auto &child : _child) {
     delete child;
   }
 }
@@ -98,7 +98,7 @@ void Node::spawn_depth_first(const uint depth) { // NOLINT
 
   _board.reset();
 
-  for (auto &n : _child) {
+  for (const auto &n : _child) {
     n->spawn_depth_first(depth - 1);
   }
 }
