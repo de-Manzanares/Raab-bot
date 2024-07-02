@@ -1,4 +1,4 @@
-#include "include/UCI.h"
+#include "../include/UCI.h"
 
 int main() {
   uci::loop();
