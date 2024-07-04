@@ -16,6 +16,8 @@
 #include "Board.h"
 #include "Node.h"
 
+#include <memory>
+
 /**
  * @struct Search
  * @brief min-max alpha-beta pruning search algorithm.
@@ -32,8 +34,9 @@ struct Search {
    * @note This function assumes that the tree has been populated with valid
    * nodes and evaluations.
    */
-  static Node *min_max(Node *n, uint depth, double alpha, double beta,
-                       bool maximizing);
+  static std::shared_ptr<Node> min_max(const std::shared_ptr<Node> &n,
+                                       uint depth, double alpha, double beta,
+                                       bool maximizing);
 };
 
 #endif // INCLUDE_SEARCH_H_

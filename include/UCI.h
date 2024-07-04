@@ -32,8 +32,6 @@ bool simon_says(const std::string *s, const std::string &has);
 
 /// @return True - white to move \n False - black to move
 bool is_maxing(const std::shared_ptr<Node> &n);
-/// @return True - white to move \n False - black to move
-bool is_maxing(const Node *n);
 
 /**
  * @brief Gives info's to std out
@@ -52,7 +50,7 @@ void preamble(const std::string *in);
  * @param n Node holding the board to be mutated.
  * @param in moves string
  */
-void startpos_moves(const Node *n, const std::string *in);
+void startpos_moves(const std::shared_ptr<Node> &n, const std::string *in);
 
 /**
  * @brief Decomposes long algebraic notation
@@ -70,7 +68,7 @@ void string_to_move(const std::string *string, Square *from, Square *to,
  * @note a node's "move" is the move performed that makes this node different
  * from it's parent node
  */
-std::string long_algebraic_notation(const Node *n);
+std::string long_algebraic_notation(const std::shared_ptr<Node> &n);
 
 } // namespace uciloop
 

@@ -22,13 +22,13 @@ std::chrono::time_point<std::chrono::high_resolution_clock> Counter::start =
 
 Node::Node() : _board(std::make_shared<Board>()) {
   _from = _to = s::h1;
-  _ch = 0;
+  _promotion = 0;
 }
 
 Node::Node(const std::string &fen) : _board(std::make_shared<Board>()) {
   _board->import_fen(fen);
   _from = _to = s::h1;
-  _ch = 0;
+  _promotion = 0;
 }
 
 Node::Node(const std::shared_ptr<Board> &board, const Square from,
@@ -37,14 +37,8 @@ Node::Node(const std::shared_ptr<Board> &board, const Square from,
   *_board = *board;
   _from = from;
   _to = to;
-  _ch = ch;
+  _promotion = ch;
   _board->do_move(from, to, ch);
-}
-
-Node::~Node() {
-  for (const auto &child : _child) {
-    delete child;
-  }
 }
 
 uint Node::count_nodes() { // NOLINT
@@ -79,14 +73,14 @@ void Node::spawn_depth_first(const uint depth) { // NOLINT
       if ((_board->get_row(move) == 8 && _board->is_white_pawn(sq)) ||
           (_board->get_row(move) == 1 && _board->is_black_pawn(sq))) {
         for (const auto piece : std::vector{'q', 'r', 'b', 'n'}) {
-          auto spawn = new Node(_board, sq, move, piece);
-          spawn->parent = this;
+          auto spawn = std::make_shared<Node>(Node(_board, sq, move, piece));
+          spawn->_parent = this;
           _child.push_back(spawn);
           Counter::node++;
         }
       } else {
-        auto spawn = new Node(_board, sq, move, 0);
-        spawn->parent = this;
+        auto spawn = std::make_shared<Node>(Node(_board, sq, move, 0));
+        spawn->_parent = this;
         _child.push_back(spawn);
         Counter::node++;
       }
@@ -104,28 +98,19 @@ void Node::spawn_depth_first(const uint depth) { // NOLINT
   }
 }
 
-Node *Node::next_step(Node *end) const {
-  Node *current = end;
-  while (current->parent != this) {
-    current = current->parent;
+std::shared_ptr<Node> Node::next_step(const std::shared_ptr<Node> &end) const {
+  Node *current = end.get();
+  while (current->_parent != this) {
+    current = current->_parent;
   }
-  return current;
-}
-
-Node *Node::next_step(Node *end, uint *depth) const {
-  Node *current = end;
-  while (current->parent != this) {
-    current = current->parent;
-    (*depth)++;
-  }
-  return current;
+  return std::make_shared<Node>(*current);
 }
 
 uint Node::node_depth() const {
   uint ply = 0;
   auto current = this;
-  while (current->parent != nullptr) {
-    current = current->parent;
+  while (current->_parent != nullptr) {
+    current = current->_parent;
     ply++;
   }
   return ply;
