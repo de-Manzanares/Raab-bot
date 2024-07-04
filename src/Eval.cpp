@@ -15,6 +15,7 @@
 #include <ranges>
 
 using s = Square;
+using c = Color;
 
 class Node;
 
@@ -22,6 +23,7 @@ double Eval::CHECK_BONUS = 0.25;
 double Eval::MOBILITY_MULTIPLIER = 1.0 / 100.0;
 double Eval::CASTLE_BONUS = 0.5;
 double Eval::RATIO_MULTIPLIER = 2.0;
+double Eval::STACKED_PAWN_PENALTY = 0.25;
 
 std::unordered_map<char, int> Eval::material_value = {
     {'Q', 900},  {'R', 500},  {'B', 310},  {'N', 300},  {'P', 100},
@@ -109,6 +111,44 @@ double Eval::castle_bonus(const Node *n) {
   }
 
   return score;
+}
+
+double Eval::stacked_pawns(const Node *n) {
+  double stacked_balance{};
+  std::vector<Square> pawn_w;
+  std::vector<Square> pawn_b;
+  pawn_w.reserve(8);
+  pawn_b.reserve(8);
+  std::vector column_w(9, 0);
+  std::vector column_b(9, 0);
+
+  for (const auto &sq : n->board()->maps->white_moves | std::views::keys) {
+    if (n->board()->is_white_pawn(sq)) {
+      pawn_w.push_back(sq);
+    }
+  }
+  for (const auto &p : pawn_w) {
+    column_w[n->board()->get_column(p)] += 1;
+  }
+  for (const auto &c : column_w) {
+    if (c > 1) {
+      stacked_balance -= c - 1; // bad for white == good for black (-)
+    }
+  }
+  for (const auto &sq : n->board()->maps->black_moves | std::views::keys) {
+    if (n->board()->is_black_pawn(sq)) {
+      pawn_b.push_back(sq);
+    }
+  }
+  for (const auto &p : pawn_b) {
+    column_b[n->board()->get_column(p)] += 1;
+  }
+  for (const auto &c : column_b) {
+    if (c > 1) {
+      stacked_balance += c - 1; // bad for black == good for white (+)
+    }
+  }
+  return STACKED_PAWN_PENALTY * stacked_balance;
 }
 
 double Eval::simple_evaluation(const Node *n) {
