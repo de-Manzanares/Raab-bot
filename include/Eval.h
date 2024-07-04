@@ -32,6 +32,7 @@ struct Eval {
   static double MOBILITY_MULTIPLIER; ///< weight of count of legal moves
   static double CASTLE_BONUS;        ///< weight on castle
   static double RATIO_MULTIPLIER;    ///< weight on material ratio
+  static double STACKED_PAWN_PENALTY;       ///< weight on stacked pawns
 
   // evaluation functions ----------------------------------------
 
@@ -77,6 +78,11 @@ struct Eval {
    * I just wanted to see castling more often so I tacked some weight onto it.
    */
   static double castle_bonus(const Node *n);
+
+  /**
+   * Discourage stacked pawns
+   */
+  static double stacked_pawns(const Node *n);
 
   /**
    * Creates an aggregate score using all evaluation methods
