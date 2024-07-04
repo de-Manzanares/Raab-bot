@@ -45,18 +45,12 @@ jobs:
 
       - name: Cache vcpkg
         id: cache-vcpkg
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: vcpkg
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
             ${{ runner.os }}-vcpkg-
-
-      - name: Install GCC on macOS
-        if: matrix.os == 'macos-latest'
-        run: |
-          brew info gcc
-          brew install gcc
 
       - name: macOS vcpkg catch2
         if: matrix.os == 'macos-latest'
