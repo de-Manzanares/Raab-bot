@@ -24,6 +24,7 @@ double Eval::MOBILITY_MULTIPLIER = 1.0 / 100.0;
 double Eval::CASTLE_BONUS = 0.5;
 double Eval::RATIO_MULTIPLIER = 2.0;
 double Eval::STACKED_PAWN_PENALTY = 0.25;
+double Eval::PASSED_PAWN_BONUS = 0.30;
 
 std::unordered_map<char, int> Eval::material_value = {
     {'Q', 900},  {'R', 500},  {'B', 310},  {'N', 300},  {'P', 100},
@@ -149,6 +150,83 @@ double Eval::stacked_pawns(const Node *n) {
     }
   }
   return STACKED_PAWN_PENALTY * stacked_balance;
+}
+
+double Eval::passed_pawns(const Node *n) {
+  constexpr uint COLUMNS = 8;
+  double passed_balance{};
+  std::vector<std::vector<Square>> pawn_w;
+  std::vector<std::vector<Square>> pawn_b;
+
+  pawn_w.reserve(COLUMNS + 2);
+  pawn_b.reserve(COLUMNS + 2);
+
+  for (auto i = 0; i < COLUMNS + 2; i++) {
+    std::vector<Square> row{};
+    if (i > 0 && i < 9) {
+      row.reserve(4);
+    }
+    pawn_w.push_back(row);
+  }
+  for (auto i = 0; i < COLUMNS + 2; i++) {
+    std::vector<Square> row{};
+    if (i > 0 && i < 9) {
+      row.reserve(4);
+    }
+    pawn_b.push_back(row);
+  }
+
+  for (const auto &sq : n->board()->maps->white_moves | std::views::keys) {
+    if (n->board()->is_white_pawn(sq)) {
+      pawn_w[n->board()->get_column(sq)].push_back(sq);
+    }
+  }
+  for (const auto &sq : n->board()->maps->black_moves | std::views::keys) {
+    if (n->board()->is_black_pawn(sq)) {
+      pawn_b[n->board()->get_column(sq)].push_back(sq);
+    }
+  }
+
+  for (auto i = 0 + 1; i < COLUMNS + 1; ++i) { // so that [i-1] and [i+1] are ok
+    if (pawn_b[i].empty() && !pawn_w[i].empty()) {
+      for (const auto &pw : pawn_w[i]) {
+        if (pawn_b[i - 1].empty() && pawn_b[i + 1].empty()) {
+          passed_balance += 1;
+        } else {
+          bool passed = true;
+          for (std::vector addend{-1, 1}; const auto &a : addend) {
+            for (const auto &pb : pawn_b[i + a]) {
+              if (n->board()->get_row(pb) > n->board()->get_row(pw)) {
+                passed = false;
+              }
+            }
+          }
+          if (passed) {
+            passed_balance += 1;
+          }
+        }
+      }
+    } else if (pawn_w[i].empty() && !pawn_b[i].empty()) {
+      for (const auto &pb : pawn_b[i]) {
+        if (pawn_w[i - 1].empty() && pawn_w[i + 1].empty()) {
+          passed_balance -= 1;
+        } else {
+          bool passed = true;
+          for (std::vector addend{-1, 1}; const auto &a : addend) {
+            for (const auto &pw : pawn_w[i + a]) {
+              if (n->board()->get_row(pw) < n->board()->get_row(pb)) {
+                passed = false;
+              }
+            }
+          }
+          if (passed) {
+            passed_balance -= 1;
+          }
+        }
+      }
+    }
+  }
+  return PASSED_PAWN_BONUS * passed_balance;
 }
 
 double Eval::simple_evaluation(const Node *n) {

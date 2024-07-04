@@ -28,11 +28,12 @@ struct Eval {
   static std::unordered_map<char, int> material_value; ///< material value
 
   // evaluation parameters
-  static double CHECK_BONUS;         ///< weight of check
-  static double MOBILITY_MULTIPLIER; ///< weight of count of legal moves
-  static double CASTLE_BONUS;        ///< weight on castle
-  static double RATIO_MULTIPLIER;    ///< weight on material ratio
-  static double STACKED_PAWN_PENALTY;       ///< weight on stacked pawns
+  static double CHECK_BONUS;          ///< weight of check
+  static double MOBILITY_MULTIPLIER;  ///< weight of count of legal moves
+  static double CASTLE_BONUS;         ///< weight on castle
+  static double RATIO_MULTIPLIER;     ///< weight on material ratio
+  static double STACKED_PAWN_PENALTY; ///< weight on stacked pawns
+  static double PASSED_PAWN_BONUS;    ///< weight on passed pawn
 
   // evaluation functions ----------------------------------------
 
@@ -83,6 +84,11 @@ struct Eval {
    * Discourage stacked pawns
    */
   static double stacked_pawns(const Node *n);
+
+  /**
+   * Encourage passed pawns
+   */
+  static double passed_pawns(const Node *n);
 
   /**
    * Creates an aggregate score using all evaluation methods

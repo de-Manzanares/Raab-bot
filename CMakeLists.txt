@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(Raab-bot)
-set(VERSION v1.01)
+set(VERSION v1.02)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_VERBOSE_MAKEFILE ON)
