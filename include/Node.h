@@ -35,7 +35,8 @@ struct Counter {
  * @brief Represents a node in a tree structure
  * @details Each node contains a possible game state.
  */
-struct Node {
+class Node : std::enable_shared_from_this<Node> {
+ public:
   /// @brief Default constructor for Node class
   Node();
 
@@ -54,16 +55,19 @@ struct Node {
    */
   Node(const std::shared_ptr<Board> &board, Square from, Square to, char ch);
 
-  /// @brief Destructor for the Node class
-  ~Node();
-
-  Square _from; ///< from Square of move that created this position
-  Square _to;   ///< to Square of move that created this position
-  char _ch;     ///< if a pawn is promoting, this gives the piece to promote to
-  Node *parent{};                  ///< parent node
-  std::shared_ptr<Board> _board{}; ///< Board
-  double _eval{};                  ///< evaluation
-  std::vector<Node *> _child{};    ///< children nodes
+  auto from() -> Square & { return _from; }
+  auto from() const -> Square const & { return _from; }
+  auto to() -> Square & { return _to; }
+  auto to() const -> Square const & { return _to; }
+  auto parent() const -> std::shared_ptr<Node> {
+    return std::make_shared<Node>(*_parent);
+  }
+  auto board() -> std::shared_ptr<Board> { return _board; }
+  auto board() const -> std::shared_ptr<Board> { return _board; }
+  auto eval() -> double & { return _eval; }
+  auto child() -> std::vector<std::shared_ptr<Node>> & { return _child; }
+  auto active_color() const -> Color { return _board->game_state.active_color; }
+  auto promotion() const -> char { return _promotion; }
 
   /**
    * @brief Creates a decision tree of n layers.
@@ -86,23 +90,25 @@ struct Node {
    * @brief Finds the next node between this node and the target node
    * @param end The target node
    * @return The next node between this node and the target node
-   * @warning Target node must be a child of the calling node ... otherwise :~(
+   * @warning Target node must be a child of the calling node ... otherwise
+   * :~(
    */
-  Node *next_step(Node *end) const;
-
-  /**
-   * @brief Finds the next node between this node and the target node
-   * @param end The target node
-   * @param depth To track distance between nodes
-   * @return The next node between this node and the target node
-   * @warning Target node must be a child of the calling node ... otherwise :~(
-   */
-  Node *next_step(Node *end, uint *depth) const;
+  [[nodiscard]] std::shared_ptr<Node>
+  next_step(const std::shared_ptr<Node> &end) const;
 
   /**
    * @return The distance in ply from a this node to the root node.
    */
   [[nodiscard]] uint node_depth() const;
+
+ private:
+  Square _from;    ///< from Square of move that created this position
+  Square _to;      ///< to Square of move that created this position
+  char _promotion; ///< if a pawn is promoting, this gives the piece
+  Node *_parent{}; ///< parent node
+  std::shared_ptr<Board> _board{};             ///< Board
+  double _eval{};                              ///< evaluation
+  std::vector<std::shared_ptr<Node>> _child{}; ///< children nodes
 };
 
 #endif // INCLUDE_NODE_H_

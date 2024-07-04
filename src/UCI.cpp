@@ -19,11 +19,7 @@
 namespace uciloop {
 
 bool is_maxing(const std::shared_ptr<Node> &n) {
-  return n->_board->game_state.active_color == Color::white;
-}
-
-bool is_maxing(const Node *n) {
-  return n->_board->game_state.active_color == Color::white;
+  return n->active_color() == Color::white;
 }
 
 bool simon_says(const std::string *s, const std::string &has) {
@@ -79,11 +75,11 @@ void string_to_move(const std::string *string, Square *from, Square *to,
   }
 }
 
-std::string long_algebraic_notation(const Node *n) {
+std::string long_algebraic_notation(const std::shared_ptr<Node> &n) {
   std::string s;
-  s += Sq::square_to_string(n->_from) += Sq::square_to_string(n->_to);
-  if (n->_ch != 0) {
-    s += n->_ch;
+  s += Sq::square_to_string(n->from()) += Sq::square_to_string(n->to());
+  if (n->promotion() != 0) {
+    s += n->promotion();
   }
   return s;
 }
@@ -101,7 +97,7 @@ void preamble(const std::string *in) {
   }
 }
 
-void startpos_moves(const Node *n, const std::string *in) {
+void startpos_moves(const std::shared_ptr<Node> &n, const std::string *in) {
   std::istringstream iss(*in);
   std::string s;
 
@@ -115,7 +111,7 @@ void startpos_moves(const Node *n, const std::string *in) {
     Square from{}, to{};
     char ch{};
     string_to_move(&s, &from, &to, &ch);
-    n->_board->do_move(from, to, ch);
+    n->board()->do_move(from, to, ch);
   }
 }
 
@@ -125,9 +121,9 @@ uint uci::DEPTH = 3;
 
 void uci::loop() {
   namespace ulp = uciloop;
-  std::string in; // the command from the GUI
-  Node *n{};      // root node is a pointer for easy deletion and rebuilding of
-  // the decision tree
+  std::string in;                    // the command from the GUI
+  std::shared_ptr<Node> n = nullptr; // root node is a pointer for easy deletion
+                                     // and rebuilding of the decision tree
 
   while (std::getline(std::cin, in)) {
     ulp::preamble(&in);
@@ -137,7 +133,7 @@ void uci::loop() {
     if (ulp::simon_says(&in, "position")) {
       if (ulp::simon_says(&in, "fen")) {
       } else if (ulp::simon_says(&in, "startpos")) {
-        n = new Node;
+        n = std::make_shared<Node>();
         if (ulp::simon_says(&in, "moves")) {
           ulp::startpos_moves(n, &in);
         }
@@ -148,7 +144,7 @@ void uci::loop() {
       ulp::continue_status_updates = true; // reset flag
 
       const bool maxing = ulp::is_maxing(n);
-      n->_board->update_move_maps();
+      n->board()->update_move_maps();
       std::thread status_thread(ulp::status_update_thread, 1000);
       n->spawn_depth_first(DEPTH);
 
@@ -157,10 +153,8 @@ void uci::loop() {
 
       // n->spawn_breadth_first(D);
 
-      std::vector opt_nodes{
-          Search::min_max(n, DEPTH, ulp::neg_inf, ulp::pos_inf, maxing)};
-      uint depth_counter = 1;
-      std::vector moves{(n->next_step(opt_nodes[0], &depth_counter))};
+      const auto opt_node = std::make_shared<Node>(
+          *Search::min_max(n, DEPTH, ulp::neg_inf, ulp::pos_inf, maxing));
 
       const auto time =
           std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -168,12 +162,13 @@ void uci::loop() {
               .count();
 
       std::cout << "info"
-                << " depth " << opt_nodes[0]->node_depth() << " time " << time
+                << " depth " << opt_node->node_depth() << " time " << time
                 << " nodes " << Counter::node << "\nbestmove "
-                << ulp::long_algebraic_notation(moves[0]) << std::endl;
+                << ulp::long_algebraic_notation(n->next_step(opt_node))
+                << std::endl;
 
-      delete n;
-      n = nullptr;
+      n.reset();
+
     } else if (in.find("stop") != std::string::npos) {
     } else if (in == "quit") {
       break;

@@ -13,23 +13,24 @@
 #include "Search.h"
 #include "Eval.h"
 
-Node *Search::min_max(Node *n, uint depth, double alpha, double beta, // NOLINT
-                      const bool maximizing) {
-  if (depth == 0 || n->_child.empty()) {
+std::shared_ptr<Node> Search::min_max(const std::shared_ptr<Node> &n, // NOLINT
+                                      const uint depth, double alpha,
+                                      double beta, const bool maximizing) {
+  if (depth == 0 || n->child().empty()) {
     return n;
   }
 
-  Node *opt_node = nullptr;
+  std::shared_ptr<Node> opt_node = nullptr;
 
   if (maximizing) {
     double max = -100'000;
-    for (const auto &c : n->_child) {
+    for (const auto &c : n->child()) {
       const auto res = min_max(c, depth - 1, alpha, beta, false);
-      if (max < res->_eval) {
-        max = res->_eval;
+      if (max < res->eval()) {
+        max = res->eval();
         opt_node = res;
       }
-      alpha = std::max(alpha, res->_eval);
+      alpha = std::max(alpha, res->eval());
       if (beta <= alpha) {
         break;
       }
@@ -38,13 +39,13 @@ Node *Search::min_max(Node *n, uint depth, double alpha, double beta, // NOLINT
   }
 
   double min = 100'000;
-  for (const auto &c : n->_child) {
+  for (const auto &c : n->child()) {
     const auto res = min_max(c, depth - 1, alpha, beta, true);
-    if (min > res->_eval) {
-      min = res->_eval;
+    if (min > res->eval()) {
+      min = res->eval();
       opt_node = res;
     }
-    beta = std::min(beta, res->_eval);
+    beta = std::min(beta, res->eval());
     if (beta <= alpha) {
       break;
     }

@@ -4,12 +4,13 @@
 #include <catch2/catch_all.hpp>
 
 std::string test(const std::string &fen) {
-  const auto n = new Node(fen);
+  const auto n = make_shared<Node>(fen);
   const bool maxing = uciloop::is_maxing(n);
-  n->_board->update_move_maps();
+  n->board()->update_move_maps();
   n->spawn_depth_first(3);
-  Node *opt = Search::min_max(n, 3, -100'000, 100'000, maxing);
-  const Node *best = n->next_step(opt);
+  const std::shared_ptr<Node> opt =
+      Search::min_max(n, 3, -100'000, 100'000, maxing);
+  const std::shared_ptr<Node> best = n->next_step(opt);
   return uciloop::long_algebraic_notation(best);
 }
 
