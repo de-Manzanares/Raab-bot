@@ -7,10 +7,10 @@ void generate_and_sort_bmt(Board &board, const Square &sq,
   board.update_move_maps();
   Color c = board.what_color(sq);
   if (c == Color::white) {
-    v = board.maps->white_moves[sq];
+    v = board.maps.white_moves[sq];
   }
   if (c == Color::black) {
-    v = board.maps->black_moves[sq];
+    v = board.maps.black_moves[sq];
   }
   std::sort(v.begin(), v.end());
 }
@@ -18,14 +18,14 @@ void generate_and_sort_bmt(Board &board, const Square &sq,
 void generate_and_sort_white_king(Board &board, const Square &sq,
                                   std::vector<Square> &v) {
   board.update_move_maps();
-  v = board.maps->white_moves[sq];
+  v = board.maps.white_moves[sq];
   std::sort(v.begin(), v.end());
 }
 
 void generate_and_sort_black_king(Board &board, const Square &sq,
                                   std::vector<Square> &v) {
   board.update_move_maps();
-  v = board.maps->black_moves[sq];
+  v = board.maps.black_moves[sq];
   std::sort(v.begin(), v.end());
 }
 

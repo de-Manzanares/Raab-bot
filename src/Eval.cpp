@@ -46,7 +46,7 @@ int Eval::detect_stalemate_checkmate(const Node *n) {
   // count moves, white's turn
   if (n->active_color() == Color::white) {
     for (const auto &moves :
-         n->board()->maps->white_moves | std::views::values) {
+         n->board()->maps.white_moves | std::views::values) {
       number_of_moves += moves.size();
     }
     if (number_of_moves == 0) { // possibly stalemate or checkmate
@@ -59,7 +59,7 @@ int Eval::detect_stalemate_checkmate(const Node *n) {
   // count moves, black's turn
   if (n->active_color() == Color::black) {
     for (const auto &moves :
-         n->board()->maps->black_moves | std::views::values) {
+         n->board()->maps.black_moves | std::views::values) {
       number_of_moves += moves.size();
     }
     if (number_of_moves == 0) { // possibly stalemate or checkmate
@@ -74,10 +74,10 @@ int Eval::detect_stalemate_checkmate(const Node *n) {
 
 double Eval::mobility_evaluation(const Node *n) {
   double score = 0;
-  for (const auto &moves : n->board()->maps->white_moves | std::views::values) {
+  for (const auto &moves : n->board()->maps.white_moves | std::views::values) {
     score += static_cast<double>(moves.size());
   }
-  for (const auto &moves : n->board()->maps->black_moves | std::views::values) {
+  for (const auto &moves : n->board()->maps.black_moves | std::views::values) {
     score -= static_cast<double>(moves.size());
   }
   return score * MOBILITY_MULTIPLIER;
@@ -102,15 +102,12 @@ double Eval::castle_bonus(const Node *n) {
       (n->from() == s::e8 && n->to() == s::g8 &&
        n->board()->is_black_rook(s::f8))) {
     score += CASTLE_BONUS;
-  }
-
-  else if ((n->from() == s::e1 && n->to() == s::c1 &&
-            n->board()->is_black_rook(s::d1)) ||
-           (n->from() == s::e8 && n->to() == s::c8 &&
-            n->board()->is_black_rook(s::d8))) {
+  } else if ((n->from() == s::e1 && n->to() == s::c1 &&
+              n->board()->is_black_rook(s::d1)) ||
+             (n->from() == s::e8 && n->to() == s::c8 &&
+              n->board()->is_black_rook(s::d8))) {
     score -= CASTLE_BONUS;
   }
-
   return score;
 }
 
@@ -123,7 +120,7 @@ double Eval::stacked_pawns(const Node *n) {
   std::vector column_w(9, 0);
   std::vector column_b(9, 0);
 
-  for (const auto &sq : n->board()->maps->white_moves | std::views::keys) {
+  for (const auto &sq : n->board()->maps.white_moves | std::views::keys) {
     if (n->board()->is_white_pawn(sq)) {
       pawn_w.push_back(sq);
     }
@@ -136,7 +133,7 @@ double Eval::stacked_pawns(const Node *n) {
       stacked_balance -= c - 1; // bad for white == good for black (-)
     }
   }
-  for (const auto &sq : n->board()->maps->black_moves | std::views::keys) {
+  for (const auto &sq : n->board()->maps.black_moves | std::views::keys) {
     if (n->board()->is_black_pawn(sq)) {
       pawn_b.push_back(sq);
     }
@@ -176,12 +173,12 @@ double Eval::passed_pawns(const Node *n) {
     pawn_b.push_back(row);
   }
 
-  for (const auto &sq : n->board()->maps->white_moves | std::views::keys) {
+  for (const auto &sq : n->board()->maps.white_moves | std::views::keys) {
     if (n->board()->is_white_pawn(sq)) {
       pawn_w[n->board()->get_column(sq)].push_back(sq);
     }
   }
-  for (const auto &sq : n->board()->maps->black_moves | std::views::keys) {
+  for (const auto &sq : n->board()->maps.black_moves | std::views::keys) {
     if (n->board()->is_black_pawn(sq)) {
       pawn_b[n->board()->get_column(sq)].push_back(sq);
     }
@@ -242,6 +239,210 @@ double Eval::simple_evaluation(const Node *n) {
 }
 
 double Eval::eval(const Node *n) { return simple_evaluation(n); }
+
+double Eval::material_evaluation(const Board *b) {
+  double sum = 0;
+  for (auto sq = s::a8; sq >= s::h1; --sq) {
+    if (!b->is_empty(sq)) {
+      sum += material_value[b->what_piece(sq)];
+    }
+  }
+  return sum / 100;
+}
+
+int Eval::detect_stalemate_checkmate(const Board *b_og) {
+  Board b = *b_og;
+  b.update_move_maps();
+  uint number_of_moves = 0;
+  // count moves, white's turn
+  if (b.game_state.active_color == Color::white) {
+    for (const auto &moves : b.maps.white_moves | std::views::values) {
+      number_of_moves += moves.size();
+    }
+    if (number_of_moves == 0) {         // possibly stalemate or checkmate
+      if (b.game_state.white_inCheck) { // white is in checkmate
+        return -1;
+      }
+      return 0; // if not checkmate then stalemate
+    }
+  }
+  // count moves, black's turn
+  if (b.game_state.active_color == Color::black) {
+    for (const auto &moves : b.maps.black_moves | std::views::values) {
+      number_of_moves += moves.size();
+    }
+    if (number_of_moves == 0) {         // possibly stalemate or checkmate
+      if (b.game_state.black_inCheck) { // black is in checkmate
+        return 1;
+      }
+      return 0; // if not checkmate then stalemate
+    }
+  }
+  return 2; // neither stalemate nor checkmate
+}
+double Eval::mobility_evaluation(const Board *b) {
+  double score = 0;
+  for (const auto &moves : b->maps.white_moves | std::views::values) {
+    score += static_cast<double>(moves.size());
+  }
+  for (const auto &moves : b->maps.black_moves | std::views::values) {
+    score -= static_cast<double>(moves.size());
+  }
+  return score * MOBILITY_MULTIPLIER;
+}
+double Eval::check_bonus(const Board *b) {
+  double score = 0;
+  if (b->game_state.white_inCheck) {
+    score -= CHECK_BONUS;
+  }
+  if (b->game_state.black_inCheck) {
+    score += CHECK_BONUS;
+  }
+  return score;
+}
+double Eval::castle_bonus(const Board *b, const Square from, const Square to) {
+  double score = 0;
+
+  if ((from == s::e1 && to == s::g1 && b->is_white_rook(s::f1)) ||
+      (from == s::e8 && to == s::g8 && b->is_black_rook(s::f8))) {
+    score += CASTLE_BONUS;
+  } else if ((from == s::e1 && to == s::c1 && b->is_black_rook(s::d1)) ||
+             (from == s::e8 && to == s::c8 && b->is_black_rook(s::d8))) {
+    score -= CASTLE_BONUS;
+  }
+  return score;
+}
+double Eval::stacked_pawns(const Board *b) {
+  double stacked_balance{};
+  std::vector<Square> pawn_w;
+  std::vector<Square> pawn_b;
+  pawn_w.reserve(8);
+  pawn_b.reserve(8);
+  std::vector column_w(9, 0);
+  std::vector column_b(9, 0);
+
+  for (const auto &sq : b->maps.white_moves | std::views::keys) {
+    if (b->is_white_pawn(sq)) {
+      pawn_w.push_back(sq);
+    }
+  }
+  for (const auto &p : pawn_w) {
+    column_w[Board::get_column(p)] += 1;
+  }
+  for (const auto &c : column_w) {
+    if (c > 1) {
+      stacked_balance -= c - 1; // bad for white == good for black (-)
+    }
+  }
+  for (const auto &sq : b->maps.black_moves | std::views::keys) {
+    if (b->is_black_pawn(sq)) {
+      pawn_b.push_back(sq);
+    }
+  }
+  for (const auto &p : pawn_b) {
+    column_b[Board::get_column(p)] += 1;
+  }
+  for (const auto &c : column_b) {
+    if (c > 1) {
+      stacked_balance += c - 1; // bad for black == good for white (+)
+    }
+  }
+  return STACKED_PAWN_PENALTY * stacked_balance;
+}
+double Eval::passed_pawns(const Board *b) {
+  constexpr uint COLUMNS = 8;
+  double passed_balance{};
+  std::vector<std::vector<Square>> pawn_w;
+  std::vector<std::vector<Square>> pawn_b;
+
+  pawn_w.reserve(COLUMNS + 2);
+  pawn_b.reserve(COLUMNS + 2);
+
+  for (auto i = 0; i < COLUMNS + 2; i++) {
+    std::vector<Square> row{};
+    if (i > 0 && i < 9) {
+      row.reserve(4);
+    }
+    pawn_w.push_back(row);
+  }
+  for (auto i = 0; i < COLUMNS + 2; i++) {
+    std::vector<Square> row{};
+    if (i > 0 && i < 9) {
+      row.reserve(4);
+    }
+    pawn_b.push_back(row);
+  }
+
+  for (const auto &sq : b->maps.white_moves | std::views::keys) {
+    if (b->is_white_pawn(sq)) {
+      pawn_w[Board::get_column(sq)].push_back(sq);
+    }
+  }
+  for (const auto &sq : b->maps.black_moves | std::views::keys) {
+    if (b->is_black_pawn(sq)) {
+      pawn_b[Board::get_column(sq)].push_back(sq);
+    }
+  }
+
+  for (auto i = 0 + 1; i < COLUMNS + 1; ++i) { // so that [i-1] and [i+1] are ok
+    if (pawn_b[i].empty() && !pawn_w[i].empty()) {
+      for (const auto &pw : pawn_w[i]) {
+        if (pawn_b[i - 1].empty() && pawn_b[i + 1].empty()) {
+          passed_balance += 1;
+        } else {
+          bool passed = true;
+          for (std::vector addend{-1, 1}; const auto &a : addend) {
+            for (const auto &pb : pawn_b[i + a]) {
+              if (Board::get_row(pb) > Board::get_row(pw)) {
+                passed = false;
+              }
+            }
+          }
+          if (passed) {
+            passed_balance += 1;
+          }
+        }
+      }
+    } else if (pawn_w[i].empty() && !pawn_b[i].empty()) {
+      for (const auto &pb : pawn_b[i]) {
+        if (pawn_w[i - 1].empty() && pawn_w[i + 1].empty()) {
+          passed_balance -= 1;
+        } else {
+          bool passed = true;
+          for (std::vector addend{-1, 1}; const auto &a : addend) {
+            for (const auto &pw : pawn_w[i + a]) {
+              if (Board::get_row(pw) < Board::get_row(pb)) {
+                passed = false;
+              }
+            }
+          }
+          if (passed) {
+            passed_balance -= 1;
+          }
+        }
+      }
+    }
+  }
+  return PASSED_PAWN_BONUS * passed_balance;
+}
+
+double Eval::simple_evaluation(const Board *b, const Square from,
+                               const Square to, const char ch) {
+  if (detect_stalemate_checkmate(b) == -1 || // white is in checkmate
+      detect_stalemate_checkmate(b) == 1) {  // black is in checkmate
+    return 1000 * detect_stalemate_checkmate(b);
+  }
+  if (detect_stalemate_checkmate(b) == 0) { // stalemate
+    return 0;
+  }
+  return material_evaluation(b) + mobility_evaluation(b) + check_bonus(b) +
+         castle_bonus(b, from, to);
+}
+
+double Eval::eval(const Board *b, const Square from, const Square to,
+                  const char ch) {
+  return simple_evaluation(b, from, to, ch);
+}
 
 // UNUSED
 // -----------------------------------------------------------------------------

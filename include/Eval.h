@@ -18,7 +18,7 @@
 
 #include <unordered_map>
 
-struct Node;
+class Node;
 
 /**
  * @struct Eval
@@ -35,7 +35,7 @@ struct Eval {
   static double STACKED_PAWN_PENALTY; ///< weight on stacked pawns
   static double PASSED_PAWN_BONUS;    ///< weight on passed pawn
 
-  // evaluation functions ----------------------------------------
+  // evaluation functions --------------NODE----------------------
 
   /**
    * @brief Computes balance of material on the board.
@@ -43,6 +43,7 @@ struct Eval {
    * @return The material balance.
    */
   static double material_evaluation(const Node *n);
+  static double material_evaluation(const Board *b);
 
   /**
    * @brief Detects stalemate or checkmate.
@@ -58,6 +59,7 @@ struct Eval {
    *         -  2: neither stalemate nor checkmate
    */
   static int detect_stalemate_checkmate(const Node *n);
+  static int detect_stalemate_checkmate(const Board *b);
 
   /**
    * @brief The number of legal moves available to a side.
@@ -66,6 +68,7 @@ struct Eval {
    * @return The mobility score.
    */
   static double mobility_evaluation(const Node *n);
+  static double mobility_evaluation(const Board *b);
 
   /**
    * @brief Gives weight to check
@@ -73,32 +76,39 @@ struct Eval {
    * @return (+) - black is in check \n (-) - white is in check
    */
   static double check_bonus(const Node *n);
+  static double check_bonus(const Board *b);
 
   /**
    * Encourage castling lol
    * I just wanted to see castling more often so I tacked some weight onto it.
    */
   static double castle_bonus(const Node *n);
+  static double castle_bonus(const Board *b, Square from, Square to);
 
   /**
    * Discourage stacked pawns
    */
   static double stacked_pawns(const Node *n);
+  static double stacked_pawns(const Board *b);
 
   /**
    * Encourage passed pawns
    */
   static double passed_pawns(const Node *n);
+  static double passed_pawns(const Board *b);
 
   /**
    * Creates an aggregate score using all evaluation methods
    */
   static double simple_evaluation(const Node *n);
+  static double simple_evaluation(const Board *b, Square from, Square to,
+                                  char ch);
 
   /**
    * wrapper for simple_evaluation()
    */
   static double eval(const Node *n);
+  static double eval(const Board *b, Square from, Square to, char ch);
 
   // unused
   /**

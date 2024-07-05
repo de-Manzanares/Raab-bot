@@ -39,6 +39,7 @@ struct Diagonals {
  * @brief A collection of unordered maps used for move generation
  */
 struct Maps {
+  Maps &operator=(const Maps &rhs);
   // influence - possible moves, squares under attack/defense by this piece
   std::unordered_map<Square, std::vector<Square>>
       white_influence{}; ///< all white influence
@@ -63,7 +64,6 @@ struct Maps {
  * @note Bitboards are initialized with standard startpos.
  */
 struct Board {
-  ~Board();
   /**
    * @brief Copy assignment operator
    * @param rhs The Board object to be copied
@@ -87,7 +87,7 @@ struct Board {
 
   Game_State game_state; ///< game conditions aside from piece placement
 
-  Maps *maps = new Maps; ///< for move generation
+  Maps maps; ///< for move generation
 
   /// Maps character code to the respective bitboard.
   std::unordered_map<char, uint64_t &> piece_map = {
@@ -472,6 +472,7 @@ struct Board {
    * "influencing".
    */
   std::vector<Square> influence(Square sq) const;
+  void update_influence_maps();
 
   /**
    * @brief Update the influence maps for white and black pieces
@@ -516,6 +517,7 @@ struct Board {
    * checking if there is no pin.
    */
   Square pinned_piece(Square sq) const;
+  void update_pinned_pieces();
 
   /**
    * @brief Update the maps of pinned pieces
@@ -605,6 +607,7 @@ struct Board {
    * @see void Board::move_piece(Square from, Square to)
    */
   void do_move(Square from, Square to, char ch);
+  void undo_move(Square from, Square to, char ch);
 
   /**
    * @brief Move a pawn.

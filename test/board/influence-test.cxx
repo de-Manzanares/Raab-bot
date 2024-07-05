@@ -6,10 +6,10 @@ void generate_and_sort_influence(Board &board, const Square &sq,
   board.update_influence_maps();
   Color c = board.what_color(sq);
   if (c == Color::white) {
-    v = board.maps->white_influence[sq];
+    v = board.maps.white_influence[sq];
   }
   if (c == Color::black) {
-    v = board.maps->black_influence[sq];
+    v = board.maps.black_influence[sq];
   }
   std::sort(v.begin(), v.end());
 }
