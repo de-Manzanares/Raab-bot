@@ -18,13 +18,18 @@ using s = Square;
 using c = Color;
 
 class Node;
+// clang-format off
+double M = 0.1;
+bool mat_advantage;
+double Eval::CHECK_BONUS =          M * 0.1200;
+double Eval::MOBILITY_MULTIPLIER =  M * 0.0050;
+double Eval::CASTLE_BONUS =         M * 0.2500;
+double Eval::STACKED_PAWN_PENALTY = M * 0.1250;
+double Eval::PASSED_PAWN_BONUS =    M * 0.1500;
+double Eval::EARLY_QUEEN_PENALTY =  M * 0.0625;
+// clang-format on
 
-double Eval::CHECK_BONUS = 0.25;
-double Eval::MOBILITY_MULTIPLIER = 1.0 / 100.0;
-double Eval::CASTLE_BONUS = 0.5;
-double Eval::RATIO_MULTIPLIER = 2.0;
-double Eval::STACKED_PAWN_PENALTY = 0.25;
-double Eval::PASSED_PAWN_BONUS = 0.30;
+double Eval::RATIO_MULTIPLIER = 2.0; // unused
 
 std::unordered_map<char, int> Eval::material_value = {
     {'Q', 900},  {'R', 500},  {'B', 310},  {'N', 300},  {'P', 100},
@@ -32,10 +37,14 @@ std::unordered_map<char, int> Eval::material_value = {
 
 double Eval::material_evaluation(const Node *n) {
   double sum = 0;
+  mat_advantage = false;
   for (auto sq = s::a8; sq >= s::h1; --sq) {
     if (!n->board()->is_empty(sq)) {
       sum += material_value[n->board()->what_piece(sq)];
     }
+  }
+  if (std::abs(sum) >= 1000) { // if there is a serious material advantage
+    mat_advantage = true;
   }
   return sum / 100;
 }
@@ -74,11 +83,15 @@ int Eval::detect_stalemate_checkmate(const Node *n) {
 
 double Eval::mobility_evaluation(const Node *n) {
   double score = 0;
-  for (const auto &moves : n->board()->maps->white_moves | std::views::values) {
-    score += static_cast<double>(moves.size());
+  for (const auto &[sq, moves] : n->board()->maps->white_moves) {
+    if (!n->board()->is_white_king(sq)) {
+      score += static_cast<double>(moves.size());
+    }
   }
-  for (const auto &moves : n->board()->maps->black_moves | std::views::values) {
-    score -= static_cast<double>(moves.size());
+  for (const auto &[sq, moves] : n->board()->maps->black_moves) {
+    if (!n->board()->is_black_king(sq)) {
+      score -= static_cast<double>(moves.size());
+    }
   }
   return score * MOBILITY_MULTIPLIER;
 }
@@ -86,10 +99,18 @@ double Eval::mobility_evaluation(const Node *n) {
 double Eval::check_bonus(const Node *n) {
   double score = 0;
   if (n->board()->game_state.white_inCheck) {
-    score -= CHECK_BONUS;
+    if (mat_advantage) {
+      score -= CHECK_BONUS / M;
+    } else {
+      score -= CHECK_BONUS;
+    }
   }
   if (n->board()->game_state.black_inCheck) {
-    score += CHECK_BONUS;
+    if (mat_advantage) {
+      score += CHECK_BONUS / M;
+    } else {
+      score += CHECK_BONUS;
+    }
   }
   return score;
 }
@@ -229,6 +250,18 @@ double Eval::passed_pawns(const Node *n) {
   return PASSED_PAWN_BONUS * passed_balance;
 }
 
+double Eval::discourage_early_queen_movement(const Node *n) {
+  if (n->board()->game_state.full_move_number <= 10) {
+    if (n->active_color() == c::black && n->board()->is_white_queen(n->to())) {
+      return -EARLY_QUEEN_PENALTY;
+    }
+    if (n->active_color() == c::white && n->board()->is_black_queen(n->to())) {
+      return EARLY_QUEEN_PENALTY;
+    }
+  }
+  return 0;
+}
+
 double Eval::simple_evaluation(const Node *n) {
   if (detect_stalemate_checkmate(n) == -1 || // white is in checkmate
       detect_stalemate_checkmate(n) == 1) {  // black is in checkmate
@@ -238,7 +271,7 @@ double Eval::simple_evaluation(const Node *n) {
     return 0;
   }
   return material_evaluation(n) + mobility_evaluation(n) + check_bonus(n) +
-         castle_bonus(n);
+         castle_bonus(n) + discourage_early_queen_movement(n);
 }
 
 double Eval::eval(const Node *n) { return simple_evaluation(n); }
@@ -262,28 +295,4 @@ double Eval::material_ratio(const Board *board) {
     return 0;
   }
   return RATIO_MULTIPLIER * ((wscore + bscore) / (wscore - bscore));
-}
-
-double Eval::discourage_early_queen_movement(const Node *node) {
-  double score = 0;
-  if (node->board()->game_state.full_move_number <= 10) {
-    if (node->parent() != nullptr) {
-      if (node->parent()->board()->is_queen(node->from())) {
-        if (node->parent()->active_color() == Color::white) {
-          score -= .9;
-        }
-        if (node->parent()->active_color() == Color::black) {
-          score += .9;
-        }
-      } else if (!node->parent()->board()->is_pawn(node->from())) {
-        if (node->parent()->active_color() == Color::white) {
-          score += .5;
-        }
-        if (node->parent()->active_color() == Color::black) {
-          score -= .5;
-        }
-      }
-    }
-  }
-  return score;
 }
