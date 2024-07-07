@@ -18,7 +18,7 @@
 
 #include <unordered_map>
 
-struct Node;
+class Node;
 
 /**
  * @struct Eval
@@ -34,6 +34,7 @@ struct Eval {
   static double RATIO_MULTIPLIER;     ///< weight on material ratio
   static double STACKED_PAWN_PENALTY; ///< weight on stacked pawns
   static double PASSED_PAWN_BONUS;    ///< weight on passed pawn
+  static double EARLY_QUEEN_PENALTY;  ///< weight on early queen movement
 
   // evaluation functions ----------------------------------------
 
@@ -91,6 +92,13 @@ struct Eval {
   static double passed_pawns(const Node *n);
 
   /**
+   * In the first ten moves of the game, penalize queen movements, encourage
+   * other piece movements
+   * @note is not needed when an opening book is in use
+   */
+  static double discourage_early_queen_movement(const Node *n);
+
+  /**
    * Creates an aggregate score using all evaluation methods
    */
   static double simple_evaluation(const Node *n);
@@ -109,13 +117,6 @@ struct Eval {
    * @return The ratio of material advantage to total material.
    */
   static double material_ratio(const Board *board);
-
-  /**
-   * In the first ten moves of the game, penalize queen movements, encourage
-   * other piece movements
-   * @note is not needed when an opening book is in use
-   */
-  static double discourage_early_queen_movement(const Node *node);
 };
 
 #endif // INCLUDE_EVAL_H_
