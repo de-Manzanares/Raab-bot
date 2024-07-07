@@ -14,9 +14,13 @@
 #include "Eval.h"
 #include "Search.h"
 
+#include <cmath>
 #include <iostream>
+#include <ranges>
 
 namespace uciloop {
+
+enum class Time_Control { bullet, blitz, rapid };
 
 bool is_maxing(const std::shared_ptr<Node> &n) {
   return n->active_color() == Color::white;
@@ -35,22 +39,28 @@ bool continue_status_updates;
 void status_update_thread(const uint update_interval_ms) {
   uint previous = 0;
   Counter::start = std::chrono::high_resolution_clock::now();
+  uint counter = 0;
 
   while (continue_status_updates) { // NOLINT
-    const uint current = Counter::node;
-    auto now = std::chrono::high_resolution_clock::now();
+    counter++;
+    if (counter == 100) {
+      counter = 0;
+    }
+    if (counter == 0) {
+      const uint current = Counter::node;
+      auto now = std::chrono::high_resolution_clock::now();
 
-    std::cout << "info"
-              // << " depth "
-              << " time "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(
-                     now - Counter::start)
-                     .count()
-              << " nodes " << Counter::node << " nps " << current - previous
-              << std::endl; // GOTTA FLUSH THE BUFFER!!!
+      std::cout << "info"
+                // << " depth "
+                << " time "
+                << std::chrono::duration_cast<std::chrono::milliseconds>(
+                       now - Counter::start)
+                       .count()
+                << " nodes " << Counter::node << " nps " << current - previous
+                << std::endl; // GOTTA FLUSH THE BUFFER!!!
+      previous = current;
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(update_interval_ms));
-
-    previous = current;
   }
 }
 
@@ -118,12 +128,13 @@ void startpos_moves(const std::shared_ptr<Node> &n, const std::string *in) {
 } // namespace uciloop
 
 uint uci::DEPTH = 3;
+uciloop::Time_Control time_control;
 
 void uci::loop() {
   namespace ulp = uciloop;
   std::string in;                    // the command from the GUI
   std::shared_ptr<Node> n = nullptr; // root node is a pointer for easy deletion
-                                     // and rebuilding of the decision tree
+  // and rebuilding of the decision tree
 
   while (std::getline(std::cin, in)) {
     ulp::preamble(&in);
@@ -139,19 +150,81 @@ void uci::loop() {
         }
       }
     } else if (ulp::simon_says(&in, "go") && n != nullptr) {
-      // move gen is too slow. 4ply is asking > 1M nodes in early middle-game
+      constexpr uint SECONDS = 1'000;
+      constexpr uint MINUTES = 60 * SECONDS;
+      uint wtime;
+      uint btime;
       Counter::node = 0;                   // reset counter
       ulp::continue_status_updates = true; // reset flag
-
       const bool maxing = ulp::is_maxing(n);
       n->board()->update_move_maps();
-      std::thread status_thread(ulp::status_update_thread, 1000);
+
+      if (uciloop::simon_says(&in, "wtime")) { // get times
+        std::istringstream iss(in);
+        std::string s;
+        iss >> s >> s >> wtime >> s >> btime;
+      }
+
+      // get time control
+      // set once at beginning of game
+      if (n->board()->game_state.full_move_number < 2) {
+        const auto our_time = maxing ? wtime : btime;
+        if (our_time >= 1 * MINUTES) {
+          time_control = ulp::Time_Control::bullet;
+        }
+        if (our_time >= 3 * MINUTES) {
+          time_control = ulp::Time_Control::blitz;
+        }
+        if (our_time >= 10 * MINUTES) {
+          time_control = ulp::Time_Control::rapid;
+        }
+      }
+
+      double movecount = 0;
+      for (const auto &moves :
+           n->board()->maps->white_moves | std::views::values) {
+        movecount += static_cast<double>(moves.size());
+      }
+      for (const auto &moves :
+           n->board()->maps->black_moves | std::views::values) {
+        movecount += static_cast<double>(moves.size());
+      }
+      // complexity switch
+      double NODE_LIMIT;
+      // set time limit based on time control
+      switch (time_control) {
+        using tc = uciloop::Time_Control;
+      case tc::bullet:
+      case tc::blitz:
+        NODE_LIMIT = 2'000'000;
+        break;
+      case tc::rapid:
+        NODE_LIMIT = 4'000'000;
+        break;
+      default:
+        NODE_LIMIT = 2'000'000;
+      }
+
+      DEPTH = 3;
+
+      if (constexpr double NPS = 50'000;
+          n->board()->game_state.full_move_number >= 12 &&
+          (maxing && wtime >= 2 * (NODE_LIMIT / NPS) * SECONDS ||
+           !maxing && btime >= 2 * (NODE_LIMIT / NPS) * SECONDS)) {
+        for (uint i = 4; i < 31; i++) {
+          if (std::pow(movecount / 2, i) <= NODE_LIMIT) {
+            DEPTH = i;
+          } else {
+            break;
+          }
+        }
+      }
+
+      std::thread status_thread(ulp::status_update_thread, 10);
       n->spawn_depth_first(DEPTH);
 
       ulp::continue_status_updates = false;
       status_thread.join();
-
-      // n->spawn_breadth_first(D);
 
       const auto opt_node = std::make_shared<Node>(
           *Search::min_max(n, DEPTH, ulp::neg_inf, ulp::pos_inf, maxing));
