@@ -152,8 +152,8 @@ void uci::loop() {
     } else if (ulp::simon_says(&in, "go") && n != nullptr) {
       constexpr uint SECONDS = 1'000;
       constexpr uint MINUTES = 60 * SECONDS;
-      uint wtime;
-      uint btime;
+      uint wtime{};
+      uint btime{};
       Counter::node = 0;                   // reset counter
       ulp::continue_status_updates = true; // reset flag
       const bool maxing = ulp::is_maxing(n);
