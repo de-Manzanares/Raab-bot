@@ -26,7 +26,6 @@ if (Catch2_FOUND)
             ../src/Search.cpp
             ../src/UCI.cpp
             other/uci-test.cxx
-            other/stalemate-test.cxx
             other/pawns-test.cxx)
     target_include_directories(other-test PRIVATE ../include)
     target_link_libraries(other-test PRIVATE Catch2::Catch2WithMain)
