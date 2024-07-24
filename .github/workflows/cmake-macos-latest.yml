@@ -24,14 +24,17 @@ jobs:
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
         os: [ macos-latest ]
-        build_type: [ Release ]
-        c_compiler: [ gcc ]
+        build_type: [ Release , Debug ]
+        c_compiler: [ clang ]
         include:
           - os: macos-latest
-            c_compiler: gcc
-            cpp_compiler: g++
+            c_compiler: clang
+            cpp_compiler: clang++
             build_type: Release
-            cxx_flags: "\"-O3 -DNDEBUG -flto=auto -fuse-linker-plugin -march=native\""
+          - os: macos-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+            build_type: Debug
 
     steps:
       - uses: actions/checkout@v4
@@ -43,22 +46,26 @@ jobs:
         run: |
           echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-      - name: Cache vcpkg
+      - name: Cache vcpkg and installed libraries
         id: cache-vcpkg
         uses: actions/cache@v4
         with:
-          path: vcpkg
+          path: |
+            vcpkg
+            vcpkg_installed
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: |
             ${{ runner.os }}-vcpkg-
 
-      - name: macOS vcpkg catch2
-        if: matrix.os == 'macos-latest'
+      - name: Install vcpkg
         run: |
           if [ ! -d "vcpkg" ]; then
             git clone https://github.com/microsoft/vcpkg.git
             ./vcpkg/bootstrap-vcpkg.sh
           fi
+
+      - name: Install Catch2 using vcpkg
+        run: |
           ./vcpkg/vcpkg install catch2
 
       - name: Configure CMake
@@ -69,7 +76,6 @@ jobs:
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          -DCMAKE_CXX_FLAGS=${{ matrix.cxx_flags }}
           -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
           -S ${{ github.workspace }}
 
