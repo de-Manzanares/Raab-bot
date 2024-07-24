@@ -24,14 +24,17 @@ jobs:
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
         os: [ macos-latest ]
-        build_type: [ Release ]
-        c_compiler: [ gcc ]
+        build_type: [ Release , Debug ]
+        c_compiler: [ clang ]
         include:
           - os: macos-latest
-            c_compiler: gcc
-            cpp_compiler: g++
+            c_compiler: clang
+            cpp_compiler: clang++
             build_type: Release
-            cxx_flags: "\"-O3 -DNDEBUG -flto=auto -fuse-linker-plugin -march=native\""
+          - os: macos-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+            build_type: Debug
 
     steps:
       - uses: actions/checkout@v4
@@ -69,7 +72,6 @@ jobs:
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          -DCMAKE_CXX_FLAGS=${{ matrix.cxx_flags }}
           -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
           -S ${{ github.workspace }}
 
