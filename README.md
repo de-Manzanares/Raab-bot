@@ -10,10 +10,10 @@
 
 ![GitHub Tag](https://img.shields.io/github/v/tag/de-Manzanares/Raab-bot?style=for-the-badge&label=latest&color=290b5e)
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/de-Manzanares/Raab-bot/.github%2Fworkflows%2Fcmake-macos-latest.yml?logo=github&label=macos)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/de-Manzanares/Raab-bot/.github%2Fworkflows%2Fcmake-ubuntu-latest.yml?logo=github&label=ubuntu)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/de-Manzanares/Raab-bot/.github%2Fworkflows%2Fcmake-macos-latest.yml?logo=apple&label=macos)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/de-Manzanares/Raab-bot/.github%2Fworkflows%2Fcmake-ubuntu-latest.yml?logo=ubuntu&label=ubuntu)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/de-Manzanares/Raab-bot/.github%2Fworkflows%2Fcmake-windows-latest.yml?logo=github&label=windows)
-![Codecov](https://img.shields.io/codecov/c/github/de-Manzanares/Raab-bot)
+![Codecov](https://img.shields.io/codecov/c/github/de-Manzanares/Raab-bot?logo=Codecov)
 
 </div>
 
@@ -47,19 +47,20 @@
 
 ### Build from source
 
-Because Raab-bot 🐰 is a UCI chess engine, it's pretty much useless without a
-GUI.
+Because Raab-bot 🐰 is
+a [UCI](https://en.wikipedia.org/wiki/Universal_Chess_Interface) chess engine,
+it's pretty much useless without a GUI.
 Personally, I'd recommend [SCID vs. PC](https://scidvspc.sourceforge.net/).
 
 #### Prerequisites
 
-CMake version 3.20 or greater and GCC or MSVC CL
-(I can't figure out how to get along with clang).
+CMake: Version 3.20 or higher.
 
-There is a sprinkling of C++20 language features, so if your compiler isn't
-puttin' up with it, get a newer version!
-To see if your package manager has one (for Ubuntu-style systems at least)
-try ```apt search g++```.
+Compilers: The project has been successfully built and tested with Clang,
+AppleClang, GCC, and MSVC.
+
+Language features: This project uses some C++20 language features. Any
+reasonably recent version of the above compilers should be fine.
 
 #### Linux
 
@@ -72,14 +73,6 @@ git checkout $(git describe --tags `git rev-list --tags --max-count=1`)
 ./build.sh
 ```
 
-#### Windows and Mac 🤷‍♂️
-
-CMake is supposed to be cross-platform, right? I'm sure you can figure it out.
-
-The GitHub workflows in the [Status](#Status) section verify whether this
-project can be built on Windows and/or Mac.
-👍
-
 ## Acknowledgements
 
 The ASCII file headers were generated using
@@ -88,8 +81,6 @@ The ASCII file headers were generated using
 
 Thank you to the contributors
 of [lichess-bot](https://github.com/lichess-bot-devs/lichess-bot).
-There's no way I could have figured out the Lichess API on my own.
-Come to think of it, I'm not sure what API stands for...
 
 Thank you to the contributors of [Lila](https://github.com/lichess-org/lila)
 (aka Lichess),
