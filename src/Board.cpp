@@ -64,6 +64,8 @@ bool is_right_horizontal_boundary(const Square sq) {
 // END Boundary detection
 //------------------------------------------------------------------------------
 
+Board::~Board() { delete maps; }
+
 void Maps::clear() {
   white_influence.clear();
   black_influence.clear();
@@ -73,7 +75,41 @@ void Maps::clear() {
   black_moves.clear();
 }
 
-Board::~Board() { delete maps; }
+// copy board to bit board copy
+bit_boards &bit_boards::operator=(const Board &rhs) {
+  b_pawn = rhs.b_pawn;
+  b_night = rhs.b_night;
+  b_bishop = rhs.b_bishop;
+  b_rook = rhs.b_rook;
+  b_queen = rhs.b_queen;
+  b_king = rhs.b_king;
+  w_Pawn = rhs.w_Pawn;
+  w_Night = rhs.w_Night;
+  w_Bishop = rhs.w_Bishop;
+  w_Rook = rhs.w_Rook;
+  w_Queen = rhs.w_Queen;
+  w_King = rhs.w_King;
+
+  return *this;
+}
+
+// copy bit_board_copy back to board
+Board &Board::operator=(const bit_boards &rhs) {
+  b_pawn = rhs.b_pawn;
+  b_night = rhs.b_night;
+  b_bishop = rhs.b_bishop;
+  b_rook = rhs.b_rook;
+  b_queen = rhs.b_queen;
+  b_king = rhs.b_king;
+  w_Pawn = rhs.w_Pawn;
+  w_Night = rhs.w_Night;
+  w_Bishop = rhs.w_Bishop;
+  w_Rook = rhs.w_Rook;
+  w_Queen = rhs.w_Queen;
+  w_King = rhs.w_King;
+
+  return *this;
+}
 
 Board &Board::operator=(const Board &rhs) {
   if (this != &rhs) {
@@ -1634,8 +1670,12 @@ void Board::update_move_maps() {
 // BEGIN move
 
 void Board::move_pawn(Square from, Square to, const char ch) {
+
   // promotion
   if (ch == 'q' || ch == 'r' || ch == 'b' || ch == 'n') {
+    // TODO undoing pawn promotion could be more efficient
+    bit_boards_copy = *this; // copy bit boards for undoing
+
     const Color c = what_color(from);
     if ((is_white_pawn(from) && get_row(to) == 8) ||
         (is_black_pawn(from) && get_row(to) == 1)) {
@@ -1750,6 +1790,16 @@ void Board::move_piece(const Square from, const Square to) {
 }
 
 void Board::do_move(const Square from, const Square to, const char ch) {
+  // copy game state for "undoing" moves
+  game_state_old = game_state;
+  // update moves_made
+  moves_made.push_back({from, to});
+  if (ch == 'q' || ch == 'r' || ch == 'b' || ch == 'n') {
+    game_state.recent_promotion = true;
+  } else {
+    game_state.recent_promotion = false;
+  }
+
   // game state updates
   // comes first because from and to will change occupants after the move
   !game_state.active_color; // swap active color
@@ -1798,6 +1848,17 @@ void Board::do_move(const Square from, const Square to, const char ch) {
   if (game_state.en_passant_set) {
     game_state.en_passant_set = false;
   }
+}
+
+void Board::undo_move() {
+  // undoing pawn promotions could be more efficient
+  if (game_state.recent_promotion) {
+    *this = bit_boards_copy;
+  } else {
+    move_piece(moves_made.back()[1], moves_made.back()[0]);
+  }
+  moves_made.pop_back();
+  game_state = game_state_old;
 }
 
 // END move

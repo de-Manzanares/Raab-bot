@@ -18,18 +18,8 @@ using s = Square;
 using c = Color;
 
 class Node;
-// clang-format off
-double M = 0.1;
-bool mat_advantage;
-double Eval::CHECK_BONUS =          M * 0.1200;
-double Eval::MOBILITY_MULTIPLIER =  M * 0.0050;
-double Eval::CASTLE_BONUS =         M * 0.2500;
-double Eval::STACKED_PAWN_PENALTY = M * 0.1250;
-double Eval::PASSED_PAWN_BONUS =    M * 0.1500;
-double Eval::EARLY_QUEEN_PENALTY =  M * 0.0625;
-// clang-format on
 
-double Eval::RATIO_MULTIPLIER = 2.0; // unused
+bool mat_advantage;
 
 std::unordered_map<char, int> Eval::material_value = {
     {'Q', 900},  {'R', 500},  {'B', 310},  {'N', 300},  {'P', 100},

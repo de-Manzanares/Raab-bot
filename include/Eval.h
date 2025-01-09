@@ -28,13 +28,23 @@ struct Eval {
   static std::unordered_map<char, int> material_value; ///< material value
 
   // evaluation parameters
-  static double CHECK_BONUS;          ///< weight of check
-  static double MOBILITY_MULTIPLIER;  ///< weight of count of legal moves
-  static double CASTLE_BONUS;         ///< weight on castle
-  static double RATIO_MULTIPLIER;     ///< weight on material ratio
-  static double STACKED_PAWN_PENALTY; ///< weight on stacked pawns
-  static double PASSED_PAWN_BONUS;    ///< weight on passed pawn
-  static double EARLY_QUEEN_PENALTY;  ///< weight on early queen movement
+  // clang-format off
+  constexpr static double M = 0.1;
+  /// weight of check
+  constexpr static double CHECK_BONUS =          M * 0.1200;
+  /// weight of count of legal moves
+  constexpr static double MOBILITY_MULTIPLIER =  M * 0.0050;
+  /// weight on castle
+  constexpr static double CASTLE_BONUS =         M * 0.2500;
+  /// weight on stacked pawns
+  constexpr static double STACKED_PAWN_PENALTY = M * 0.1250;
+  /// weight on passed pawn
+  constexpr static double PASSED_PAWN_BONUS =    M * 0.1500;
+  /// weight on early queen movement
+  constexpr static double EARLY_QUEEN_PENALTY =  M * 0.0625;
+  // clang-format on
+  // unused
+  constexpr static double RATIO_MULTIPLIER = 2.0;
 
   // evaluation functions ----------------------------------------
 

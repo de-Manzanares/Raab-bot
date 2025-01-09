@@ -88,6 +88,7 @@ struct Game_State {
   uint full_move_number = 1;   ///< starts at 1, increments after black moves
   bool black_inCheck = false;  ///< black king is in check
   bool white_inCheck = false;  ///< white king is in check
+  bool recent_promotion = false; ///< for undoing pawn promotions
 };
 
 #endif // INCLUDE_GAME_STATE_H_

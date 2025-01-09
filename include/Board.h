@@ -22,6 +22,7 @@
 #include <unordered_map>
 #include <vector>
 
+struct Board;
 /**
  * @struct Diagonals
  * @brief Groups the diagonals of the board for answering the question "are
@@ -55,6 +56,23 @@ struct Maps {
   void clear();
 };
 
+struct bit_boards {
+  bit_boards &operator=(const Board &rhs);
+  // clang-format off
+  uint64_t b_pawn   = 0b00000000'11111111'00000000'00000000'00000000'00000000'00000000'00000000;    ///< black pawn
+  uint64_t b_night  = 0b01000010'00000000'00000000'00000000'00000000'00000000'00000000'00000000;    ///< black knight
+  uint64_t b_bishop = 0b00100100'00000000'00000000'00000000'00000000'00000000'00000000'00000000;    ///< black bishop
+  uint64_t b_rook   = 0b10000001'00000000'00000000'00000000'00000000'00000000'00000000'00000000;    ///< black rook
+  uint64_t b_queen  = 0b00010000'00000000'00000000'00000000'00000000'00000000'00000000'00000000;    ///< black queen
+  uint64_t b_king   = 0b00001000'00000000'00000000'00000000'00000000'00000000'00000000'00000000;    ///< black king
+  uint64_t w_Pawn   = 0b00000000'00000000'00000000'00000000'00000000'00000000'11111111'00000000;    ///< white pawn
+  uint64_t w_Night  = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'01000010;    ///< white knight
+  uint64_t w_Bishop = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'00100100;    ///< white bishop
+  uint64_t w_Rook   = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'10000001;    ///< white rook
+  uint64_t w_Queen  = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'00010000;    ///< white queen
+  uint64_t w_King   = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'00001000;    ///< white king
+  // clang-format on
+};
 /**
  * @struct Board
  * @brief Represents the chessboard
@@ -70,6 +88,7 @@ struct Board {
    * @return A reference to the lhs object after assignment
    */
   Board &operator=(const Board &rhs);
+  Board &operator=(const bit_boards &rhs);
   // clang-format off
   uint64_t b_pawn   = 0b00000000'11111111'00000000'00000000'00000000'00000000'00000000'00000000;    ///< black pawn
   uint64_t b_night  = 0b01000010'00000000'00000000'00000000'00000000'00000000'00000000'00000000;    ///< black knight
@@ -85,7 +104,12 @@ struct Board {
   uint64_t w_King   = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'00001000;    ///< white king
   // clang-format on
 
-  Game_State game_state; ///< game conditions aside from piece placement
+  bit_boards bit_boards_copy;
+
+  Game_State game_state;     ///< game conditions aside from piece placement
+  Game_State game_state_old; ///< for "undoing" moves
+
+  std::vector<std::vector<Square>> moves_made{}; ///< moves made on this board
 
   Maps *maps = new Maps; ///< for move generation
 
@@ -648,6 +672,8 @@ struct Board {
    * @param to The square to which tht rook is moved
    */
   void move_rook(Square from, Square to);
+
+  void undo_move();
 };
 
 #endif // INCLUDE_BOARD_H_

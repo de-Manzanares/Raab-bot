@@ -30,11 +30,24 @@ if (Catch2_FOUND)
     target_include_directories(other-test PRIVATE ../include)
     target_link_libraries(other-test PRIVATE Catch2::Catch2WithMain)
 
+    add_executable(implied-tree-test
+            ../src/Square.cpp
+            ../src/Game_State.cpp
+            ../src/Board.cpp
+            ../src/Eval.cpp
+            ../src/Node.cpp
+            ../src/Search.cpp
+            ../src/UCI.cpp
+            implied-tree.cxx)
+    target_include_directories(implied-tree-test PRIVATE ../include)
+    target_link_libraries(implied-tree-test PRIVATE Catch2::Catch2WithMain)
+
     include(CTest)
     include(Catch)
 
     add_test(NAME BoardTest COMMAND board-test)
     add_test(NAME OtherTest COMMAND other-test)
+    add_test(NAME ImpliedTreeTest COMMAND other-test)
 
 else ()
     message(STATUS "Catch2 v3 not found, tests will not be built.")

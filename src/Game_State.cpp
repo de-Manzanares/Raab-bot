@@ -85,6 +85,7 @@ Game_State &Game_State::operator=(const Game_State &rhs) {
     full_move_number = rhs.full_move_number;
     black_inCheck = rhs.black_inCheck;
     white_inCheck = rhs.white_inCheck;
+    recent_promotion = rhs.recent_promotion;
   }
   return *this;
 }
