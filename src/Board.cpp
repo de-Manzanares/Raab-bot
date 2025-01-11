@@ -1674,7 +1674,8 @@ void Board::move_pawn(Square from, Square to, const char ch) {
   // promotion
   if (ch == 'q' || ch == 'r' || ch == 'b' || ch == 'n') {
     // TODO undoing pawn promotion could be more efficient
-    bit_boards_copy = *this; // copy bit boards for undoing
+    bit_board_copy = *this;
+    bit_board_copies.push_back(bit_board_copy); // copy bit boards for undoing
 
     const Color c = what_color(from);
     if ((is_white_pawn(from) && get_row(to) == 8) ||
@@ -1791,7 +1792,7 @@ void Board::move_piece(const Square from, const Square to) {
 
 void Board::do_move(const Square from, const Square to, const char ch) {
   // copy game state for "undoing" moves
-  game_state_old = game_state;
+  game_states.push_back(game_state);
   // update moves_made
   moves_made.push_back({from, to});
   if (ch == 'q' || ch == 'r' || ch == 'b' || ch == 'n') {
@@ -1799,6 +1800,7 @@ void Board::do_move(const Square from, const Square to, const char ch) {
   } else {
     game_state.recent_promotion = false;
   }
+  promotion_move.push_back(game_state.recent_promotion);
 
   // game state updates
   // comes first because from and to will change occupants after the move
@@ -1852,13 +1854,16 @@ void Board::do_move(const Square from, const Square to, const char ch) {
 
 void Board::undo_move() {
   // undoing pawn promotions could be more efficient
-  if (game_state.recent_promotion) {
-    *this = bit_boards_copy;
+  if (promotion_move.back()) {
+    *this = bit_board_copies.back();
+    bit_board_copies.pop_back();
   } else {
     move_piece(moves_made.back()[1], moves_made.back()[0]);
   }
   moves_made.pop_back();
-  game_state = game_state_old;
+  promotion_move.pop_back();
+  game_state = game_states.back();
+  game_states.pop_back();
 }
 
 // END move

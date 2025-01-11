@@ -18,7 +18,7 @@
 auto root = Node();
 std::string fen;
 
-TEST_CASE("do undo") {
+TEST_CASE("single undo") {
   SECTION("some move") {
     root.board()->import_fen("5k2/8/R4K2/8/8/8/8/8 w - - 0 1");
     root.board()->update_move_maps();
@@ -36,9 +36,43 @@ TEST_CASE("do undo") {
     CHECK(root.board()->export_fen() == "5k2/P7/5K2/8/8/8/8/8 w - - 0 1");
   }
 }
+TEST_CASE("multiple undoes") {
+  SECTION("little opening") {
 
-// TEST_CASE("Implied Tree Test") {
-//   root.board()->import_fen("5k2/8/R4K2/8/8/8/8/8 w - - 0 1");
-//   root.board()->update_move_maps();
-//   CHECK(Eval::eval(&root) > 0.0);
-// }
+    root.board()->import_fen(
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    root.board()->do_move(Square::e2, Square::e4, 0);
+    root.board()->do_move(Square::e7, Square::e5, 0);
+    root.board()->do_move(Square::g1, Square::f3, 0);
+    root.board()->do_move(Square::b8, Square::c6, 0);
+    root.board()->undo_move();
+    root.board()->undo_move();
+    root.board()->undo_move();
+    CHECK(root.board()->export_fen() !=
+          "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    root.board()->undo_move();
+    CHECK(root.board()->export_fen() ==
+          "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  }
+  SECTION("with promotion") {
+    root.board()->import_fen("8/7k/1P6/5K2/8/8/8/8 w - - 0 1");
+    root.board()->do_move(Square::b6, Square::b7, 0);
+    root.board()->do_move(Square::h7, Square::h6, 0);
+    root.board()->do_move(Square::b7, Square::b8, 'q');
+    root.board()->do_move(Square::h6, Square::h5, 0);
+    root.board()->do_move(Square::b8, Square::h8, 0);
+    root.board()->undo_move();
+    root.board()->undo_move();
+    root.board()->undo_move();
+    root.board()->undo_move();
+    CHECK(root.board()->export_fen() != "8/7k/1P6/5K2/8/8/8/8 w - - 0 1");
+    root.board()->undo_move();
+    CHECK(root.board()->export_fen() == "8/7k/1P6/5K2/8/8/8/8 w - - 0 1");
+  }
+}
+
+TEST_CASE("Implied Tree Test") {
+  root.board()->import_fen("5k2/8/R4K2/8/8/8/8/8 w - - 0 1");
+  root.board()->update_move_maps();
+  CHECK(Eval::eval(&root) > 0.0);
+}

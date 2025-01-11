@@ -104,11 +104,12 @@ struct Board {
   uint64_t w_King   = 0b00000000'00000000'00000000'00000000'00000000'00000000'00000000'00001000;    ///< white king
   // clang-format on
 
-  bit_boards bit_boards_copy;
+  bit_boards bit_board_copy;
+  std::vector<bit_boards> bit_board_copies; ///< for "undoing" promotions
 
-  Game_State game_state;     ///< game conditions aside from piece placement
-  Game_State game_state_old; ///< for "undoing" moves
-
+  Game_State game_state; ///< game conditions aside from piece placement
+  std::vector<Game_State> game_states;           ///< for "undoing" moves
+  std::vector<bool> promotion_move;              ///< for "undoing" promotions
   std::vector<std::vector<Square>> moves_made{}; ///< moves made on this board
 
   Maps *maps = new Maps; ///< for move generation
