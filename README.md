@@ -29,17 +29,13 @@
 ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Flichess.org%2Fapi%2Fuser%2FRaab-bot&query=perfs.blitz.rating&logo=lichess&label=blitz)
 ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Flichess.org%2Fapi%2Fuser%2FRaab-bot&query=perfs.rapid.rating&logo=lichess&label=rapid)
 
-![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Flichess.org%2Fapi%2Fuser%2FRaab-bot%2Fperf%2Fbullet&query=%24.percentile&suffix=%25&logo=lichess&label=bullet)
-![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Flichess.org%2Fapi%2Fuser%2FRaab-bot%2Fperf%2Fblitz&query=%24.percentile&suffix=%25&logo=lichess&label=blitz)
-![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Flichess.org%2Fapi%2Fuser%2FRaab-bot%2Fperf%2Frapid&query=%24.percentile&suffix=%25&logo=lichess&label=rapid)
-
 </div>
 
 ### Play me
 
 <div align="center">
 
-[Challenge me to a game!](https://lichess.org/?user=Raab-bot#friend)
+~~[Challenge me to a game!](https://lichess.org/?user=Raab-bot#friend)~~ (offline for the time being)
 
 ###### (I only play the "Standard" variant with "Real time" time controls)
 
