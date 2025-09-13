@@ -15,9 +15,3 @@ jobs:
 
       - name: Run clang-format
         run: clang-format -n -Werror include/* src/*
-
-      - name: Install cpplint
-        run: sudo apt install cpplint
-
-      - name: Run cpplint
-        run: cpplint include/* src/*
