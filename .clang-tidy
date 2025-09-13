@@ -1,0 +1,47 @@
+# Generated from CLion Inspection settings
+---
+Checks: '*,
+-abseil-*,
+-altera-*,
+-android-*,
+-boost-*,
+-darwin-*,
+-fuchsia-*,
+-llvmlibc-*,
+-objc-*,
+-zircon-*,
+-cert-*,
+cert-err52-cpp,
+cert-err60-cpp,
+cert-err34-c,
+cert-str34-c,
+cert-msc50-cpp,
+cert-msc51-cpp,
+cert-dcl58-cpp,
+cert-flp30-c,
+-misc-*,
+misc-unconventional-assign-operator,
+misc-misplaced-const,
+misc-new-delete-overloads,
+misc-non-copyable-objects,
+misc-no-recursion,
+misc-throw-by-value-catch-by-reference,
+misc-uniqueptr-reset-release,
+-openmp-*,
+openmp-use-default-none,
+-*-use-trailing-return-type,
+-*-redundant-access-specifiers,
+-*-pro-bounds-pointer-arithmetic'
+
+CheckOptions:
+  - { key: readability-identifier-naming.ClassCase,                   value: CamelCase }
+  - { key: readability-identifier-naming.EnumCase,                    value: CamelCase }
+  - { key: readability-identifier-naming.EnumConstantCase,            value: lower_case }
+  - { key: readability-identifier-naming.FunctionCase,                value: lower_case }
+  - { key: readability-identifier-naming.NamespaceCase,               value: lower_case }
+  - { key: readability-identifier-naming.Parameter,                   value: lower_case }
+  - { key: readability-identifier-naming.PrivateMemberSuffix,         value: _ }
+  - { key: readability-identifier-naming.StructCase,                  value: CamelCase }
+  - { key: readability-identifier-naming.VariableCase,                value: lower_case }
+  - { key: readability-identifier-length.MinimumVariableNameLength,   value: 1 }
+  - { key: readability-identifier-length.MinimumParameterNameLength,  value: 1 }
