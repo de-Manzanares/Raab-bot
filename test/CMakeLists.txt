@@ -1,39 +1,56 @@
-find_package(Catch2 3 QUIET)
+include(FetchContent)
+FetchContent_Declare(
+        Catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG v3.10.0
+        GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(Catch2)
 
-if (Catch2_FOUND)
-    message(STATUS "Catch2 v3 found, tests will be built")
-    # add_executable(board-test
-    #         ../src/Square.cpp
-    #         ../src/Game_State.cpp
-    #         ../src/Board.cpp
-    #         board/general.cxx
-    #         board/influence-test.cxx
-    #         board/basic-moves-test.cxx
-    #         board/move-block-or-capture.cxx
-    #         board/pinned-pieces-test.cxx
-    #         board/sample-game.cxx)
-    # target_include_directories(board-test PRIVATE ../include)
-    # target_link_libraries(board-test PRIVATE Catch2::Catch2WithMain)
+add_executable(
+        attack-test
+        src/attack.cxx
+)
+target_link_libraries(
+        attack-test
+        PRIVATE
+        common_options
+        chess_modules
+        Catch2::Catch2WithMain
+)
+add_test(
+        NAME AttackTest
+        COMMAND attack-test
+)
 
-    # add_executable(other-test
-    #         ../src/Square.cpp
-    #         ../src/Game_State.cpp
-    #         ../src/Board.cpp
-    #         ../src/Eval.cpp
-    #         ../src/Node.cpp
-    #         ../src/Search.cpp
-    #         ../src/UCI.cpp
-    #         other/uci-test.cxx
-    #         other/pawns-test.cxx)
-    # target_include_directories(other-test PRIVATE ../include)
-    # target_link_libraries(other-test PRIVATE Catch2::Catch2WithMain)
+add_executable(
+        movegen-simple-test
+        src/movegen_simple.cxx
+)
+target_link_libraries(
+        movegen-simple-test
+        PRIVATE
+        common_options
+        chess_modules
+        Catch2::Catch2WithMain
+)
+add_test(
+        NAME MovegenSimpleTest
+        COMMAND movegen-simple-test
+)
 
-    # include(CTest)
-    # include(Catch)
-
-    # add_test(NAME BoardTest COMMAND board-test)
-    # add_test(NAME OtherTest COMMAND other-test)
-
-else ()
-    message(STATUS "Catch2 v3 not found, tests will not be built.")
-endif ()
+add_executable(
+        movegen-perft-test
+        src/movegen_perft.cxx
+)
+target_link_libraries(
+        movegen-perft-test
+        PRIVATE
+        common_options
+        chess_modules
+        Catch2::Catch2WithMain
+)
+add_test(
+        NAME MovegenPerftTest
+        COMMAND movegen-perft-test
+)
