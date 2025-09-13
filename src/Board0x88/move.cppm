@@ -1,0 +1,224 @@
+/**
+ * @file move.cppm
+ */
+
+module;
+
+#include <cstdint>
+
+export module Board0x88:move;
+import :core;
+
+//------------------------------------------------------------------------------
+
+export enum Flag : std::uint8_t {
+  normal,
+  capture,
+  en_passant,
+  en_passant_capture,
+  castle,
+  promotion,
+  prom_capture,
+  null_flag
+};
+
+export struct Move {
+  Square from_sq = null_square;
+  Square to_sq = null_square;
+  PieceInfo from_piece = {.piece_t = null_piece, .color = null_color};
+  Flag flag = null_flag;
+  Piece cap_piece = null_piece;       ///< captured piece
+  Piece promotion_piece = null_piece; ///< promotion piece
+  uint8_t ply{};                      ///< ply from root node
+  int score{};                        ///< for move ordering
+  Square ep_target = null_square;
+  std::uint8_t prev_castling_rights{};
+};
+
+export bool operator==(Move lhs, Move rhs);
+
+export void move(Board &b, Move m);
+export void un_move(Board &b, Move m);
+
+//------------------------------------------------------------------------------
+
+/// for tests only, doesn't do full comparison
+bool operator==(const Move lhs, const Move rhs) {
+  return lhs.from_sq == rhs.from_sq && lhs.to_sq == rhs.to_sq &&
+         lhs.flag == rhs.flag;
+}
+
+void set_sq(Board &b, const Square sq,
+            const PieceInfo pi = {null_piece, null_color}) {
+  b.piece_on[sq] = pi.piece_t;
+  b.color_on[sq] = pi.color;
+}
+
+void clear_sq(Board &b, const Square sq) { set_sq(b, sq); }
+
+PieceInfo prom_piece(const Move &m) {
+  return PieceInfo{m.promotion_piece, m.from_piece.color};
+}
+
+PieceInfo from_piece(const Move &m) {
+  return PieceInfo{m.from_piece.piece_t, m.from_piece.color};
+}
+
+void rm_castle_rights(Board &b, const Color c) {
+  if (c == white) {
+    b.cr &= 0b1100;
+  } else if (c == black) {
+    b.cr &= 0b0011;
+  }
+}
+
+void rook_mv_castle_rights(Board &b, const Square sq) {
+  switch (sq) {
+  case a1:
+    b.cr &= 0b1101;
+    break;
+  case h1:
+    b.cr &= 0b1110;
+    break;
+  case a8:
+    b.cr &= 0b0111;
+    break;
+  case h8:
+    b.cr &= 0b1011;
+  default:
+  }
+}
+
+PieceInfo captured_piece(const Move &m) {
+  return PieceInfo{m.cap_piece, ~m.from_piece.color};
+}
+
+void finish_castle(Board &b, const Square to) {
+  switch (to) {
+  case c1:
+    clear_sq(b, a1);
+    set_sq(b, d1, {rook, white});
+    rm_castle_rights(b, white);
+    break;
+  case g1:
+    clear_sq(b, h1);
+    set_sq(b, f1, {rook, white});
+    rm_castle_rights(b, white);
+    break;
+  case c8:
+    clear_sq(b, a8);
+    set_sq(b, d8, {rook, black});
+    rm_castle_rights(b, black);
+    break;
+  case g8:
+    clear_sq(b, h8);
+    set_sq(b, f8, {rook, black});
+    rm_castle_rights(b, black);
+    break;
+  default:
+  }
+}
+
+void unfinish_castle(Board &b, const Square to) {
+  switch (to) {
+  case c1:
+    clear_sq(b, d1);
+    set_sq(b, a1, {rook, white});
+    break;
+  case g1:
+    clear_sq(b, f1);
+    set_sq(b, h1, {rook, white});
+    break;
+  case c8:
+    clear_sq(b, d8);
+    set_sq(b, a8, {rook, black});
+    break;
+  case g8:
+    clear_sq(b, f8);
+    set_sq(b, h8, {rook, black});
+    break;
+  default:
+  }
+}
+
+export void move(Board &b, Move m);
+export void un_move(Board &b, Move m);
+
+void move(Board &b, const Move m) {
+  // move pieces
+  clear_sq(b, m.from_sq);
+  if (m.flag == promotion || m.flag == prom_capture) {
+    set_sq(b, m.to_sq, prom_piece(m));
+  } else {
+    set_sq(b, m.to_sq, from_piece(m));
+  }
+  if (m.flag == en_passant_capture) {
+    const auto sq = m.to_sq + (b.stm == white ? S : N);
+    clear_sq(b, sq);
+  } else if (m.flag == castle) {
+    finish_castle(b, m.to_sq);
+  }
+
+  // update king position
+  if (m.from_piece.piece_t == king) {
+    if (b.stm == white) {
+      rm_castle_rights(b, white);
+      b.wks = m.to_sq;
+    } else {
+      rm_castle_rights(b, black);
+      b.bks = m.to_sq;
+    }
+  }
+
+  // update castling rights
+  if (b.cr != 0) {
+    if (m.from_piece.piece_t == rook) {
+      rook_mv_castle_rights(b, m.from_sq);
+    }
+    if (m.cap_piece == rook) {
+      rook_mv_castle_rights(b, m.to_sq);
+    }
+  }
+
+  // update en_passant target
+  if (m.flag == en_passant) {
+    b.ep = m.ep_target;
+  } else {
+    b.ep = null_square;
+  }
+
+  // update side to move
+  b.stm = ~b.stm;
+}
+
+void un_move(Board &b, const Move m) {
+  // move pieces
+  set_sq(b, m.from_sq, from_piece(m));
+  if (m.flag == en_passant_capture) {
+    const auto sq = m.to_sq + (b.stm == black ? S : N);
+    clear_sq(b, m.to_sq);
+    set_sq(b, sq, {pawn, b.stm});
+  } else if (m.cap_piece != null_piece) { // cannot be m.flag == capture (?)
+    set_sq(b, m.to_sq, captured_piece(m));
+  } else {
+    clear_sq(b, m.to_sq);
+  }
+  if (m.flag == castle) {
+    unfinish_castle(b, m.to_sq);
+  }
+
+  // update king position
+  if (m.from_piece.piece_t == king) {
+    if (~b.stm == white) {
+      b.wks = m.from_sq;
+    } else {
+      b.bks = m.from_sq;
+    }
+  }
+
+  // update castling rights
+  b.cr = m.prev_castling_rights;
+
+  // update side to move
+  b.stm = ~b.stm;
+}

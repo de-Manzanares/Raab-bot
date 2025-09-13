@@ -1,45 +1,77 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 4.0)
 
-project(Raab-bot)
-set(VERSION v1.03)
-
-set(CMAKE_CXX_STANDARD 23)
+project(Raab-bot LANGUAGES CXX)
+set(VERSION v2-dev)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Og -fprofile-arcs -ftest-coverage --coverage")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3 -DNDEBUG -flto=full -march=native")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
+set(CompilerOptions -Wall -Wextra -Wpedantic
+        # -Werror
+)
+set(DEBUGCompilerOptions -g ${CompilerOptions})
+set(COVCompilerOptions --coverage ${CompilerOptions})
+set(COVLinkerOptions --coverage)
+set(SANCompilerOptions -fsanitize=address,undefined ${CompilerOptions})
+set(SANLinkerOptions -fsanitize=address,undefined)
+set(ReleaseCompilerOptions -O3 -ffast-math -march=native)
 
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Og -fprofile-arcs -ftest-coverage --coverage")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3 -DNDEBUG -flto=full -march=native")
+add_library(
+        common_options
+        INTERFACE
+)
+target_compile_options(
+        common_options
+        INTERFACE
+        $<$<CONFIG:Debug>:$<$<CXX_COMPILER_ID:GNU,Clang>:${DEBUGCompilerOptions}>>
+        $<$<CONFIG:Coverage>:$<$<CXX_COMPILER_ID:GNU,Clang>:${COVCompilerOptions}>>
+        $<$<CONFIG:Sanitizer>:$<$<CXX_COMPILER_ID:GNU,Clang>:${SANCompilerOptions}>>
+        $<$<CONFIG:Release>:$<$<CXX_COMPILER_ID:GNU,Clang>:${ReleaseCompilerOptions}>>
+)
+target_link_options(
+        common_options
+        INTERFACE
+        $<$<CONFIG:Coverage>:$<$<CXX_COMPILER_ID:GNU,Clang>:${COVLinkerOptions}>>
+        $<$<CONFIG:Sanitizer>:$<$<CXX_COMPILER_ID:GNU,Clang>:${SANLinkerOptions}>>
+)
 
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Og -fprofile-arcs -ftest-coverage --coverage")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3 -DNDEBUG -flto=auto -march=native")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-linker-plugin")
+add_library(
+        chess_modules
+        OBJECT
+)
+target_sources(
+        chess_modules
+        PUBLIC
+        FILE_SET cxx_modules
+        TYPE CXX_MODULES
+        FILES
+        src/Board0x88.ixx
+        src/Board0x88/attack.cppm
+        src/Board0x88/core.cppm
+        src/Board0x88/fen.cppm
+        src/Board0x88/move.cppm
+        src/Board0x88/movegen.cppm
+        src/Board0x88/types.cppm
+)
+target_link_libraries(
+        chess_modules
+        PRIVATE
+        common_options
+)
 
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    set(CMAKE_CXX_FLAGS_DEBUG " ${CMAKE_CXX_FLAGS} /W4 /Od /Zi /MDd")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /W4 /O2 /GL /MD")
-    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LTCG")
-    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /LTCG")
-endif ()
-
-add_executable(Raab-bot-${VERSION}
+add_executable(
+        Raab-bot-${VERSION}
         src/main.cpp
-        src/Board.cpp
-        src/Eval.cpp
-        src/Game_State.cpp
-        src/Node.cpp
-        src/Search.cpp
-        src/Square.cpp
-        src/UCI.cpp)
-target_include_directories(Raab-bot-${VERSION} PRIVATE include)
+)
+target_link_libraries(
+        Raab-bot-${VERSION}
+        PRIVATE
+        common_options
+        chess_modules
+)
 
-enable_testing()
 include(CTest)
+enable_testing()
 
 add_subdirectory(test)
