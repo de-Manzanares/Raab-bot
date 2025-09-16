@@ -1,3 +1,6 @@
-import print_hello;
+import Board;
 
-int main() { print_hello(); }
+int main() {
+  Board board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+  board.display();
+}

@@ -43,7 +43,8 @@ target_sources(
         src/main.cpp
         PRIVATE
         FILE_SET cxx_modules TYPE CXX_MODULES FILES
-        src/print_hello.cppm
+        src/Board.cppm
+        src/fen.cppm
 )
 target_link_libraries(
         Raab-bot-${VERSION}
