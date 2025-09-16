@@ -1,5 +1,5 @@
 /**
- * @file Board.cppm
+ * @file Board0x88.cppm
  * interface and implementation of the Board representation
  */
 
@@ -11,6 +11,7 @@ module;
 
 import Color;
 import fen;
+import Piece;
 import Square;
 
 export module Board;

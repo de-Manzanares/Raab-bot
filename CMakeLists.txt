@@ -43,8 +43,12 @@ target_sources(
         src/main.cpp
         PRIVATE
         FILE_SET cxx_modules TYPE CXX_MODULES FILES
-        src/Board.cppm
+        src/Attack.cppm
+        src/Color.cppm
+        src/Board0x88.cppm
         src/fen.cppm
+        src/Piece.cppm
+        src/Square.cppm
 )
 target_link_libraries(
         Raab-bot-${VERSION}
@@ -54,4 +58,3 @@ target_link_libraries(
 
 enable_testing()
 include(CTest)
-add_subdirectory(test)

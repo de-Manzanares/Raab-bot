@@ -5,11 +5,11 @@
 
 export module Color;
 
-export enum class Color { white, black };
+export enum Color { white, black, empty };
 
 Color operator~(const Color color) {
-  if (color == Color::white) {
-    return Color::black;
+  if (color == white) {
+    return black;
   }
-  return Color::white;
+  return white;
 }
