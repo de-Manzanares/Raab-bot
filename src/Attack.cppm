@@ -2,10 +2,8 @@ module;
 
 #include <array>
 
-import Color;
-import Piece;
-import Square;
 import Board;
+import chess.types;
 
 export module Attack;
 

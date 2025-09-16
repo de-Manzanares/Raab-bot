@@ -9,10 +9,8 @@ module;
 #include <iostream>
 #include <string_view>
 
-import Color;
 import fen;
-import Piece;
-import Square;
+import chess.types;
 
 export module Board;
 /**

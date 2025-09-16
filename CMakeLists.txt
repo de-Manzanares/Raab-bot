@@ -44,11 +44,9 @@ target_sources(
         PRIVATE
         FILE_SET cxx_modules TYPE CXX_MODULES FILES
         src/Attack.cppm
-        src/Color.cppm
         src/Board0x88.cppm
         src/fen.cppm
-        src/Piece.cppm
-        src/Square.cppm
+        src/chess_types.cppm
 )
 target_link_libraries(
         Raab-bot-${VERSION}
