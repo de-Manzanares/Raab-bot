@@ -11,6 +11,8 @@ module;
 
 import Color;
 import fen;
+import Square;
+
 export module Board;
 /**
  * @class Board
@@ -18,11 +20,26 @@ export module Board;
  */
 export class Board {
  public:
-  Board(std::string_view fen);
-  void display();
+  Board(std::string_view fen); ///< setup the board with a fen string
+  void display() const;        ///< print a simple visualization of the board
 
-  std::array<char, 128> piece_on{};
-  std::array<char, 128> color_on{}; // separate tracking of color
+  // piece tracking
+
+  std::array<char, 128> piece_on{}; ///< 0x88 board representation
+  std::array<char, 128> color_on{}; ///< redundant 0x88 color tracking
+
+  // game state tracking
+
+  Color stm; ///< side to move
+  Square ep; ///< en passant square
+
+  /** @brief bitfield representing castling rights \n
+   * [bqs, bks, wqs, wks]
+   */
+  int castling_rights = 0b0000;
+
+  int hmc; ///< half move clock
+  int fmc; ///< full move clock
 };
 
 Board::Board(std::string_view fen) {
@@ -47,8 +64,50 @@ Board::Board(std::string_view fen) {
   // minimal error checking
   // did we get all the squares?
   if (i != 64) {
-    throw std::runtime_error("invalid FEN: wrong square count");
+    throw std::runtime_error("malformed FEN");
   }
+
+  // side to move
+  ++ch;
+  *ch == 'w' ? stm = Color::white : stm = Color::black;
+  std::advance(ch, 2);
+
+  // castling rights
+  if (*ch == '-') {
+    castling_rights = 0;
+    ++ch;
+  } else {
+    for (; ch != fen.end() && *ch != ' '; ++ch) {
+      switch (*ch) {
+      case 'K':
+        castling_rights += 0b0001;
+        break;
+      case 'Q':
+        castling_rights += 0b0010;
+        break;
+      case 'k':
+        castling_rights += 0b0100;
+        break;
+      case 'q':
+        castling_rights += 0b1000;
+        break;
+      }
+    }
+  }
+
+  // en passant target
+  ++ch;
+  if (*ch == '-') {
+    ep = Square::null;
+    std::advance(ch, 2);
+  } else {
+    ep = static_cast<Square>(16 * (*std::next(ch) - '0' - 1) + *ch - 'a');
+    std::advance(ch, 3);
+  }
+
+  // half-move clock, full-move clock
+  hmc = *ch - '0';
+  fmc = *std::next(ch, 2) - '0';
 }
 
 void Board::display() const {
