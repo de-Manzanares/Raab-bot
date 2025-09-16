@@ -10,6 +10,10 @@ module;
 
 export module fen;
 
+/// startpos FEN string
+export constexpr std::string_view startpos =
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 /**
  * @param ch a character in a fen string
  * @return true if ch is a valid piece code, false otherwise

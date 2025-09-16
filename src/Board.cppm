@@ -20,8 +20,10 @@ export module Board;
  */
 export class Board {
  public:
-  Board(std::string_view fen); ///< setup the board with a fen string
-  void display() const;        ///< print a simple visualization of the board
+  Board() : Board(startpos) {} ///< default startpos
+  Board(std::string_view fen); ///< set up the board with a fen string
+
+  void display() const; ///< print a simple visualization of the board
 
   // piece tracking
 
