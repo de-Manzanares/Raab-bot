@@ -99,7 +99,7 @@ Board::Board(std::string_view fen) {
   // en passant target
   ++ch;
   if (*ch == '-') {
-    ep = Square::null;
+    ep = Square::null_square;
     std::advance(ch, 2);
   } else {
     ep = static_cast<Square>(16 * (*std::next(ch) - '0' - 1) + *ch - 'a');

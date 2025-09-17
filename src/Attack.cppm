@@ -7,7 +7,7 @@ import chess.types;
 
 export module Attack;
 
-bool is_valid(const Square sq) { return (sq & 0x88) == 0; }
+export bool is_valid(const Square sq) { return (sq & 0x88) == 0; }
 
 export bool is_attacked(const Board &board, const Square sq,
                         const Color by_color) {

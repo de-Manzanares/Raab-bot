@@ -2,7 +2,7 @@ module;
 
 export module chess.types;
 
-export enum Color { white, black };
+export enum Color { white = 'w', black = 'b', null_color = '.' };
 
 Color operator~(const Color color) {
   if (color == white) {
@@ -13,7 +13,15 @@ Color operator~(const Color color) {
 
 export enum Direction : int { NW = 15, N, NE, E = -1, W = 1, SW = -17, S, SE };
 
-export enum Piece : int { king, queen, rook, bishop, knight, pawn };
+export enum Piece : int {
+  king,
+  queen,
+  rook,
+  bishop,
+  knight,
+  pawn,
+  null_piece = '.'
+};
 
 bool is_sliding[5] = {false, true, true, true, false};
 
@@ -27,7 +35,7 @@ export constexpr int vectors[5][8] = {{SW, S, SE, E, W, NW, N, NE},
 // clang-format off
 
 export enum Square : int {
-  null = -1,
+  null_square = -1,
   a1 = 0x00, b1, c1, d1, e1, f1, g1, h1,
   a2 = 0x10, b2, c2, d2, e2, f2, g2, h2,
   a3 = 0x20, b3, c3, d3, e3, f3, g3, h3,
@@ -40,6 +48,10 @@ export enum Square : int {
 
 // clang-format on
 
-export Square operator+(Square lhs, Direction rhs) {
+export Square operator+(const Square lhs, Direction rhs) {
   return static_cast<Square>(static_cast<int>(lhs) + static_cast<int>(rhs));
+}
+
+export Square operator+(const Square lhs, const int rhs) {
+  return static_cast<Square>(static_cast<int>(lhs) + rhs);
 }
