@@ -8,7 +8,7 @@ import chess.types;
 
 export module movegen;
 
-enum Flag { normal, capture, null_flag };
+enum Flag { normal, capture, en_passant, null_flag };
 
 struct move {
   Square from = null_square;
@@ -29,34 +29,58 @@ constexpr std::array<Square, 64> square_sequence{
   }};
 // clang-format on
 
+Piece piece_type(char ch);
+
+// todo fix interface
 export std::array<move, 256> movegen(const Board &board);
 
 // todo
-void movegen_pawn() {}
-
-Piece piece_type(const char ch) {
-  switch (ch) {
-  case 'P':
-  case 'p':
-    return pawn;
-  case 'N':
-  case 'n':
-    return knight;
-  case 'B':
-  case 'b':
-    return bishop;
-  case 'R':
-  case 'r':
-    return rook;
-  case 'Q':
-  case 'q':
-    return queen;
-  case 'K':
-  case 'k':
-    return king;
-  default: {
-    return null_piece;
+void movegen_pawn(std::array<move, 256> &moves, int &move_count,
+                  const Board &board, Square from) {
+  // pawn moves
+  if (board.stm == white) {
+    Square to = from + N;
+    if (is_valid(to) && board.piece_on[to] == '.') {
+      moves[move_count++] = {.from = from, .to = to, .flag = normal};
+    }
+    if ((from >> 4)) { // on second rank
+      to = from + (2 * N);
+      if (is_valid(to) && board.piece_on[to] == '.') {
+        moves[move_count++] = {.from = from, .to = to, .flag = en_passant};
+        // todo ep target
+        // board.ep = from + N;
+      }
+    }
+  } else {
+    Square to = from + S;
+    if (is_valid(to) && board.piece_on[to] == '.') {
+      moves[move_count++] = {.from = from, .to = to, .flag = normal};
+    }
+    if ((from >> 4) == 7) { // on seventh rank
+      to = from + (2 * S);
+      if (is_valid(to) && board.piece_on[to] == '.') {
+        moves[move_count++] = {.from = from, .to = to, .flag = en_passant};
+        // todo ep target
+        // board.ep = from + S;
+      }
+    }
   }
+
+  // pawn captures
+  if (board.stm == white) {
+    for (constexpr std::array dirs{NW, NE}; const auto dir : dirs) {
+      if (const Square to = from + dir;
+          is_valid(to) && board.color_on[to] == ~board.stm) {
+        moves[move_count++] = {.from = from, .to = to, .flag = capture};
+      }
+    }
+  } else {
+    for (constexpr std::array dirs{SW, SE}; const auto dir : dirs) {
+      if (const Square to = from + dir;
+          is_valid(to) && board.color_on[to] == ~board.stm) {
+        moves[move_count++] = {.from = from, .to = to, .flag = capture};
+      }
+    }
   }
 }
 
@@ -101,7 +125,8 @@ std::array<move, 256> movegen(const Board &board) {
     if (board.color_on[from] == board.stm) {
       auto piece_char = board.piece_on[from];
       if (piece_char == 'P' || piece_char == 'p') {
-        movegen_pawn(); // special handling for pawns
+        movegen_pawn(moves, move_count, board,
+                     from); // special handling for pawns
       } else {
         const Piece piece = piece_type(piece_char);
         if (piece == knight || piece == king) {
@@ -135,4 +160,32 @@ std::array<move, 256> movegen(const Board &board) {
     }
   }
   return moves;
+}
+
+// todo fix board representation so that we are not calling piece_type a
+// bazillion times
+Piece piece_type(const char ch) {
+  switch (ch) {
+  case 'P':
+  case 'p':
+    return pawn;
+  case 'N':
+  case 'n':
+    return knight;
+  case 'B':
+  case 'b':
+    return bishop;
+  case 'R':
+  case 'r':
+    return rook;
+  case 'Q':
+  case 'q':
+    return queen;
+  case 'K':
+  case 'k':
+    return king;
+  default: {
+    return null_piece;
+  }
+  }
 }
