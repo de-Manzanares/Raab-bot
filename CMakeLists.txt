@@ -69,29 +69,4 @@ target_link_libraries(
         chess_modules
 )
 
-enable_testing()
-include(CTest)
-include(FetchContent)
-
-FetchContent_Declare(
-        Catch2
-        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG v3.10.0
-        GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(Catch2)
-
-add_executable(
-        attack-test
-        test/attack.cxx
-)
-target_link_libraries(
-        attack-test
-        PRIVATE
-        common_options
-        chess_modules
-        Catch2::Catch2WithMain)
-add_test(
-        NAME AttackTest
-        COMMAND attack-test
-)
+add_subdirectory(test)

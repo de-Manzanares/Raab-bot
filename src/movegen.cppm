@@ -13,13 +13,32 @@ import chess.types;
 
 export module movegen;
 
-enum Flag { normal, capture, en_passant, null_flag };
+template <class... Squares>
+  requires(std::same_as<Square, Squares> && ...)
+constexpr bool all_empty(const Board &b, Squares... sq) {
+  return (... && (b.piece_on[sq] == null_piece));
+}
 
-struct move {
+template <class... Squares>
+  requires(std::same_as<Square, Squares> && ...)
+constexpr bool all_not_attacked(const Board &b, Color c, Squares... sq) {
+  return (... && !is_attacked(b, sq, c));
+}
+
+Piece piece_type(const char ch);
+
+export enum Flag { normal, capture, en_passant, castle, promotion, null_flag };
+
+export struct Move {
   Square from = null_square;
   Square to = null_square;
   Flag flag = null_flag;
+  Piece promotion = null_piece;
 };
+
+export bool operator==(Move lhs, Move rhs) {
+  return lhs.from == rhs.from && lhs.to == rhs.to && lhs.flag == rhs.flag;
+}
 
 // clang-format off
 constexpr std::array<Square, 64> square_sequence{
@@ -34,13 +53,11 @@ constexpr std::array<Square, 64> square_sequence{
   }};
 // clang-format on
 
-Piece piece_type(char ch);
+// todo fix interface(?)
+export std::array<Move, 256> movegen(const Board &b);
 
-// todo fix interface
-export std::array<move, 256> movegen(const Board &board);
-
-// todo
-void movegen_pawn(std::array<move, 256> &moves, int &move_count,
+// todo promotions
+void movegen_pawn(std::array<Move, 256> &moves, int &move_count,
                   const Board &board, Square from) {
   // pawn moves
   if (board.stm == white) {
@@ -89,58 +106,45 @@ void movegen_pawn(std::array<move, 256> &moves, int &move_count,
   }
 }
 
-std::array<move, 256> movegen(const Board &board) {
+std::array<Move, 256> movegen(const Board &b) {
   int move_count = 0;
-  std::array<move, 256> moves{};
+  std::array<Move, 256> moves{};
 
   //  castling
-  if (board.stm == white) {
-    if (board.castling_rights & 1) { // white ks
-      if ((board.piece_on[f1] == '.') && (board.piece_on[g1] == '.') &&
-          !is_attacked(board, e1, black) && !is_attacked(board, f1, black) &&
-          !is_attacked(board, g1, black)) {
-        moves[move_count++] = {.from = e1, .to = g1, .flag = normal};
-      }
+  if (b.stm == white) {
+    if ((b.castling_rights & 1) && all_empty(b, f1, g1) &&
+        all_not_attacked(b, black, e1, f1, g1)) {
+      moves[move_count++] = {.from = e1, .to = g1, .flag = castle};
     }
-    if (board.castling_rights & 2) { // white qs
-      if ((board.piece_on[c1] == '.') && (board.piece_on[d1] == '.') &&
-          !is_attacked(board, c1, black) && !is_attacked(board, d1, black) &&
-          !is_attacked(board, e1, black)) {
-        moves[move_count++] = {.from = e1, .to = c1, .flag = normal};
-      }
+    if ((b.castling_rights & 2) && all_empty(b, c1, d1) &&
+        all_not_attacked(b, black, c1, d1, e1)) {
+      moves[move_count++] = {.from = e1, .to = c1, .flag = castle};
     }
   } else {
-    if (board.castling_rights & 4) { // black ks
-      if ((board.piece_on[f8] == '.') && (board.piece_on[g8] == '.') &&
-          !is_attacked(board, e8, white) && !is_attacked(board, f8, white) &&
-          !is_attacked(board, g8, white)) {
-        moves[move_count++] = {.from = e8, .to = g8, .flag = normal};
-      }
+    if ((b.castling_rights & 4) && all_empty(b, f8, g8) &&
+        all_not_attacked(b, white, e8, f8, g8)) {
+      moves[move_count++] = {.from = e8, .to = g8, .flag = castle};
     }
-    if (board.castling_rights & 8) { // black qs
-      if ((board.piece_on[c8] == '.') && (board.piece_on[d8] == '.') &&
-          !is_attacked(board, c8, white) && !is_attacked(board, d8, white) &&
-          !is_attacked(board, e8, white)) {
-        moves[move_count++] = {.from = e8, .to = c8, .flag = normal};
-      }
+    if ((b.castling_rights & 8) && all_empty(b, c8, d8) &&
+        all_not_attacked(b, white, c8, d8, e8)) {
+      moves[move_count++] = {.from = e8, .to = c8, .flag = castle};
     }
   }
 
   for (const auto from : square_sequence) {
-    if (board.color_on[from] == board.stm) {
-      auto piece_char = board.piece_on[from];
-      if (piece_char == 'P' || piece_char == 'p') {
-        movegen_pawn(moves, move_count, board,
-                     from); // special handling for pawns
+    if (b.color_on[from] == b.stm) {
+      auto pi = b.piece_info(from);
+      if (pi.piece_type == pawn) {
+        movegen_pawn(moves, move_count, b, from);
       } else {
-        const Piece piece = piece_type(piece_char);
+        const Piece piece = pi.piece_type; // todo fix lol
         if (piece == knight || piece == king) {
           for (const auto vec : vectors[piece]) {
             Square to = from + vec;
             if (is_valid_square(to)) {
-              if (board.color_on[to] == null_color) {
+              if (b.color_on[to] == null_color) {
                 moves[move_count++] = {.from = from, .to = to, .flag = normal};
-              } else if (board.color_on[to] == ~board.stm) {
+              } else if (b.color_on[to] == ~b.stm) {
                 moves[move_count++] = {.from = from, .to = to, .flag = capture};
               }
             }
@@ -149,12 +153,12 @@ std::array<move, 256> movegen(const Board &board) {
           for (const auto vec : vectors[piece]) {
             for (int i = 1;; ++i) {
               Square to = from + (vec * i);
-              if (!is_valid_square(to) || board.color_on[to] == board.stm) {
+              if (!is_valid_square(to) || b.color_on[to] == b.stm) {
                 break;
               }
-              if (board.color_on[to] == null_color) {
+              if (b.color_on[to] == null_color) {
                 moves[move_count++] = {.from = from, .to = to, .flag = normal};
-              } else if (board.color_on[to] == ~board.stm) {
+              } else if (b.color_on[to] == ~b.stm) {
                 moves[move_count++] = {.from = from, .to = to, .flag = capture};
                 break;
               }
