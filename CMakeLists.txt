@@ -70,4 +70,7 @@ target_link_libraries(
         chess_modules
 )
 
+include(CTest)
+enable_testing()
+
 add_subdirectory(test)
