@@ -22,15 +22,15 @@ export module Board;
  */
 export class Board {
  public:
-  Board() : Board(startpos) {}          ///< default startpos
+  Board() : Board(fen::startpos) {}     ///< default startpos
   explicit Board(std::string_view fen); ///< set up the board with a fen string
 
   void display() const; ///< print a simple visualization of the board
 
   // piece tracking
 
-  std::array<char, 128> piece_on{}; ///< 0x88 board representation
-  std::array<char, 128> color_on{}; ///< redundant 0x88 color tracking
+  std::array<Piece, 128> piece_on{}; ///< 0x88 board representation
+  std::array<Color, 128> color_on{}; ///< redundant 0x88 color tracking
 
   // game state tracking
 
@@ -44,19 +44,23 @@ export class Board {
 //------------------------------------------------------------------------------
 
 Board::Board(const std::string_view fen) {
-  // iterate over squares
-  piece_on.fill('.');
-  color_on.fill('.');
+  using namespace fen;
+
+  piece_on.fill(null_piece);
+  color_on.fill(null_color);
+
   int i = 0;
   auto ch = fen.begin();
+
   for (; i < 64; ++ch) {
-    if (is_piece_letter(*ch)) {
-      piece_on[fen_square(i)] = *ch;
-      color_on[fen_square(i)] = color(*ch);
+    if (is_piece(*ch)) {
+      const auto [piece_type, color] = get_piece_info(*ch);
+      const auto sq = to_0x88_idx(i);
+      piece_on[sq] = piece_type;
+      color_on[sq] = color;
       i++;
-    } else if (*ch >= '1' && *ch <= '8') {
+    } else if (*ch >= '1' && *ch <= '8') { // empty squares
       i += *ch - '0';
-    } else if (*ch == '/') { // do nothing
     } else if (*ch == ' ') {
       break;
     }
@@ -65,7 +69,7 @@ Board::Board(const std::string_view fen) {
   // minimal error checking
   // did we get all the squares?
   if (i != 64) {
-    throw std::runtime_error("malformed FEN");
+    throw std::runtime_error("malformed FEN string");
   }
 
   // side to move
@@ -92,8 +96,7 @@ Board::Board(const std::string_view fen) {
       case 'q':
         castling_rights += 0b1000;
         break;
-      default: {
-      }
+      default:
       }
     }
   }
@@ -114,8 +117,13 @@ Board::Board(const std::string_view fen) {
 }
 
 void Board::display() const {
+  using namespace fen;
+
   for (int i = 0; i < 64; ++i) {
-    std::cout << ' ' << piece_on[fen_square(i)];
+    const auto sq = to_0x88_idx(i);
+    const PieceInfo pi{.piece_type = piece_on[sq], .color = color_on[sq]};
+    const char ch = get_char_code(pi);
+    std::cout << ' ' << ch;
     if ((i + 1) % 8 == 0) {
       std::cout << '\n';
     }

@@ -167,8 +167,7 @@ std::array<move, 256> movegen(const Board &board) {
   return moves;
 }
 
-// todo fix board representation so that we are not calling piece_type a
-// bazillion times
+// todo simplify movegen to take advantage of fixed board representation
 Piece piece_type(const char ch) {
   switch (ch) {
   case 'P':

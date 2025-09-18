@@ -8,36 +8,56 @@ module;
 #include <array>
 #include <locale>
 
+import chess.types;
+
 export module fen;
 
 //------------------------------------------------------------------------------
 
+export namespace fen {
+
 /// startpos FEN string
-export constexpr std::string_view startpos =
+constexpr std::string_view startpos =
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 /**
  * @param ch a character in a fen string
  * @return true if ch is a valid piece code, false otherwise
  */
-export auto is_piece_letter(char ch) -> bool;
+bool is_piece(char ch);
 
 /**
  * @param n n'th square in the fen sequence
  * @return corresponding index on a 0x88 board
  */
-export auto fen_square(int n) -> int;
+int to_0x88_idx(int n);
+
+struct PieceInfo {
+  Piece piece_type{null_piece};
+  Color color{null_color};
+};
 
 /**
- * @param ch piece code
- * @return 'b' if black, 'w' if white.
- * @warning requires ch to be a letter
+ * @param ch fen piece code
+ * @return corresponding PieceInfo
+ * @example P-> {pawn, white}. k -> {king, black}
+ * @note the inverse of get_fen_char_code
  */
-export auto color(char ch) -> char;
+PieceInfo get_piece_info(char ch);
+
+/**
+ * @param piece_info attributes of a given piece
+ * @return the corresponding fen character code
+ * @example {pawn, white} -> P. {king, black} -> k.
+ * @note the inverse of get_piece_info
+ */
+char get_char_code(PieceInfo piece_info);
+
+} // namespace fen
 
 //------------------------------------------------------------------------------
 
-bool is_piece_letter(char ch) {
+bool fen::is_piece(const char ch) {
   switch (std::tolower(ch)) {
   case 'p':
     return true;
@@ -60,7 +80,7 @@ bool is_piece_letter(char ch) {
 /**
  * @brief to easily iterate over the board while reading a fen string
  */
-export constexpr std::array<int, 64> fen_square_sequence = {
+constexpr std::array<int, 64> fen_0x88_idx_sequence = {
   {
     0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77,
     0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67,
@@ -73,11 +93,69 @@ export constexpr std::array<int, 64> fen_square_sequence = {
   }};
 // clang-format on
 
-int fen_square(const int n) { return fen_square_sequence[n]; }
+int fen::to_0x88_idx(const int n) { return fen_0x88_idx_sequence[n]; }
 
-char color(const char ch) {
-  if (std::islower(ch)) {
-    return 'b';
+fen::PieceInfo fen::get_piece_info(char ch) {
+  PieceInfo piece_info;
+
+  switch (std::tolower(ch)) {
+  case 'p':
+    piece_info.piece_type = pawn;
+    break;
+  case 'b':
+    piece_info.piece_type = bishop;
+    break;
+  case 'n':
+    piece_info.piece_type = knight;
+    break;
+  case 'r':
+    piece_info.piece_type = rook;
+    break;
+  case 'k':
+    piece_info.piece_type = king;
+    break;
+  case 'q':
+    piece_info.piece_type = queen;
+    break;
+  default:
   }
-  return 'w';
+
+  if (std::islower(ch) != 0) {
+    piece_info.color = black;
+  } else {
+    piece_info.color = white;
+  }
+
+  return piece_info;
+}
+char fen::get_char_code(PieceInfo piece_info) {
+  char ch = '.';
+
+  switch (piece_info.piece_type) {
+  case pawn:
+    ch = 'p';
+    break;
+  case bishop:
+    ch = 'b';
+    break;
+  case knight:
+    ch = 'n';
+    break;
+  case rook:
+    ch = 'r';
+    break;
+  case king:
+    ch = 'k';
+    break;
+  case queen:
+    ch = 'q';
+    break;
+  default:
+  }
+
+  if (piece_info.color == white) {
+    ch = std::toupper(ch);
+  }
+
+  return ch;
 }
