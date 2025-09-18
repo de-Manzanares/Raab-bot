@@ -296,3 +296,18 @@ TEST_CASE("bishop") {
     CHECK(has_n_moves(ml, d5, capture) == 3);
   }
 }
+
+TEST_CASE("rook") {
+  SECTION("white") {
+    Board b0("3r4/4r3/8/3r2RR/rr2R3/8/3R4/4R3 w - - 0 1");
+    auto ml = movegen(b0);
+    CHECK(has_n_moves(ml, e4, normal) == 9);
+    CHECK(has_n_moves(ml, e4, capture) == 2);
+  }
+  SECTION("black") {
+    Board b0("3r4/4r3/8/3r2RR/rr2R3/8/3R4/4R3 b - - 0 1");
+    auto ml = movegen(b0);
+    CHECK(has_n_moves(ml, d5, normal) == 9);
+    CHECK(has_n_moves(ml, d5, capture) == 2);
+  }
+}
