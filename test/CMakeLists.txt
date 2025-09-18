@@ -9,7 +9,7 @@ FetchContent_MakeAvailable(Catch2)
 
 add_executable(
         attack-test
-        attack.cxx
+        src/attack.cxx
 )
 target_link_libraries(
         attack-test
@@ -25,7 +25,7 @@ add_test(
 
 add_executable(
         movegen-test
-        movegen.cxx
+        src/movegen.cxx
 )
 target_link_libraries(
         movegen-test
