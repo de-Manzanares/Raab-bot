@@ -48,7 +48,7 @@ void movegen_pawn(std::array<move, 256> &moves, int &move_count,
     if (is_valid_square(to) && board.piece_on[to] == '.') {
       moves[move_count++] = {.from = from, .to = to, .flag = normal};
     }
-    if ((from >> 4)) { // on second rank
+    if ((from >> 4) == a2) { // on second rank
       to = from + (2 * N);
       if (is_valid_square(to) && board.piece_on[to] == '.') {
         moves[move_count++] = {.from = from, .to = to, .flag = en_passant};
@@ -61,7 +61,7 @@ void movegen_pawn(std::array<move, 256> &moves, int &move_count,
     if (is_valid_square(to) && board.piece_on[to] == '.') {
       moves[move_count++] = {.from = from, .to = to, .flag = normal};
     }
-    if ((from >> 4) == 7) { // on seventh rank
+    if ((from >> 4) == a7) { // on seventh rank
       to = from + (2 * S);
       if (is_valid_square(to) && board.piece_on[to] == '.') {
         moves[move_count++] = {.from = from, .to = to, .flag = en_passant};
