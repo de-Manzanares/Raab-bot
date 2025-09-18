@@ -1,8 +1,13 @@
+/**
+ * @file movegen.cppm
+ * move generators
+ */
+
 module;
 
 #include <array>
 
-import Attack;
+import attack;
 import Board;
 import chess.types;
 
@@ -40,12 +45,12 @@ void movegen_pawn(std::array<move, 256> &moves, int &move_count,
   // pawn moves
   if (board.stm == white) {
     Square to = from + N;
-    if (is_valid(to) && board.piece_on[to] == '.') {
+    if (is_valid_square(to) && board.piece_on[to] == '.') {
       moves[move_count++] = {.from = from, .to = to, .flag = normal};
     }
     if ((from >> 4)) { // on second rank
       to = from + (2 * N);
-      if (is_valid(to) && board.piece_on[to] == '.') {
+      if (is_valid_square(to) && board.piece_on[to] == '.') {
         moves[move_count++] = {.from = from, .to = to, .flag = en_passant};
         // todo ep target
         // board.ep = from + N;
@@ -53,12 +58,12 @@ void movegen_pawn(std::array<move, 256> &moves, int &move_count,
     }
   } else {
     Square to = from + S;
-    if (is_valid(to) && board.piece_on[to] == '.') {
+    if (is_valid_square(to) && board.piece_on[to] == '.') {
       moves[move_count++] = {.from = from, .to = to, .flag = normal};
     }
     if ((from >> 4) == 7) { // on seventh rank
       to = from + (2 * S);
-      if (is_valid(to) && board.piece_on[to] == '.') {
+      if (is_valid_square(to) && board.piece_on[to] == '.') {
         moves[move_count++] = {.from = from, .to = to, .flag = en_passant};
         // todo ep target
         // board.ep = from + S;
@@ -70,14 +75,14 @@ void movegen_pawn(std::array<move, 256> &moves, int &move_count,
   if (board.stm == white) {
     for (constexpr std::array dirs{NW, NE}; const auto dir : dirs) {
       if (const Square to = from + dir;
-          is_valid(to) && board.color_on[to] == ~board.stm) {
+          is_valid_square(to) && board.color_on[to] == ~board.stm) {
         moves[move_count++] = {.from = from, .to = to, .flag = capture};
       }
     }
   } else {
     for (constexpr std::array dirs{SW, SE}; const auto dir : dirs) {
       if (const Square to = from + dir;
-          is_valid(to) && board.color_on[to] == ~board.stm) {
+          is_valid_square(to) && board.color_on[to] == ~board.stm) {
         moves[move_count++] = {.from = from, .to = to, .flag = capture};
       }
     }
@@ -132,7 +137,7 @@ std::array<move, 256> movegen(const Board &board) {
         if (piece == knight || piece == king) {
           for (const auto vec : vectors[piece]) {
             Square to = from + vec;
-            if (is_valid(to)) {
+            if (is_valid_square(to)) {
               if (board.color_on[to] == null_color) {
                 moves[move_count++] = {.from = from, .to = to, .flag = normal};
               } else if (board.color_on[to] == ~board.stm) {
@@ -144,7 +149,7 @@ std::array<move, 256> movegen(const Board &board) {
           for (const auto vec : vectors[piece]) {
             for (int i = 1;; ++i) {
               Square to = from + (vec * i);
-              if (!is_valid(to) || board.color_on[to] == board.stm) {
+              if (!is_valid_square(to) || board.color_on[to] == board.stm) {
                 break;
               }
               if (board.color_on[to] == null_color) {

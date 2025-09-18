@@ -1,6 +1,6 @@
 /**
  * @file Board0x88.cppm
- * interface and implementation of the Board representation
+ * interface and implementation of the 0x88 board representation
  */
 
 module;
@@ -13,14 +13,17 @@ import fen;
 import chess.types;
 
 export module Board;
+
+//------------------------------------------------------------------------------
+
 /**
  * @class Board
  * @brief 0x88 board representation and associated functionality
  */
 export class Board {
  public:
-  Board() : Board(startpos) {} ///< default startpos
-  Board(std::string_view fen); ///< set up the board with a fen string
+  Board() : Board(startpos) {}          ///< default startpos
+  explicit Board(std::string_view fen); ///< set up the board with a fen string
 
   void display() const; ///< print a simple visualization of the board
 
@@ -31,19 +34,16 @@ export class Board {
 
   // game state tracking
 
-  Color stm; ///< side to move
-  Square ep; ///< en passant square
-
-  /** @brief bitfield representing castling rights \n
-   * [bqs, bks, wqs, wks]
-   */
-  int castling_rights = 0b0000;
-
-  int hmc; ///< half move clock
-  int fmc; ///< full move clock
+  Color stm;                    ///< side to move
+  Square ep;                    ///< en passant square
+  int castling_rights = 0b0000; ///< bqs = 8, bks = 4, wqs = 2, wks = 1
+  int hmc;                      ///< half move clock
+  int fmc;                      ///< full move clock
 };
 
-Board::Board(std::string_view fen) {
+//------------------------------------------------------------------------------
+
+Board::Board(const std::string_view fen) {
   // iterate over squares
   piece_on.fill('.');
   color_on.fill('.');
@@ -70,7 +70,7 @@ Board::Board(std::string_view fen) {
 
   // side to move
   ++ch;
-  *ch == 'w' ? stm = Color::white : stm = Color::black;
+  *ch == 'w' ? stm = white : stm = black;
   std::advance(ch, 2);
 
   // castling rights
@@ -92,6 +92,8 @@ Board::Board(std::string_view fen) {
       case 'q':
         castling_rights += 0b1000;
         break;
+      default: {
+      }
       }
     }
   }
@@ -99,10 +101,10 @@ Board::Board(std::string_view fen) {
   // en passant target
   ++ch;
   if (*ch == '-') {
-    ep = Square::null_square;
+    ep = null_square;
     std::advance(ch, 2);
   } else {
-    ep = static_cast<Square>(16 * (*std::next(ch) - '0' - 1) + *ch - 'a');
+    ep = static_cast<Square>((16 * (*std::next(ch) - '0' - 1)) + *ch - 'a');
     std::advance(ch, 3);
   }
 

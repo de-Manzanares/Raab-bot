@@ -10,6 +10,8 @@ module;
 
 export module fen;
 
+//------------------------------------------------------------------------------
+
 /// startpos FEN string
 export constexpr std::string_view startpos =
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -32,6 +34,8 @@ export auto fen_square(int n) -> int;
  * @warning requires ch to be a letter
  */
 export auto color(char ch) -> char;
+
+//------------------------------------------------------------------------------
 
 bool is_piece_letter(char ch) {
   switch (std::tolower(ch)) {

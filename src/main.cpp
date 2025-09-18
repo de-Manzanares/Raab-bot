@@ -1,6 +1,6 @@
 #include <iostream>
 
-import Attack;
+import attack;
 import Board;
 import chess.types;
 import movegen;

@@ -1,3 +1,8 @@
+/**
+ * @file attack.cppm
+ * is a square attacked?
+ */
+
 module;
 
 #include <array>
@@ -5,44 +10,59 @@ module;
 import Board;
 import chess.types;
 
-export module Attack;
+export module attack;
 
-export bool is_valid(const Square sq) { return (sq & 0x88) == 0; }
+//------------------------------------------------------------------------------
 
-export bool is_attacked(const Board &board, const Square sq,
-                        const Color by_color) {
-  // possibly keep an influence map instead of recalculating every time....
-  // it is an early break though, so it's not too bad I suppose
+/**
+ * @details The classic 0x88 square checking trick :-)
+ * @param sq the square in question
+ * @return true - is on board, false - is off board
+ */
+export bool is_valid_square(const Square sq) { return (sq & 0x88) == 0; }
+
+/**
+ * @param board the board in question
+ * @param sq the square in question
+ * @param by_color the attacking color
+ * @return true - that square is attacked by by_color, that square is not
+ * attacked by by_color
+ */
+export bool is_attacked(const Board &board, Square sq, Color by_color);
+
+//------------------------------------------------------------------------------
+
+bool is_attacked(const Board &board, const Square sq, const Color by_color) {
 
   // pawns
   if (by_color == white) {
     for (constexpr std::array dirs{SW, SE}; const auto dir : dirs) {
-      if (is_valid(sq + dir) && board.piece_on[sq + dir] == 'P') {
+      if (is_valid_square(sq + dir) && board.piece_on[sq + dir] == 'P') {
         return true;
       }
     }
   }
   if (by_color == black) {
     for (constexpr std::array dirs{NW, NE}; const auto dir : dirs) {
-      if (is_valid(sq + dir) && board.piece_on[sq + dir] == 'p') {
-        return true;
-      }
+      if (is_valid_square(sq + dir) && board.piece_on[sq + dir] == 'p')
+        ;
+      return true;
     }
   }
 
   // knights
   if (by_color == white) {
     for (const auto vec : vectors[knight]) {
-      Square square{sq + vec};
-      if (is_valid(square) && board.piece_on[square] == 'N') {
+      if (const Square square{sq + vec};
+          is_valid_square(square) && board.piece_on[square] == 'N') {
         return true;
       }
     }
   }
   if (by_color == black) {
     for (const auto vec : vectors[knight]) {
-      Square square{sq + vec};
-      if (is_valid(square) && board.piece_on[square] == 'n') {
+      if (const Square square{sq + vec};
+          is_valid_square(square) && board.piece_on[square] == 'n') {
         return true;
       }
     }
@@ -52,8 +72,8 @@ export bool is_attacked(const Board &board, const Square sq,
   if (by_color == white) {
     for (const auto vec : vectors[bishop]) {
       for (int i = 1;; ++i) {
-        Square square{sq + (vec * i)};
-        if (!is_valid(square)) {
+        const Square square{sq + vec * i};
+        if (!is_valid_square(square)) {
           break;
         }
         const auto piece = board.piece_on[square];
@@ -69,8 +89,8 @@ export bool is_attacked(const Board &board, const Square sq,
   if (by_color == black) {
     for (const auto vec : vectors[bishop]) {
       for (int i = 1;; ++i) {
-        Square square{sq + (vec * i)};
-        if (!is_valid(square)) {
+        const Square square{sq + vec * i};
+        if (!is_valid_square(square)) {
           break;
         }
         const auto piece = board.piece_on[square];
@@ -88,8 +108,8 @@ export bool is_attacked(const Board &board, const Square sq,
   if (by_color == white) {
     for (const auto vec : vectors[rook]) {
       for (int i = 1;; ++i) {
-        Square square{sq + (vec * i)};
-        if (!is_valid(square)) {
+        const Square square{sq + vec * i};
+        if (!is_valid_square(square)) {
           break;
         }
         const auto piece = board.piece_on[square];
@@ -105,8 +125,8 @@ export bool is_attacked(const Board &board, const Square sq,
   if (by_color == black) {
     for (const auto vec : vectors[rook]) {
       for (int i = 1;; ++i) {
-        Square square{sq + (vec * i)};
-        if (!is_valid(square)) {
+        const Square square{sq + vec * i};
+        if (!is_valid_square(square)) {
           break;
         }
         const auto piece = board.piece_on[square];
@@ -123,16 +143,16 @@ export bool is_attacked(const Board &board, const Square sq,
   // kings
   if (by_color == white) {
     for (const auto vec : vectors[king]) {
-      Square square{sq + vec};
-      if (is_valid(square) && board.piece_on[square] == 'K') {
+      if (const Square square{sq + vec};
+          is_valid_square(square) && board.piece_on[square] == 'K') {
         return true;
       }
     }
   }
   if (by_color == black) {
     for (const auto vec : vectors[king]) {
-      Square square{sq + vec};
-      if (is_valid(square) && board.piece_on[square] == 'k') {
+      if (const Square square{sq + vec};
+          is_valid_square(square) && board.piece_on[square] == 'k') {
         return true;
       }
     }
