@@ -44,9 +44,9 @@ bool is_attacked(const Board &board, const Square sq, const Color by_color) {
   }
   if (by_color == black) {
     for (constexpr std::array dirs{NW, NE}; const auto dir : dirs) {
-      if (is_valid_square(sq + dir) && board.piece_on[sq + dir] == 'p')
-        ;
-      return true;
+      if (is_valid_square(sq + dir) && board.piece_on[sq + dir] == 'p') {
+        return true;
+      }
     }
   }
 
