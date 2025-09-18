@@ -31,7 +31,8 @@ misc-uniqueptr-reset-release,
 openmp-use-default-none,
 -*-use-trailing-return-type,
 -*-redundant-access-specifiers,
--*-pro-bounds-pointer-arithmetic'
+-*-pro-bounds-pointer-arithmetic,
+-cppcoreguidelines-pro-bounds-constant-array-index'
 
 CheckOptions:
   - { key: readability-identifier-naming.ClassCase,                   value: CamelCase }
