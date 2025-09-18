@@ -6,6 +6,7 @@
 module;
 
 #include <array>
+#include <cstdint>
 
 import attack;
 import Board;
@@ -25,19 +26,27 @@ constexpr bool all_not_attacked(const Board &b, Color c, Squares... sq) {
   return (... && !is_attacked(b, sq, c));
 }
 
-Piece piece_type(const char ch);
-
-export enum Flag { normal, capture, en_passant, castle, promotion, null_flag };
+export enum Flag : std::uint8_t {
+  normal,
+  capture,
+  en_passant,
+  castle,
+  promotion,
+  prom_capture,
+  null_flag
+};
 
 export struct Move {
   Square from = null_square;
   Square to = null_square;
   Flag flag = null_flag;
-  Piece promotion = null_piece;
+  Piece c_piece = null_piece; ///< captured piece
+  Piece p_piece = null_piece; ///< promotion piece
 };
 
 export bool operator==(Move lhs, Move rhs) {
-  return lhs.from == rhs.from && lhs.to == rhs.to && lhs.flag == rhs.flag;
+  return lhs.from == rhs.from && lhs.to == rhs.to && lhs.flag == rhs.flag &&
+         lhs.c_piece == rhs.c_piece && lhs.p_piece == rhs.p_piece;
 }
 
 // clang-format off
@@ -56,55 +65,8 @@ constexpr std::array<Square, 64> square_sequence{
 // todo fix interface(?)
 export std::array<Move, 256> movegen(const Board &b);
 
-// todo promotions
-void movegen_pawn(std::array<Move, 256> &moves, int &move_count,
-                  const Board &board, Square from) {
-  // pawn moves
-  if (board.stm == white) {
-    Square to = from + N;
-    if (is_valid_square(to) && board.piece_on[to] == '.') {
-      moves[move_count++] = {.from = from, .to = to, .flag = normal};
-    }
-    if ((from >> 4) == a2) { // on second rank
-      to = from + (2 * N);
-      if (is_valid_square(to) && board.piece_on[to] == '.') {
-        moves[move_count++] = {.from = from, .to = to, .flag = en_passant};
-        // todo ep target
-        // board.ep = from + N;
-      }
-    }
-  } else {
-    Square to = from + S;
-    if (is_valid_square(to) && board.piece_on[to] == '.') {
-      moves[move_count++] = {.from = from, .to = to, .flag = normal};
-    }
-    if ((from >> 4) == a7) { // on seventh rank
-      to = from + (2 * S);
-      if (is_valid_square(to) && board.piece_on[to] == '.') {
-        moves[move_count++] = {.from = from, .to = to, .flag = en_passant};
-        // todo ep target
-        // board.ep = from + S;
-      }
-    }
-  }
-
-  // pawn captures
-  if (board.stm == white) {
-    for (constexpr std::array dirs{NW, NE}; const auto dir : dirs) {
-      if (const Square to = from + dir;
-          is_valid_square(to) && board.color_on[to] == ~board.stm) {
-        moves[move_count++] = {.from = from, .to = to, .flag = capture};
-      }
-    }
-  } else {
-    for (constexpr std::array dirs{SW, SE}; const auto dir : dirs) {
-      if (const Square to = from + dir;
-          is_valid_square(to) && board.color_on[to] == ~board.stm) {
-        moves[move_count++] = {.from = from, .to = to, .flag = capture};
-      }
-    }
-  }
-}
+void movegen_pawn(std::array<Move, 256> &moves, int &move_count, const Board &b,
+                  Square from);
 
 std::array<Move, 256> movegen(const Board &b) {
   int move_count = 0;
@@ -171,29 +133,77 @@ std::array<Move, 256> movegen(const Board &b) {
   return moves;
 }
 
-// todo simplify movegen to take advantage of fixed board representation
-Piece piece_type(const char ch) {
-  switch (ch) {
-  case 'P':
-  case 'p':
-    return pawn;
-  case 'N':
-  case 'n':
-    return knight;
-  case 'B':
-  case 'b':
-    return bishop;
-  case 'R':
-  case 'r':
-    return rook;
-  case 'Q':
-  case 'q':
-    return queen;
-  case 'K':
-  case 'k':
-    return king;
-  default: {
-    return null_piece;
+/// non-capture pawn moves
+void nc_pm(std::array<Move, 256> &moves, int &move_count, const Board &b,
+           Square from);
+
+/// capturing pawn moves
+void c_pm(std::array<Move, 256> &moves, int &move_count, const Board &b,
+          Square from);
+
+// todo promotions
+void movegen_pawn(std::array<Move, 256> &moves, int &move_count, const Board &b,
+                  const Square from) {
+  // capturing pawn moves
+  c_pm(moves, move_count, b, from);
+
+  // non-capture pawn moves
+  nc_pm(moves, move_count, b, from);
+}
+
+void nc_pm(std::array<Move, 256> &moves, int &move_count, const Board &b,
+           const Square from) {
+  const Direction dir = b.stm == white ? N : S;
+  const Square prom_row = b.stm == white ? a7 : a2;
+  const Square double_row = b.stm == white ? a2 : a7;
+
+  if (Square to{from + dir}; all_empty(b, to)) {
+    if (from >> 4 == prom_row >> 4) { // if on 7th rank -> promotions
+      for (constexpr std::array pieces = {queen, rook, bishop, knight};
+           const auto piece : pieces) {
+        moves[move_count++] = {
+            .from = from, .to = to, .flag = promotion, .p_piece = piece};
+      }
+    } else {
+      // single move
+      moves[move_count++] = {.from = from, .to = to, .flag = normal};
+      // double move
+      if (from >> 4 == double_row >> 4 && all_empty(b, from + (2 * dir))) {
+        to = from + (2 * dir);
+        moves[move_count++] = {.from = from, .to = to, .flag = en_passant};
+        // todo ep target
+        // b.ep = from + N; (?)
+      }
+    }
   }
+}
+
+void c_pm(std::array<Move, 256> &moves, int &move_count, const Board &b,
+          const Square from) {
+  std::array<Direction, 2> dirs;
+  Square prom_row = b.stm == white ? a7 : a2;
+
+  if (b.stm == white) {
+    dirs = {NW, NE};
+  } else {
+    dirs = {SW, SE};
+  }
+  for (const auto dir : dirs) {
+    if (const Square to = from + dir;
+        is_valid_square(to) && b.color_on[to] == ~b.stm) {
+      if ((from >> 4) == (prom_row >> 4)) {
+        for (constexpr std::array p_pieces = {queen, rook, bishop, knight};
+             const auto p_piece : p_pieces) {
+          moves[move_count++] = {.from = from,
+                                 .to = to,
+                                 .flag = prom_capture,
+                                 .c_piece = b.piece_on[to],
+                                 .p_piece = p_piece};
+        }
+      } else {
+        moves[move_count++] = {
+            .from = from, .to = to, .flag = capture, .c_piece = b.piece_on[to]};
+      }
+    }
   }
 }
