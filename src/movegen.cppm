@@ -8,11 +8,11 @@ module;
 #include <array>
 #include <cstdint>
 
-import attack;
-import Board;
-import chess.types;
 
-export module movegen;
+export module Board0x88:movegen;
+import :attack;
+import :core;
+import :types;
 
 template <class... Squares>
   requires(std::same_as<Square, Squares> && ...)

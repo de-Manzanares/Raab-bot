@@ -1,9 +1,6 @@
 #include <iostream>
 
-import attack;
-import Board;
-import chess.types;
-import movegen;
+import Board0x88;
 
 int main() {
   Board board1("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -15,8 +12,5 @@ int main() {
   board2.display();
   std::cout << '\n';
   board0.display();
-  if (is_attacked(board0, a6, black)) {
-    std::cout << "a6 is attacked by black \n";
-  }
   auto moves = movegen(board0);
 }

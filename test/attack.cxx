@@ -1,8 +1,6 @@
 #include <catch2/catch_all.hpp>
 
-import chess.types;
-import attack;
-import Board;
+import Board0x88;
 
 TEST_CASE("pawn") {
   SECTION("white") {

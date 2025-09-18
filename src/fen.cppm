@@ -8,9 +8,8 @@ module;
 #include <array>
 #include <locale>
 
-import chess.types;
-
-export module fen;
+export module Board0x88:fen;
+import :types;
 
 //------------------------------------------------------------------------------
 

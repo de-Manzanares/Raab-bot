@@ -9,10 +9,10 @@ module;
 #include <iostream>
 #include <string_view>
 
-import fen;
-import chess.types;
 
-export module Board;
+export module Board0x88:core;
+import :fen;
+import :types;
 
 //------------------------------------------------------------------------------
 

@@ -7,10 +7,10 @@ module;
 
 #include <array>
 
-import Board;
-import chess.types;
 
-export module attack;
+export module Board0x88:attack;
+import :core;
+import :types;
 
 //------------------------------------------------------------------------------
 

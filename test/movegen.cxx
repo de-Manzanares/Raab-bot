@@ -2,9 +2,7 @@
 #include <catch2/catch_all.hpp>
 #include <ranges>
 
-import chess.types;
-import Board;
-import movegen;
+import Board0x88;
 
 constexpr bool has(std::array<Move, 256> ml, const Move m) {
   return std::ranges::find(ml, m) != ml.end();

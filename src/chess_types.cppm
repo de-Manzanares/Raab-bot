@@ -7,7 +7,7 @@ module;
 
 #include <cstdint>
 
-export module chess.types;
+export module Board0x88:types;
 
 //------------------------------------------------------------------------------
 

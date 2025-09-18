@@ -47,7 +47,8 @@ target_sources(
         TYPE CXX_MODULES
         FILES
         src/attack.cppm
-        src/Board0x88.cppm
+        src/Board0x88.ixx
+        src/Board0x88_core.cppm
         src/chess_types.cppm
         src/fen.cppm
         src/movegen.cppm
