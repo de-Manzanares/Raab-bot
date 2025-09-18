@@ -6,8 +6,13 @@ import chess.types;
 import Board;
 import movegen;
 
-bool has(std::array<Move, 256> ml, const Move m) {
+constexpr bool has(std::array<Move, 256> ml, const Move m) {
   return std::ranges::find(ml, m) != ml.end();
+}
+
+constexpr bool is_immobile(const std::array<Move, 256> &ml, Square sq) {
+  return std::none_of(ml.begin(), ml.end(),
+                      [sq](const Move &m) { return m.from == sq; });
 }
 
 TEST_CASE("castling") {
@@ -132,6 +137,73 @@ TEST_CASE("pawn") {
           ml, Move{c7, b8, prom_capture, .c_piece = queen, .p_piece = queen}));
       CHECK(has(
           ml, Move{c7, d8, prom_capture, .c_piece = queen, .p_piece = queen}));
+    }
+  }
+}
+
+TEST_CASE("king") {
+  SECTION("normal") {
+    SECTION("white") {
+      Board b0("8/8/8/2k2K2/8/8/8/8 w - - 0 1");
+      auto ml = movegen(b0);
+      CHECK(has(ml, Move{f5, e4, normal}));
+      CHECK(has(ml, Move{f5, f4, normal}));
+      CHECK(has(ml, Move{f5, g4, normal}));
+      CHECK(has(ml, Move{f5, e5, normal}));
+      CHECK(has(ml, Move{f5, g5, normal}));
+      CHECK(has(ml, Move{f5, e6, normal}));
+      CHECK(has(ml, Move{f5, f6, normal}));
+      CHECK(has(ml, Move{f5, g6, normal}));
+    }
+    SECTION("black") {
+      Board b0("8/8/8/2k2K2/8/8/8/8 b - - 0 1");
+      auto ml = movegen(b0);
+      CHECK(has(ml, Move{c5, b4, normal}));
+      CHECK(has(ml, Move{c5, c4, normal}));
+      CHECK(has(ml, Move{c5, d4, normal}));
+      CHECK(has(ml, Move{c5, b5, normal}));
+      CHECK(has(ml, Move{c5, d5, normal}));
+      CHECK(has(ml, Move{c5, b6, normal}));
+      CHECK(has(ml, Move{c5, c6, normal}));
+      CHECK(has(ml, Move{c5, d6, normal}));
+    }
+  }
+  SECTION("capture") {
+    SECTION("white") {
+      Board b0("8/8/1QRBqrb1/1NkPnKp1/1PPPppp1/8/8/8 w - - 0 1");
+      auto ml = movegen(b0);
+      CHECK(has(ml, Move{f5, e4, capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{f5, f4, capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{f5, g4, capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{f5, e5, capture, .c_piece = knight}));
+      CHECK(has(ml, Move{f5, g5, capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{f5, e6, capture, .c_piece = queen}));
+      CHECK(has(ml, Move{f5, f6, capture, .c_piece = rook}));
+      CHECK(has(ml, Move{f5, g6, capture, .c_piece = bishop}));
+    }
+    SECTION("black") {
+      Board b0("8/8/1QRBqrb1/1NkPnKp1/1PPPppp1/8/8/8 b - - 0 1");
+      auto ml = movegen(b0);
+      CHECK(has(ml, Move{c5, b4, capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{c5, c4, capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{c5, d4, capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{c5, b5, capture, .c_piece = knight}));
+      CHECK(has(ml, Move{c5, d5, capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{c5, b6, capture, .c_piece = queen}));
+      CHECK(has(ml, Move{c5, c6, capture, .c_piece = rook}));
+      CHECK(has(ml, Move{c5, d6, capture, .c_piece = bishop}));
+    }
+  }
+  SECTION("obstructed") {
+    SECTION("white") {
+      Board b0("8/8/1qrbQRB1/1nkpNKP1/1pppPPP1/8/8/8 w - - 0 1");
+      auto ml = movegen(b0);
+      CHECK(is_immobile(ml, f5));
+    }
+    SECTION("black") {
+      Board b0("8/8/1qrbQRB1/1nkpNKP1/1pppPPP1/8/8/8 b - - 0 1");
+      auto ml = movegen(b0);
+      CHECK(is_immobile(ml, c5));
     }
   }
 }

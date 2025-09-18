@@ -95,24 +95,26 @@ std::array<Move, 256> movegen(const Board &b) {
 
   for (const auto from : square_sequence) {
     if (b.color_on[from] == b.stm) {
-      auto pi = b.piece_info(from);
-      if (pi.piece_type == pawn) {
+      const auto [piece_t, color] = b.piece_info(from);
+
+      if (piece_t == pawn) {
         movegen_pawn(moves, move_count, b, from);
       } else {
-        const Piece piece = pi.piece_type; // todo fix lol
-        if (piece == knight || piece == king) {
-          for (const auto vec : vectors[piece]) {
-            Square to = from + vec;
-            if (is_valid_square(to)) {
+        if (piece_t == knight || piece_t == king) {
+          for (const auto vec : vectors[piece_t]) {
+            if (const Square to = from + vec; is_valid_square(to)) {
               if (b.color_on[to] == null_color) {
                 moves[move_count++] = {.from = from, .to = to, .flag = normal};
               } else if (b.color_on[to] == ~b.stm) {
-                moves[move_count++] = {.from = from, .to = to, .flag = capture};
+                moves[move_count++] = {.from = from,
+                                       .to = to,
+                                       .flag = capture,
+                                       .c_piece = b.piece_on[to]};
               }
             }
           }
-        } else if (piece != null_piece) {
-          for (const auto vec : vectors[piece]) {
+        } else if (piece_t != null_piece) {
+          for (const auto vec : vectors[piece_t]) {
             for (int i = 1;; ++i) {
               Square to = from + (vec * i);
               if (!is_valid_square(to) || b.color_on[to] == b.stm) {
