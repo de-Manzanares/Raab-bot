@@ -13,7 +13,7 @@ export module chess.types;
 
 export enum Color : uint8_t { white = 'w', black = 'b', null_color = '.' };
 
-Color operator~(Color color);
+export Color operator~(Color color);
 
 ///  0x88 specific movement values
 export enum Direction : int8_t {

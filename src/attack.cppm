@@ -32,6 +32,7 @@ bool ia_p(const Board &board, Square sq, Color by_color);
 bool ia_n_k(const Board &board, Square sq, Color by_color, Piece piece);
 
 /// is attacked by bishop || rook || queen ?
+/// @warning needs to be called twice - once for bishop and rook each
 bool ia_b_r_q(const Board &board, Square sq, Color by_color, Piece piece);
 
 bool is_attacked(const Board &board, const Square sq, const Color by_color) {
@@ -87,14 +88,20 @@ bool ia_n_k(const Board &board, const Square sq, const Color by_color,
 
 bool ia_b_r_q(const Board &board, const Square sq, const Color by_color,
               const Piece piece) {
+  int n_dirs = 4;
   for (const auto vec : vectors[piece]) {
-    int n_dirs = 4;
     for (int i = 1;; ++i) {
       const Square from{sq + vec * i};
       if (!is_valid_square(from)) {
         break;
       }
       const auto pi = board.piece_info(from);
+      if (pi.piece_type == null_piece) {
+        continue;
+      }
+      if (pi.color == ~by_color) {
+        break;
+      }
       if (pi == PieceInfo{piece, by_color} ||
           pi == PieceInfo{queen, by_color}) {
         return true;
