@@ -32,11 +32,6 @@ bool is_piece(char ch);
  */
 int to_0x88_idx(int n);
 
-struct PieceInfo {
-  Piece piece_type{null_piece};
-  Color color{null_color};
-};
-
 /**
  * @param ch fen piece code
  * @return corresponding PieceInfo
@@ -95,7 +90,7 @@ constexpr std::array<int, 64> fen_0x88_idx_sequence = {
 
 int fen::to_0x88_idx(const int n) { return fen_0x88_idx_sequence[n]; }
 
-fen::PieceInfo fen::get_piece_info(char ch) {
+PieceInfo fen::get_piece_info(char ch) {
   PieceInfo piece_info;
 
   switch (std::tolower(ch)) {
@@ -128,7 +123,8 @@ fen::PieceInfo fen::get_piece_info(char ch) {
 
   return piece_info;
 }
-char fen::get_char_code(PieceInfo piece_info) {
+
+char fen::get_char_code(const PieceInfo piece_info) {
   char ch = '.';
 
   switch (piece_info.piece_type) {

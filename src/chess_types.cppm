@@ -39,6 +39,13 @@ export enum Piece : uint8_t {
   null_piece = '.'
 };
 
+export struct PieceInfo {
+  Piece piece_type{null_piece};
+  Color color{null_color};
+};
+
+export bool operator==(PieceInfo lhs, PieceInfo rhs);
+
 /// the movement directions of each piece, excluding pawns
 export constexpr int8_t vectors[5][8] = {{SW, S, SE, E, W, NW, N, NE},
                                          {SW, S, SE, E, W, NW, N, NE},
@@ -67,6 +74,10 @@ export Square operator+(Square lhs, Direction rhs);
 export Square operator+(Square lhs, int rhs);
 
 //------------------------------------------------------------------------------
+
+bool operator==(const PieceInfo lhs, const PieceInfo rhs) {
+  return lhs.piece_type == rhs.piece_type && lhs.color == rhs.color;
+}
 
 Square operator+(const Square lhs, const Direction rhs) {
   return static_cast<Square>(static_cast<int>(lhs) + static_cast<int>(rhs));

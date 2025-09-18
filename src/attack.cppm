@@ -15,13 +15,6 @@ export module attack;
 //------------------------------------------------------------------------------
 
 /**
- * @details The classic 0x88 square checking trick :-)
- * @param sq the square in question
- * @return true - is on board, false - is off board
- */
-export bool is_valid_square(const Square sq) { return (sq & 0x88) == 0; }
-
-/**
  * @param board the board in question
  * @param sq the square in question
  * @param by_color the attacking color
@@ -32,131 +25,87 @@ export bool is_attacked(const Board &board, Square sq, Color by_color);
 
 //------------------------------------------------------------------------------
 
+/// is attacked by pawn ?
+bool ia_p(const Board &board, Square sq, Color by_color);
+
+/// is attacked by knight || king ?
+bool ia_n_k(const Board &board, Square sq, Color by_color, Piece piece);
+
+/// is attacked by bishop || rook || queen ?
+bool ia_b_r_q(const Board &board, Square sq, Color by_color, Piece piece);
+
 bool is_attacked(const Board &board, const Square sq, const Color by_color) {
 
   // pawns
-  if (by_color == white) {
-    for (constexpr std::array dirs{SW, SE}; const auto dir : dirs) {
-      if (is_valid_square(sq + dir) && board.piece_on[sq + dir] == 'P') {
-        return true;
-      }
-    }
-  }
-  if (by_color == black) {
-    for (constexpr std::array dirs{NW, NE}; const auto dir : dirs) {
-      if (is_valid_square(sq + dir) && board.piece_on[sq + dir] == 'p') {
-        return true;
-      }
-    }
+  if (ia_p(board, sq, by_color)) {
+    return true;
   }
 
-  // knights
-  if (by_color == white) {
-    for (const auto vec : vectors[knight]) {
-      if (const Square square{sq + vec};
-          is_valid_square(square) && board.piece_on[square] == 'N') {
-        return true;
-      }
-    }
-  }
-  if (by_color == black) {
-    for (const auto vec : vectors[knight]) {
-      if (const Square square{sq + vec};
-          is_valid_square(square) && board.piece_on[square] == 'n') {
-        return true;
-      }
-    }
+  // knights and king
+  if (ia_n_k(board, sq, by_color, knight) ||
+      ia_n_k(board, sq, by_color, king)) {
+    return true;
   }
 
-  // diagonal
-  if (by_color == white) {
-    for (const auto vec : vectors[bishop]) {
-      for (int i = 1;; ++i) {
-        const Square square{sq + vec * i};
-        if (!is_valid_square(square)) {
-          break;
-        }
-        const auto piece = board.piece_on[square];
-        if (piece == 'B' || piece == 'Q') {
-          return true;
-        }
-        if (piece != '.') {
-          break;
-        }
-      }
-    }
-  }
-  if (by_color == black) {
-    for (const auto vec : vectors[bishop]) {
-      for (int i = 1;; ++i) {
-        const Square square{sq + vec * i};
-        if (!is_valid_square(square)) {
-          break;
-        }
-        const auto piece = board.piece_on[square];
-        if (piece == 'b' || piece == 'q') {
-          return true;
-        }
-        if (piece != '.') {
-          break;
-        }
-      }
-    }
+  // diagonal, vertical, and horizontal (bishops, rooks, queens)
+  if (ia_b_r_q(board, sq, by_color, bishop) ||
+      ia_b_r_q(board, sq, by_color, rook)) {
+    return true;
   }
 
-  // vertical and horizontal
-  if (by_color == white) {
-    for (const auto vec : vectors[rook]) {
-      for (int i = 1;; ++i) {
-        const Square square{sq + vec * i};
-        if (!is_valid_square(square)) {
-          break;
-        }
-        const auto piece = board.piece_on[square];
-        if (piece == 'R' || piece == 'Q') {
-          return true;
-        }
-        if (piece != '.') {
-          break;
-        }
-      }
-    }
-  }
-  if (by_color == black) {
-    for (const auto vec : vectors[rook]) {
-      for (int i = 1;; ++i) {
-        const Square square{sq + vec * i};
-        if (!is_valid_square(square)) {
-          break;
-        }
-        const auto piece = board.piece_on[square];
-        if (piece == 'r' || piece == 'q') {
-          return true;
-        }
-        if (piece != '.') {
-          break;
-        }
-      }
-    }
-  }
+  return false;
+}
 
-  // kings
+bool ia_p(const Board &board, const Square sq, const Color by_color) {
+  std::array<Direction, 2> pawn_dirs;
   if (by_color == white) {
-    for (const auto vec : vectors[king]) {
-      if (const Square square{sq + vec};
-          is_valid_square(square) && board.piece_on[square] == 'K') {
+    pawn_dirs = {SW, SE};
+  } else {
+    pawn_dirs = {NW, NE};
+  }
+  for (const auto dir : pawn_dirs) {
+    if (const Square from{sq + dir};
+        is_valid_square(from) &&
+        board.piece_info(from) == PieceInfo{pawn, by_color}) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool ia_n_k(const Board &board, const Square sq, const Color by_color,
+            const Piece piece) {
+  for (const auto vec : vectors[piece]) {
+    if (const Square from{sq + vec};
+        is_valid_square(from) &&
+        board.piece_info(from) == PieceInfo{piece, by_color}) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool ia_b_r_q(const Board &board, const Square sq, const Color by_color,
+              const Piece piece) {
+  for (const auto vec : vectors[piece]) {
+    int n_dirs = 4;
+    for (int i = 1;; ++i) {
+      const Square from{sq + vec * i};
+      if (!is_valid_square(from)) {
+        break;
+      }
+      const auto pi = board.piece_info(from);
+      if (pi == PieceInfo{piece, by_color} ||
+          pi == PieceInfo{queen, by_color}) {
         return true;
       }
-    }
-  }
-  if (by_color == black) {
-    for (const auto vec : vectors[king]) {
-      if (const Square square{sq + vec};
-          is_valid_square(square) && board.piece_on[square] == 'k') {
-        return true;
+      if (pi.piece_type != null_piece) {
+        break;
       }
     }
+    if (--n_dirs == 0) {
+      break;
+    }
   }
-
   return false;
 }

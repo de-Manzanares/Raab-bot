@@ -25,6 +25,8 @@ export class Board {
   Board() : Board(fen::startpos) {}     ///< default startpos
   explicit Board(std::string_view fen); ///< set up the board with a fen string
 
+  [[nodiscard]] PieceInfo piece_info(Square sq) const;
+
   void display() const; ///< print a simple visualization of the board
 
   // piece tracking
@@ -40,6 +42,13 @@ export class Board {
   int hmc;                      ///< half move clock
   int fmc;                      ///< full move clock
 };
+
+/**
+ * @details The classic 0x88 square checking trick :-)
+ * @param sq the square in question
+ * @return true - is on board, false - is off board
+ */
+export bool is_valid_square(const Square sq) { return (sq & 0x88) == 0; }
 
 //------------------------------------------------------------------------------
 
@@ -114,6 +123,10 @@ Board::Board(const std::string_view fen) {
   // half-move clock, full-move clock
   hmc = *ch - '0';
   fmc = *std::next(ch, 2) - '0';
+}
+
+PieceInfo Board::piece_info(const Square sq) const {
+  return {.piece_type = piece_on[sq], .color = color_on[sq]};
 }
 
 void Board::display() const {
