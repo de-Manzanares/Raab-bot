@@ -122,14 +122,17 @@ std::array<Move, 256> movegen(const Board &b) {
       } else if (piece_t != null_piece) {
         for (const auto vec : vectors[piece_t]) {
           for (int i = 1;; ++i) {
-            Square to = from + (vec * i);
+            const Square to{from + (vec * i)};
             if (!is_valid_square(to) || b.color_on[to] == b.stm) {
               break;
             }
-            if (b.color_on[to] == null_color) {
+            if (all_empty(b, to)) {
               moves[move_count++] = {.from = from, .to = to, .flag = normal};
-            } else if (b.color_on[to] == ~b.stm) {
-              moves[move_count++] = {.from = from, .to = to, .flag = capture};
+            } else if (all_capturable(b, to)) {
+              moves[move_count++] = {.from = from,
+                                     .to = to,
+                                     .flag = capture,
+                                     .c_piece = b.piece_on[to]};
               break;
             }
           }

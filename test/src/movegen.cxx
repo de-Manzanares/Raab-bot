@@ -9,8 +9,17 @@ constexpr bool has(std::array<Move, 256> ml, const Move m) {
 }
 
 constexpr bool is_immobile(const std::array<Move, 256> &ml, Square sq) {
-  return std::none_of(ml.begin(), ml.end(),
-                      [sq](const Move &m) { return m.from == sq; });
+  return std::ranges::none_of(ml, [sq](const Move &m) { return m.from == sq; });
+}
+
+constexpr int has_n_moves(const std::array<Move, 256> &ml, Square sq, Flag f) {
+  int n_moves = 0;
+  std::ranges::for_each(ml, [&n_moves, sq, f](const Move &m) {
+    if (m.from == sq && m.flag == f) {
+      n_moves++;
+    }
+  });
+  return n_moves;
 }
 
 TEST_CASE("castling") {
@@ -270,5 +279,20 @@ TEST_CASE("knight") {
       auto ml = movegen(b0);
       CHECK(is_immobile(ml, h1));
     }
+  }
+}
+
+TEST_CASE("bishop") {
+  SECTION("white") {
+    Board b0("8/7r/2r3r1/3b4/4B3/8/6r1/8 w - - 0 1");
+    auto ml = movegen(b0);
+    CHECK(has_n_moves(ml, e4, normal) == 5);
+    CHECK(has_n_moves(ml, e4, capture) == 3);
+  }
+  SECTION("black") {
+    Board b0("6R1/1R3R2/8/3b4/4B3/5R2/8/8 b - - 0 1");
+    auto ml = movegen(b0);
+    CHECK(has_n_moves(ml, d5, normal) == 5);
+    CHECK(has_n_moves(ml, d5, capture) == 3);
   }
 }
