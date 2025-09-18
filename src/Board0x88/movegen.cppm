@@ -8,7 +8,6 @@ module;
 #include <array>
 #include <cstdint>
 
-
 export module Board0x88:movegen;
 import :attack;
 import :core;
@@ -18,6 +17,12 @@ template <class... Squares>
   requires(std::same_as<Square, Squares> && ...)
 constexpr bool all_empty(const Board &b, Squares... sq) {
   return (... && (b.piece_on[sq] == null_piece));
+}
+
+template <class... Squares>
+  requires(std::same_as<Square, Squares> && ...)
+constexpr bool all_capturable(const Board &b, Squares... sq) {
+  return (... && (b.color_on[sq] == ~b.stm));
 }
 
 template <class... Squares>
@@ -99,33 +104,33 @@ std::array<Move, 256> movegen(const Board &b) {
 
       if (piece_t == pawn) {
         movegen_pawn(moves, move_count, b, from);
-      } else {
-        if (piece_t == knight || piece_t == king) {
-          for (const auto vec : vectors[piece_t]) {
-            if (const Square to = from + vec; is_valid_square(to)) {
-              if (b.color_on[to] == null_color) {
-                moves[move_count++] = {.from = from, .to = to, .flag = normal};
-              } else if (b.color_on[to] == ~b.stm) {
-                moves[move_count++] = {.from = from,
-                                       .to = to,
-                                       .flag = capture,
-                                       .c_piece = b.piece_on[to]};
-              }
+        continue;
+      }
+      if (piece_t == knight || piece_t == king) {
+        for (const auto vec : vectors[piece_t]) {
+          if (const Square to = from + vec; is_valid_square(to)) {
+            if (all_empty(b, to)) {
+              moves[move_count++] = {.from = from, .to = to, .flag = normal};
+            } else if (all_capturable(b, to)) {
+              moves[move_count++] = {.from = from,
+                                     .to = to,
+                                     .flag = capture,
+                                     .c_piece = b.piece_on[to]};
             }
           }
-        } else if (piece_t != null_piece) {
-          for (const auto vec : vectors[piece_t]) {
-            for (int i = 1;; ++i) {
-              Square to = from + (vec * i);
-              if (!is_valid_square(to) || b.color_on[to] == b.stm) {
-                break;
-              }
-              if (b.color_on[to] == null_color) {
-                moves[move_count++] = {.from = from, .to = to, .flag = normal};
-              } else if (b.color_on[to] == ~b.stm) {
-                moves[move_count++] = {.from = from, .to = to, .flag = capture};
-                break;
-              }
+        }
+      } else if (piece_t != null_piece) {
+        for (const auto vec : vectors[piece_t]) {
+          for (int i = 1;; ++i) {
+            Square to = from + (vec * i);
+            if (!is_valid_square(to) || b.color_on[to] == b.stm) {
+              break;
+            }
+            if (b.color_on[to] == null_color) {
+              moves[move_count++] = {.from = from, .to = to, .flag = normal};
+            } else if (b.color_on[to] == ~b.stm) {
+              moves[move_count++] = {.from = from, .to = to, .flag = capture};
+              break;
             }
           }
         }

@@ -205,3 +205,70 @@ TEST_CASE("king") {
     }
   }
 }
+
+TEST_CASE("knight") {
+  SECTION("normal") {
+    SECTION("white") {
+      Board b0("8/8/2n5/8/8/5N2/8/8 w - - 0 1");
+      auto ml = movegen(b0);
+      CHECK(has(ml, Move{f3, e1, normal}));
+      CHECK(has(ml, Move{f3, g1, normal}));
+      CHECK(has(ml, Move{f3, d2, normal}));
+      CHECK(has(ml, Move{f3, h2, normal}));
+      CHECK(has(ml, Move{f3, d4, normal}));
+      CHECK(has(ml, Move{f3, h4, normal}));
+      CHECK(has(ml, Move{f3, e5, normal}));
+      CHECK(has(ml, Move{f3, g5, normal}));
+    }
+    SECTION("black") {
+      Board b0("8/8/2n5/8/8/5N2/8/8 b - - 0 1");
+      auto ml = movegen(b0);
+      CHECK(has(ml, Move{c6, b4, normal}));
+      CHECK(has(ml, Move{c6, d4, normal}));
+      CHECK(has(ml, Move{c6, a5, normal}));
+      CHECK(has(ml, Move{c6, e5, normal}));
+      CHECK(has(ml, Move{c6, a7, normal}));
+      CHECK(has(ml, Move{c6, e7, normal}));
+      CHECK(has(ml, Move{c6, b8, normal}));
+      CHECK(has(ml, Move{c6, d8, normal}));
+    }
+  }
+  SECTION("capture") {
+    SECTION("white") {
+      Board b0("1Q1R4/B3N3/2n5/P5b1/1R5q/5N2/3b3n/4q1r1 w - - 0 1");
+      auto ml = movegen(b0);
+      CHECK(has(ml, Move{f3, e1, capture, .c_piece = queen}));
+      CHECK(has(ml, Move{f3, g1, capture, .c_piece = rook}));
+      CHECK(has(ml, Move{f3, d2, capture, .c_piece = bishop}));
+      CHECK(has(ml, Move{f3, h2, capture, .c_piece = knight}));
+      CHECK(has(ml, Move{f3, d4, normal}));
+      CHECK(has(ml, Move{f3, h4, capture, .c_piece = queen}));
+      CHECK(has(ml, Move{f3, e5, normal}));
+      CHECK(has(ml, Move{f3, g5, capture, .c_piece = bishop}));
+    }
+    SECTION("black") {
+      Board b0("1Q1R4/B3N3/2n5/P5b1/1R5q/5N2/3b3n/4q1r1 b - - 0 1");
+      auto ml = movegen(b0);
+      CHECK(has(ml, Move{c6, b4, capture, .c_piece = rook}));
+      CHECK(has(ml, Move{c6, d4, normal}));
+      CHECK(has(ml, Move{c6, a5, capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{c6, e5, normal}));
+      CHECK(has(ml, Move{c6, a7, capture, .c_piece = bishop}));
+      CHECK(has(ml, Move{c6, e7, capture, .c_piece = knight}));
+      CHECK(has(ml, Move{c6, b8, capture, .c_piece = queen}));
+      CHECK(has(ml, Move{c6, d8, capture, .c_piece = rook}));
+    }
+  }
+  SECTION("obstructed") {
+    SECTION("white") {
+      Board b0("n7/2p5/1p6/8/8/6P1/5P2/7N w - - 0 1");
+      auto ml = movegen(b0);
+      CHECK(is_immobile(ml, h1));
+    }
+    SECTION("black") {
+      Board b0("n7/2p5/1p6/8/8/6P1/5P2/7N b - - 0 1");
+      auto ml = movegen(b0);
+      CHECK(is_immobile(ml, h1));
+    }
+  }
+}
