@@ -311,3 +311,18 @@ TEST_CASE("rook") {
     CHECK(has_n_moves(ml, d5, capture) == 2);
   }
 }
+
+TEST_CASE("queen") {
+  SECTION("white") {
+    Board b0("3q4/4q3/8/3q2QQ/qq2Q3/8/3Q4/4Q3 w - - 0 1");
+    auto ml = movegen(b0);
+    CHECK(has_n_moves(ml, e4, normal) == 18);
+    CHECK(has_n_moves(ml, e4, capture) == 3);
+  }
+  SECTION("black") {
+    Board b0("3q4/4q3/8/3q2QQ/qq2Q3/8/3Q4/4Q3 b - - 0 1");
+    auto ml = movegen(b0);
+    CHECK(has_n_moves(ml, d5, normal) == 18);
+    CHECK(has_n_moves(ml, d5, capture) == 3);
+  }
+}
