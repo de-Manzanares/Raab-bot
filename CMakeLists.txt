@@ -43,7 +43,7 @@ target_sources(
         src/main.cpp
         PRIVATE
         FILE_SET cxx_modules TYPE CXX_MODULES FILES
-        src/Attack.cppm
+        src/attack.cppm
         src/Board0x88.cppm
         src/chess_types.cppm
         src/fen.cppm
