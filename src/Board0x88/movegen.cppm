@@ -31,6 +31,8 @@ constexpr bool all_not_attacked(const Board &b, Color c, Squares... sq) {
   return (... && !is_attacked(b, sq, c));
 }
 
+//------------------------------------------------------------------------------
+
 export enum Flag : std::uint8_t {
   normal,
   capture,
@@ -49,7 +51,13 @@ export struct Move {
   Piece p_piece = null_piece; ///< promotion piece
 };
 
-export bool operator==(Move lhs, Move rhs) {
+export bool operator==(Move lhs, Move rhs);
+
+export std::array<Move, 256> movegen(const Board &b);
+
+//------------------------------------------------------------------------------
+
+bool operator==(const Move lhs, const Move rhs) {
   return lhs.from == rhs.from && lhs.to == rhs.to && lhs.flag == rhs.flag &&
          lhs.c_piece == rhs.c_piece && lhs.p_piece == rhs.p_piece;
 }
@@ -67,17 +75,45 @@ constexpr std::array<Square, 64> square_sequence{
   }};
 // clang-format on
 
-// todo fix interface(?)
-export std::array<Move, 256> movegen(const Board &b);
+void movegen_castle(std::array<Move, 256> &moves, int &move_count,
+                    const Board &b);
 
 void movegen_pawn(std::array<Move, 256> &moves, int &move_count, const Board &b,
                   Square from);
+
+void movegen_n_k(std::array<Move, 256> &moves, int &move_count, const Board &b,
+                 Square from, Piece piece_t);
+
+void movegen_b_r_q(std::array<Move, 256> &moves, int &move_count,
+                   const Board &b, Square from, Piece piece_t);
 
 std::array<Move, 256> movegen(const Board &b) {
   int move_count = 0;
   std::array<Move, 256> moves{};
 
   //  castling
+  movegen_castle(moves, move_count, b);
+
+  for (const auto from : square_sequence) {
+    if (b.color_on[from] == b.stm) {
+      const auto [piece_t, color] = b.piece_info(from);
+
+      if (piece_t == pawn) {
+        movegen_pawn(moves, move_count, b, from);
+        continue;
+      }
+      if (piece_t == knight || piece_t == king) {
+        movegen_n_k(moves, move_count, b, from, piece_t);
+      } else {
+        movegen_b_r_q(moves, move_count, b, from, piece_t);
+      }
+    }
+  }
+  return moves;
+}
+
+void movegen_castle(std::array<Move, 256> &moves, int &move_count,
+                    const Board &b) {
   if (b.stm == white) {
     if ((b.castling_rights & 1) && all_empty(b, f1, g1) &&
         all_not_attacked(b, black, e1, f1, g1)) {
@@ -97,50 +133,39 @@ std::array<Move, 256> movegen(const Board &b) {
       moves[move_count++] = {.from = e8, .to = c8, .flag = castle};
     }
   }
+}
 
-  for (const auto from : square_sequence) {
-    if (b.color_on[from] == b.stm) {
-      const auto [piece_t, color] = b.piece_info(from);
-
-      if (piece_t == pawn) {
-        movegen_pawn(moves, move_count, b, from);
-        continue;
-      }
-      if (piece_t == knight || piece_t == king) {
-        for (const auto vec : vectors[piece_t]) {
-          if (const Square to = from + vec; is_valid_square(to)) {
-            if (all_empty(b, to)) {
-              moves[move_count++] = {.from = from, .to = to, .flag = normal};
-            } else if (all_capturable(b, to)) {
-              moves[move_count++] = {.from = from,
-                                     .to = to,
-                                     .flag = capture,
-                                     .c_piece = b.piece_on[to]};
-            }
-          }
-        }
-      } else if (piece_t != null_piece) {
-        for (const auto vec : vectors[piece_t]) {
-          for (int i = 1;; ++i) {
-            const Square to{from + (vec * i)};
-            if (!is_valid_square(to) || b.color_on[to] == b.stm) {
-              break;
-            }
-            if (all_empty(b, to)) {
-              moves[move_count++] = {.from = from, .to = to, .flag = normal};
-            } else if (all_capturable(b, to)) {
-              moves[move_count++] = {.from = from,
-                                     .to = to,
-                                     .flag = capture,
-                                     .c_piece = b.piece_on[to]};
-              break;
-            }
-          }
-        }
+void movegen_n_k(std::array<Move, 256> &moves, int &move_count, const Board &b,
+                 const Square from, const Piece piece_t) {
+  for (const auto vec : vectors[piece_t]) {
+    if (const Square to = from + vec; is_valid_square(to)) {
+      if (all_empty(b, to)) {
+        moves[move_count++] = {.from = from, .to = to, .flag = normal};
+      } else if (all_capturable(b, to)) {
+        moves[move_count++] = {
+            .from = from, .to = to, .flag = capture, .c_piece = b.piece_on[to]};
       }
     }
   }
-  return moves;
+}
+
+void movegen_b_r_q(std::array<Move, 256> &moves, int &move_count,
+                   const Board &b, const Square from, const Piece piece_t) {
+  for (const auto vec : vectors[piece_t]) {
+    for (int i = 1;; ++i) {
+      const Square to{from + (vec * i)};
+      if (!is_valid_square(to) || b.color_on[to] == b.stm) {
+        break;
+      }
+      if (all_empty(b, to)) {
+        moves[move_count++] = {.from = from, .to = to, .flag = normal};
+      } else if (all_capturable(b, to)) {
+        moves[move_count++] = {
+            .from = from, .to = to, .flag = capture, .c_piece = b.piece_on[to]};
+        break;
+      }
+    }
+  }
 }
 
 /// non-capture pawn moves
