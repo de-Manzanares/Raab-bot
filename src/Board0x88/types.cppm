@@ -27,6 +27,8 @@ export enum Direction : int8_t {
   SE
 };
 
+export constexpr uint8_t piece_value[6] = {100, 9, 5, 3, 3, 1};
+
 /// piece codes to easily access movement types by piece type
 /// see the vectors[5][8] array below
 export enum Piece : uint8_t {

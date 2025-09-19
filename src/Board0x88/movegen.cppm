@@ -32,6 +32,10 @@ constexpr bool all_not_attacked(const Board &b, Color c, Squares... sq) {
   return (... && !is_attacked(b, sq, c));
 }
 
+constexpr int score_capture(const Piece victim, const Piece attacker) {
+  return (10 * piece_value[victim]) - piece_value[attacker];
+}
+
 //------------------------------------------------------------------------------
 
 /**
@@ -43,6 +47,7 @@ constexpr bool all_not_attacked(const Board &b, Color c, Squares... sq) {
 export template <class OutputIt>
   requires std::output_iterator<OutputIt, Move>
 constexpr std::size_t movegen(const Board &b, OutputIt out);
+// todo ^ history scoring
 
 //------------------------------------------------------------------------------
 
@@ -182,6 +187,8 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, Square from) {
   for (const auto dir : dirs) {
     if (const Square to = from + dir;
         is_valid_square(to) && b.color_on[to] == ~b.stm) {
+      // mvv/lva: most valuable victim, least valuable attacker
+      int score = score_capture(b.piece_on[to], b.piece_on[from]);
       if ((from >> 4) == (prom_row >> 4)) {
         for (constexpr std::array p_pieces = {queen, rook, bishop, knight};
              const auto p_piece : p_pieces) {
@@ -189,12 +196,16 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, Square from) {
                     .to = to,
                     .flag = prom_capture,
                     .c_piece = b.piece_on[to],
-                    .p_piece = p_piece};
+                    .p_piece = p_piece,
+                    .score = score};
           ++move_count;
         }
       } else {
-        *out++ = {
-            .from = from, .to = to, .flag = capture, .c_piece = b.piece_on[to]};
+        *out++ = {.from = from,
+                  .to = to,
+                  .flag = capture,
+                  .c_piece = b.piece_on[to],
+                  .score = score};
         ++move_count;
       }
     }
@@ -218,8 +229,11 @@ constexpr std::size_t movegen_not_pawn(const Board &b, OutputIt &out,
         *out++ = {.from = from, .to = to, .flag = normal};
         ++move_count;
       } else if (all_capturable(b, to)) {
-        *out++ = {
-            .from = from, .to = to, .flag = capture, .c_piece = b.piece_on[to]};
+        *out++ = {.from = from,
+                  .to = to,
+                  .flag = capture,
+                  .c_piece = b.piece_on[to],
+                  .score = score_capture(b.piece_on[to], b.piece_on[from])};
         ++move_count;
         break;
       }
