@@ -6,6 +6,7 @@
 module;
 
 #include <array>
+#include <concepts>
 
 export module Board0x88:movegen;
 import :attack;
@@ -33,126 +34,146 @@ constexpr bool all_not_attacked(const Board &b, Color c, Squares... sq) {
 
 //------------------------------------------------------------------------------
 
-export std::array<Move, 256> movegen(const Board &b);
+/**
+ * populate a container with pseudo-legal moves, return the count
+ * @param b the board in question
+ * @param out output iterator
+ * @return number of pseudo-legal moves
+ */
+export template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+constexpr std::size_t movegen(const Board &b, OutputIt out);
 
 //------------------------------------------------------------------------------
 
 // clang-format off
 constexpr std::array<Square, 64> square_sequence{
-  { a1 , b1, c1, d1, e1, f1, g1, h1,
-       a2 , b2, c2, d2, e2, f2, g2, h2,
-       a3 , b3, c3, d3, e3, f3, g3, h3,
-       a4 , b4, c4, d4, e4, f4, g4, h4,
-       a5 , b5, c5, d5, e5, f5, g5, h5,
-       a6 , b6, c6, d6, e6, f6, g6, h6,
-       a7 , b7, c7, d7, e7, f7, g7, h7,
-       a8 , b8, c8, d8, e8, f8, g8, h8,
-  }};
+    { a1 , b1, c1, d1, e1, f1, g1, h1,
+         a2 , b2, c2, d2, e2, f2, g2, h2,
+         a3 , b3, c3, d3, e3, f3, g3, h3,
+         a4 , b4, c4, d4, e4, f4, g4, h4,
+         a5 , b5, c5, d5, e5, f5, g5, h5,
+         a6 , b6, c6, d6, e6, f6, g6, h6,
+         a7 , b7, c7, d7, e7, f7, g7, h7,
+         a8 , b8, c8, d8, e8, f8, g8, h8,
+    }};
 // clang-format on
 
-void movegen_castle(std::array<Move, 256> &moves, int &move_count,
-                    const Board &b);
+template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+constexpr std::size_t movegen_castle(const Board &b, OutputIt &out);
 
-void movegen_pawn(std::array<Move, 256> &moves, int &move_count, const Board &b,
-                  Square from);
+/// non-capture pawn moves
+template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+constexpr std::size_t nc_pm(const Board &b, OutputIt &out, Square from);
 
-void movegen_not_pawn(std::array<Move, 256> &moves, int &move_count,
-                      const Board &b, Square from, Piece piece_t, int max_i);
+/// capturing pawn moves
+template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+constexpr std::size_t c_pm(const Board &b, OutputIt &out, Square from);
 
-std::array<Move, 256> movegen(const Board &b) {
-  int move_count = 0;
-  std::array<Move, 256> moves{};
+template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+constexpr std::size_t movegen_pawn(const Board &b, OutputIt &out, Square from) {
+  return c_pm(b, out, from) + nc_pm(b, out, from);
+}
 
-  movegen_castle(moves, move_count, b);
+template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+constexpr std::size_t movegen_not_pawn(const Board &b, OutputIt &out,
+                                       Square from, Piece piece_t, int max_i);
 
+//------------------------------------------------------------------------------
+
+export template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+[[nodiscard]] constexpr std::size_t movegen(const Board &b, OutputIt out) {
+  std::size_t move_count = 0;
+  move_count += movegen_castle(b, out);
   for (const auto from : square_sequence) {
     if (b.color_on[from] == b.stm) {
       const auto [piece_t, color] = b.piece_info(from);
       if (piece_t == pawn) {
-        movegen_pawn(moves, move_count, b, from);
+        move_count += movegen_pawn(b, out, from);
         continue;
       }
       int max_i{};
       piece_t == knight || piece_t == king ? max_i = 1 : max_i = 7;
-      movegen_not_pawn(moves, move_count, b, from, piece_t, max_i);
+      move_count += movegen_not_pawn(b, out, from, piece_t, max_i);
     }
   }
-  return moves;
+  return move_count;
 }
 
-void movegen_castle(std::array<Move, 256> &moves, int &move_count,
-                    const Board &b) {
+//------------------------------------------------------------------------------
+
+template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
+  std::size_t move_count{};
   if (b.stm == white) {
     if ((b.castling_rights & 1) && all_empty(b, f1, g1) &&
         all_not_attacked(b, black, e1, f1, g1)) {
-      moves[move_count++] = {.from = e1, .to = g1, .flag = castle};
+      *out++ = {.from = e1, .to = g1, .flag = castle};
+      ++move_count;
     }
     if ((b.castling_rights & 2) && all_empty(b, c1, d1) &&
         all_not_attacked(b, black, c1, d1, e1)) {
-      moves[move_count++] = {.from = e1, .to = c1, .flag = castle};
+      *out++ = {.from = e1, .to = c1, .flag = castle};
+      ++move_count;
     }
   } else {
     if ((b.castling_rights & 4) && all_empty(b, f8, g8) &&
         all_not_attacked(b, white, e8, f8, g8)) {
-      moves[move_count++] = {.from = e8, .to = g8, .flag = castle};
+      *out++ = {.from = e8, .to = g8, .flag = castle};
+      ++move_count;
     }
     if ((b.castling_rights & 8) && all_empty(b, c8, d8) &&
         all_not_attacked(b, white, c8, d8, e8)) {
-      moves[move_count++] = {.from = e8, .to = c8, .flag = castle};
+      *out++ = {.from = e8, .to = c8, .flag = castle};
+      ++move_count;
     }
   }
+  return move_count;
 }
 
-/// non-capture pawn moves
-void nc_pm(std::array<Move, 256> &moves, int &move_count, const Board &b,
-           Square from);
-
-/// capturing pawn moves
-void c_pm(std::array<Move, 256> &moves, int &move_count, const Board &b,
-          Square from);
-
-// todo promotions
-void movegen_pawn(std::array<Move, 256> &moves, int &move_count, const Board &b,
-                  const Square from) {
-  // capturing pawn moves
-  c_pm(moves, move_count, b, from);
-
-  // non-capture pawn moves
-  nc_pm(moves, move_count, b, from);
-}
-
-void nc_pm(std::array<Move, 256> &moves, int &move_count, const Board &b,
-           const Square from) {
+template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
+  std::size_t move_count{};
   const Direction dir = b.stm == white ? N : S;
   const Square prom_row = b.stm == white ? a7 : a2;
   const Square double_row = b.stm == white ? a2 : a7;
-
   if (Square to{from + dir}; all_empty(b, to)) {
     if (from >> 4 == prom_row >> 4) { // if on 7th rank -> promotions
       for (constexpr std::array pieces = {queen, rook, bishop, knight};
            const auto piece : pieces) {
-        moves[move_count++] = {
-            .from = from, .to = to, .flag = promotion, .p_piece = piece};
+        *out++ = {.from = from, .to = to, .flag = promotion, .p_piece = piece};
+        ++move_count;
       }
     } else {
       // single move
-      moves[move_count++] = {.from = from, .to = to, .flag = normal};
+      *out++ = {.from = from, .to = to, .flag = normal};
       // double move
       if (from >> 4 == double_row >> 4 && all_empty(b, from + (2 * dir))) {
         to = from + (2 * dir);
-        moves[move_count++] = {.from = from, .to = to, .flag = en_passant};
+        *out++ = {.from = from, .to = to, .flag = en_passant};
+        ++move_count;
         // todo ep target
         // b.ep = from + N; (?)
       }
     }
   }
+  return move_count;
 }
 
-void c_pm(std::array<Move, 256> &moves, int &move_count, const Board &b,
-          const Square from) {
+template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+constexpr std::size_t c_pm(const Board &b, OutputIt &out, Square from) {
+  std::size_t move_count{};
   std::array<Direction, 2> dirs;
   Square prom_row = b.stm == white ? a7 : a2;
-
   if (b.stm == white) {
     dirs = {NW, NE};
   } else {
@@ -164,22 +185,29 @@ void c_pm(std::array<Move, 256> &moves, int &move_count, const Board &b,
       if ((from >> 4) == (prom_row >> 4)) {
         for (constexpr std::array p_pieces = {queen, rook, bishop, knight};
              const auto p_piece : p_pieces) {
-          moves[move_count++] = {.from = from,
-                                 .to = to,
-                                 .flag = prom_capture,
-                                 .c_piece = b.piece_on[to],
-                                 .p_piece = p_piece};
+          *out++ = {.from = from,
+                    .to = to,
+                    .flag = prom_capture,
+                    .c_piece = b.piece_on[to],
+                    .p_piece = p_piece};
+          ++move_count;
         }
       } else {
-        moves[move_count++] = {
+        *out++ = {
             .from = from, .to = to, .flag = capture, .c_piece = b.piece_on[to]};
+        ++move_count;
       }
     }
   }
+  return move_count;
 }
 
-void movegen_not_pawn(std::array<Move, 256> &moves, int &move_count,
-                      const Board &b, Square from, Piece piece_t, int max_i) {
+template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+constexpr std::size_t movegen_not_pawn(const Board &b, OutputIt &out,
+                                       const Square from, const Piece piece_t,
+                                       const int max_i) {
+  std::size_t move_count{};
   for (const auto vec : vectors[piece_t]) {
     for (int i = 1; i <= max_i; ++i) {
       const Square to{from + (vec * i)};
@@ -187,12 +215,15 @@ void movegen_not_pawn(std::array<Move, 256> &moves, int &move_count,
         break;
       }
       if (all_empty(b, to)) {
-        moves[move_count++] = {.from = from, .to = to, .flag = normal};
+        *out++ = {.from = from, .to = to, .flag = normal};
+        ++move_count;
       } else if (all_capturable(b, to)) {
-        moves[move_count++] = {
+        *out++ = {
             .from = from, .to = to, .flag = capture, .c_piece = b.piece_on[to]};
+        ++move_count;
         break;
       }
     }
   }
+  return move_count;
 }
