@@ -81,32 +81,25 @@ void movegen_castle(std::array<Move, 256> &moves, int &move_count,
 void movegen_pawn(std::array<Move, 256> &moves, int &move_count, const Board &b,
                   Square from);
 
-void movegen_n_k(std::array<Move, 256> &moves, int &move_count, const Board &b,
-                 Square from, Piece piece_t);
-
-void movegen_b_r_q(std::array<Move, 256> &moves, int &move_count,
-                   const Board &b, Square from, Piece piece_t);
+void movegen_not_pawn(std::array<Move, 256> &moves, int &move_count,
+                      const Board &b, Square from, Piece piece_t, int max_i);
 
 std::array<Move, 256> movegen(const Board &b) {
   int move_count = 0;
   std::array<Move, 256> moves{};
 
-  //  castling
   movegen_castle(moves, move_count, b);
 
   for (const auto from : square_sequence) {
     if (b.color_on[from] == b.stm) {
       const auto [piece_t, color] = b.piece_info(from);
-
       if (piece_t == pawn) {
         movegen_pawn(moves, move_count, b, from);
         continue;
       }
-      if (piece_t == knight || piece_t == king) {
-        movegen_n_k(moves, move_count, b, from, piece_t);
-      } else {
-        movegen_b_r_q(moves, move_count, b, from, piece_t);
-      }
+      int max_i{};
+      piece_t == knight || piece_t == king ? max_i = 1 : max_i = 7;
+      movegen_not_pawn(moves, move_count, b, from, piece_t, max_i);
     }
   }
   return moves;
@@ -131,39 +124,6 @@ void movegen_castle(std::array<Move, 256> &moves, int &move_count,
     if ((b.castling_rights & 8) && all_empty(b, c8, d8) &&
         all_not_attacked(b, white, c8, d8, e8)) {
       moves[move_count++] = {.from = e8, .to = c8, .flag = castle};
-    }
-  }
-}
-
-void movegen_n_k(std::array<Move, 256> &moves, int &move_count, const Board &b,
-                 const Square from, const Piece piece_t) {
-  for (const auto vec : vectors[piece_t]) {
-    if (const Square to = from + vec; is_valid_square(to)) {
-      if (all_empty(b, to)) {
-        moves[move_count++] = {.from = from, .to = to, .flag = normal};
-      } else if (all_capturable(b, to)) {
-        moves[move_count++] = {
-            .from = from, .to = to, .flag = capture, .c_piece = b.piece_on[to]};
-      }
-    }
-  }
-}
-
-void movegen_b_r_q(std::array<Move, 256> &moves, int &move_count,
-                   const Board &b, const Square from, const Piece piece_t) {
-  for (const auto vec : vectors[piece_t]) {
-    for (int i = 1;; ++i) {
-      const Square to{from + (vec * i)};
-      if (!is_valid_square(to) || b.color_on[to] == b.stm) {
-        break;
-      }
-      if (all_empty(b, to)) {
-        moves[move_count++] = {.from = from, .to = to, .flag = normal};
-      } else if (all_capturable(b, to)) {
-        moves[move_count++] = {
-            .from = from, .to = to, .flag = capture, .c_piece = b.piece_on[to]};
-        break;
-      }
     }
   }
 }
@@ -238,6 +198,25 @@ void c_pm(std::array<Move, 256> &moves, int &move_count, const Board &b,
       } else {
         moves[move_count++] = {
             .from = from, .to = to, .flag = capture, .c_piece = b.piece_on[to]};
+      }
+    }
+  }
+}
+
+void movegen_not_pawn(std::array<Move, 256> &moves, int &move_count,
+                      const Board &b, Square from, Piece piece_t, int max_i) {
+  for (const auto vec : vectors[piece_t]) {
+    for (int i = 1; i <= max_i; ++i) {
+      const Square to{from + (vec * i)};
+      if (!is_valid_square(to) || b.color_on[to] == b.stm) {
+        break;
+      }
+      if (all_empty(b, to)) {
+        moves[move_count++] = {.from = from, .to = to, .flag = normal};
+      } else if (all_capturable(b, to)) {
+        moves[move_count++] = {
+            .from = from, .to = to, .flag = capture, .c_piece = b.piece_on[to]};
+        break;
       }
     }
   }
