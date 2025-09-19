@@ -9,7 +9,6 @@ module;
 #include <iostream>
 #include <string_view>
 
-
 export module Board0x88:core;
 import :fen;
 import :types;
@@ -41,6 +40,9 @@ export class Board {
   int castling_rights = 0b0000; ///< bqs = 8, bks = 4, wqs = 2, wks = 1
   int hmc;                      ///< half move clock
   int fmc;                      ///< full move clock
+
+  int wks{}; ///< white king square
+  int bks{}; ///< black king square
 };
 
 /**
@@ -67,6 +69,13 @@ Board::Board(const std::string_view fen) {
       const auto sq = to_0x88_idx(i);
       piece_on[sq] = piece_type;
       color_on[sq] = color;
+      if (piece_type == king) {
+        if (color == white) {
+          wks = sq;
+        } else if (color == black) {
+          bks = sq;
+        }
+      }
       i++;
     } else if (*ch >= '1' && *ch <= '8') { // empty squares
       i += *ch - '0';
@@ -118,6 +127,10 @@ Board::Board(const std::string_view fen) {
   } else {
     ep = static_cast<Square>((16 * (*std::next(ch) - '0' - 1)) + *ch - 'a');
     std::advance(ch, 3);
+  }
+
+  if (ch == fen.end() || std::next(ch) == fen.end()) {
+    return;
   }
 
   // half-move clock, full-move clock

@@ -6,11 +6,11 @@
 module;
 
 #include <array>
-#include <cstdint>
 
 export module Board0x88:movegen;
 import :attack;
 import :core;
+import :move;
 import :types;
 
 template <class... Squares>
@@ -33,34 +33,9 @@ constexpr bool all_not_attacked(const Board &b, Color c, Squares... sq) {
 
 //------------------------------------------------------------------------------
 
-export enum Flag : std::uint8_t {
-  normal,
-  capture,
-  en_passant,
-  castle,
-  promotion,
-  prom_capture,
-  null_flag
-};
-
-export struct Move {
-  Square from = null_square;
-  Square to = null_square;
-  Flag flag = null_flag;
-  Piece c_piece = null_piece; ///< captured piece
-  Piece p_piece = null_piece; ///< promotion piece
-};
-
-export bool operator==(Move lhs, Move rhs);
-
 export std::array<Move, 256> movegen(const Board &b);
 
 //------------------------------------------------------------------------------
-
-bool operator==(const Move lhs, const Move rhs) {
-  return lhs.from == rhs.from && lhs.to == rhs.to && lhs.flag == rhs.flag &&
-         lhs.c_piece == rhs.c_piece && lhs.p_piece == rhs.p_piece;
-}
 
 // clang-format off
 constexpr std::array<Square, 64> square_sequence{

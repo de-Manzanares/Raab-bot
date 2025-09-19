@@ -6,7 +6,7 @@
 module;
 
 #include <array>
-
+#include <cstdint>
 
 export module Board0x88:attack;
 import :core;
@@ -22,6 +22,10 @@ import :types;
  * attacked by by_color
  */
 export bool is_attacked(const Board &board, Square sq, Color by_color);
+
+export bool in_check(const Board &b) {
+  return is_attacked(b, Square{static_cast<std::int8_t>(b.wks)}, b.stm);
+}
 
 //------------------------------------------------------------------------------
 

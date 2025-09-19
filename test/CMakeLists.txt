@@ -24,17 +24,33 @@ add_test(
 )
 
 add_executable(
-        movegen-test
-        src/movegen.cxx
+        movegen-simple-test
+        src/movegen_simple.cxx
 )
 target_link_libraries(
-        movegen-test
+        movegen-simple-test
         PRIVATE
         common_options
         chess_modules
         Catch2::Catch2WithMain
 )
 add_test(
-        NAME MovegenTest
-        COMMAND movegen-test
+        NAME MovegenSimpleTest
+        COMMAND movegen-simple-test
+)
+
+add_executable(
+        movegen-perft-test
+        src/movegen_perft.cxx
+)
+target_link_libraries(
+        movegen-perft-test
+        PRIVATE
+        common_options
+        chess_modules
+        Catch2::Catch2WithMain
+)
+add_test(
+        NAME MovegenPerftTest
+        COMMAND movegen-perft-test
 )
