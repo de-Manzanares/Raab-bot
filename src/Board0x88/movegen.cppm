@@ -165,6 +165,8 @@ constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
           .to_square = g1,
           .from_piece = {.piece_type = king, .color = white},
           .flag = castle,
+          .prev_castling_rights = b.castling_rights,
+          .prev_ep = b.ep,
       };
       ++move_count;
     }
@@ -175,6 +177,8 @@ constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
           .to_square = c1,
           .from_piece = {.piece_type = king, .color = white},
           .flag = castle,
+          .prev_castling_rights = b.castling_rights,
+          .prev_ep = b.ep,
       };
       ++move_count;
     }
@@ -186,6 +190,8 @@ constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
           .to_square = g8,
           .from_piece = {.piece_type = king, .color = black},
           .flag = castle,
+          .prev_castling_rights = b.castling_rights,
+          .prev_ep = b.ep,
       };
       ++move_count;
     }
@@ -196,6 +202,8 @@ constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
           .to_square = c8,
           .from_piece = {.piece_type = king, .color = black},
           .flag = castle,
+          .prev_castling_rights = b.castling_rights,
+          .prev_ep = b.ep,
       };
       ++move_count;
     }
@@ -220,6 +228,8 @@ constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
             .from_piece = {.piece_type = pawn, .color = b.stm},
             .flag = promotion,
             .promotion_piece = p_piece,
+            .prev_castling_rights = b.castling_rights,
+            .prev_ep = b.ep,
         };
         ++move_count;
       }
@@ -230,6 +240,8 @@ constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
           .to_square = to,
           .from_piece = {.piece_type = pawn, .color = b.stm},
           .flag = normal,
+          .prev_castling_rights = b.castling_rights,
+          .prev_ep = b.ep,
       };
       ++move_count;
       // double move
@@ -241,6 +253,8 @@ constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
             .from_piece = {.piece_type = pawn, .color = b.stm},
             .flag = en_passant,
             .ep_target = from + dir,
+            .prev_castling_rights = b.castling_rights,
+            .prev_ep = b.ep,
         };
         ++move_count;
         // todo ep target
@@ -279,6 +293,8 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
                 .c_piece = b.piece_on[to],
                 .promotion_piece = p_piece,
                 .score = score + piece_value[p_piece],
+                .prev_castling_rights = b.castling_rights,
+                .prev_ep = b.ep,
             };
             ++move_count;
           }
@@ -290,6 +306,8 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
               .flag = capture,
               .c_piece = b.piece_on[to],
               .score = score,
+              .prev_castling_rights = b.castling_rights,
+              .prev_ep = b.ep,
           };
           ++move_count;
         }
@@ -301,6 +319,8 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
             .flag = en_passant_capture,
             .c_piece = pawn,
             .score = score_capture(pawn, pawn),
+            .prev_castling_rights = b.castling_rights,
+            .prev_ep = b.ep,
         };
         ++move_count;
       }
@@ -327,6 +347,8 @@ constexpr std::size_t movegen_not_pawn(const Board &b, OutputIt &out,
             .to_square = to,
             .from_piece = {.piece_type = piece_t, .color = b.stm},
             .flag = normal,
+            .prev_castling_rights = b.castling_rights,
+            .prev_ep = b.ep,
         };
         ++move_count;
       } else if (all_capturable(b, to)) {
@@ -337,6 +359,8 @@ constexpr std::size_t movegen_not_pawn(const Board &b, OutputIt &out,
             .flag = capture,
             .c_piece = b.piece_on[to],
             .score = score_capture(b.piece_on[to], b.piece_on[from]),
+            .prev_castling_rights = b.castling_rights,
+            .prev_ep = b.ep,
         };
         ++move_count;
         break;
