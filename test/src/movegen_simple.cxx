@@ -21,7 +21,8 @@ constexpr bool has(Container ml, const Move m) {
 template <class Container>
   requires std::is_same_v<typename Container::value_type, Move>
 constexpr bool is_immobile(const Container &c, Square sq) {
-  return std::ranges::none_of(c, [sq](const Move &m) { return m.from == sq; });
+  return std::ranges::none_of(
+      c, [sq](const Move &m) { return m.from_square == sq; });
 }
 
 template <class Container>
@@ -29,7 +30,7 @@ template <class Container>
 constexpr int has_n_moves(const Container &ml, Square sq, Flag f) {
   int n_moves = 0;
   std::ranges::for_each(ml, [&n_moves, sq, f](const Move &m) {
-    if (m.from == sq && m.flag == f) {
+    if (m.from_square == sq && m.flag == f) {
       n_moves++;
     }
   });
@@ -44,15 +45,15 @@ TEST_CASE("castling") {
       fill_default_init(ml);
       Board b0("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{e1, g1, castle}));
-      CHECK(has(ml, Move{e1, c1, castle}));
+      CHECK(has(ml, Move{.from_square = e1, .to_square = g1, .flag = castle}));
+      CHECK(has(ml, Move{.from_square = e1, .to_square = c1, .flag = castle}));
     }
     SECTION("black") {
       fill_default_init(ml);
       Board b0("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{e8, g8, castle}));
-      CHECK(has(ml, Move{e8, c8, castle}));
+      CHECK(has(ml, Move{e8, g8, .flag = castle}));
+      CHECK(has(ml, Move{e8, c8, .flag = castle}));
     }
   }
   SECTION("cannot castle") {
@@ -61,15 +62,15 @@ TEST_CASE("castling") {
         fill_default_init(ml);
         Board b0;
         (void)movegen(b0, ml.begin());
-        CHECK(!has(ml, Move{e1, g1, castle}));
-        CHECK(!has(ml, Move{e1, c1, castle}));
+        CHECK(!has(ml, Move{e1, g1, .flag = castle}));
+        CHECK(!has(ml, Move{e1, c1, .flag = castle}));
       }
       SECTION("black") {
         fill_default_init(ml);
         Board b0("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1");
         (void)movegen(b0, ml.begin());
-        CHECK(!has(ml, Move{e8, g8, castle}));
-        CHECK(!has(ml, Move{e8, c8, castle}));
+        CHECK(!has(ml, Move{e8, g8, .flag = castle}));
+        CHECK(!has(ml, Move{e8, c8, .flag = castle}));
       }
     }
     SECTION("squares attacked") {
@@ -77,15 +78,15 @@ TEST_CASE("castling") {
         fill_default_init(ml);
         Board b0("r3k2r/8/8/3Q4/3q4/8/8/R3K2R w KQkq - 0 1");
         (void)movegen(b0, ml.begin());
-        CHECK(!has(ml, Move{e1, g1, castle}));
-        CHECK(!has(ml, Move{e1, c1, castle}));
+        CHECK(!has(ml, Move{e1, g1, .flag = castle}));
+        CHECK(!has(ml, Move{e1, c1, .flag = castle}));
       }
       SECTION("black") {
         fill_default_init(ml);
         Board b0("r3k2r/8/8/3Q4/3q4/8/8/R3K2R w KQkq - 0 1");
         (void)movegen(b0, ml.begin());
-        CHECK(!has(ml, Move{e8, g8, castle}));
-        CHECK(!has(ml, Move{e8, c8, castle}));
+        CHECK(!has(ml, Move{e8, g8, .flag = castle}));
+        CHECK(!has(ml, Move{e8, c8, .flag = castle}));
       }
     }
     SECTION("no castling rights") {
@@ -93,15 +94,15 @@ TEST_CASE("castling") {
         fill_default_init(ml);
         Board b0("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w kq - 0 1");
         (void)movegen(b0, ml.begin());
-        CHECK(!has(ml, Move{e1, g1, castle}));
-        CHECK(!has(ml, Move{e1, c1, castle}));
+        CHECK(!has(ml, Move{e1, g1, .flag = castle}));
+        CHECK(!has(ml, Move{e1, c1, .flag = castle}));
       }
       SECTION("black") {
         fill_default_init(ml);
         Board b0("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQ - 0 1");
         (void)movegen(b0, ml.begin());
-        CHECK(!has(ml, Move{e8, g8, castle}));
-        CHECK(!has(ml, Move{e8, c8, castle}));
+        CHECK(!has(ml, Move{e8, g8, .flag = castle}));
+        CHECK(!has(ml, Move{e8, c8, .flag = castle}));
       }
     }
   }
@@ -113,17 +114,17 @@ TEST_CASE("pawn") {
       fill_default_init(ml);
       Board b0("8/p7/1p6/8/8/1P6/P7/8 w - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{a2, a3, normal}));
-      CHECK(has(ml, Move{a2, a4, en_passant}));
-      CHECK(has(ml, Move{b3, b4, normal}));
+      CHECK(has(ml, Move{a2, a3, .flag = normal}));
+      CHECK(has(ml, Move{a2, a4, .flag = en_passant}));
+      CHECK(has(ml, Move{b3, b4, .flag = normal}));
     }
     SECTION("black") {
       fill_default_init(ml);
       Board b0("8/p7/1p6/8/8/1P6/P7/8 b - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{a7, a6, normal}));
-      CHECK(has(ml, Move{a7, a5, en_passant}));
-      CHECK(has(ml, Move{b6, b5, normal}));
+      CHECK(has(ml, Move{a7, a6, .flag = normal}));
+      CHECK(has(ml, Move{a7, a5, .flag = en_passant}));
+      CHECK(has(ml, Move{b6, b5, .flag = normal}));
     }
   }
   SECTION("non-capture promotion moves") {
@@ -131,19 +132,23 @@ TEST_CASE("pawn") {
       fill_default_init(ml);
       Board b0("8/3P4/8/8/8/8/8/8 w - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{d7, d8, promotion, .p_piece = queen}));
-      CHECK(has(ml, Move{d7, d8, promotion, .p_piece = rook}));
-      CHECK(has(ml, Move{d7, d8, promotion, .p_piece = bishop}));
-      CHECK(has(ml, Move{d7, d8, promotion, .p_piece = knight}));
+      CHECK(has(ml, Move{d7, d8, .flag = promotion, .promotion_piece = queen}));
+      CHECK(has(ml, Move{d7, d8, .flag = promotion, .promotion_piece = rook}));
+      CHECK(
+          has(ml, Move{d7, d8, .flag = promotion, .promotion_piece = bishop}));
+      CHECK(
+          has(ml, Move{d7, d8, .flag = promotion, .promotion_piece = knight}));
     }
     SECTION("black") {
       fill_default_init(ml);
       Board b0("8/8/8/8/8/8/3p4/8 b - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{d2, d1, promotion, .p_piece = queen}));
-      CHECK(has(ml, Move{d2, d1, promotion, .p_piece = rook}));
-      CHECK(has(ml, Move{d2, d1, promotion, .p_piece = bishop}));
-      CHECK(has(ml, Move{d2, d1, promotion, .p_piece = knight}));
+      CHECK(has(ml, Move{d2, d1, .flag = promotion, .promotion_piece = queen}));
+      CHECK(has(ml, Move{d2, d1, .flag = promotion, .promotion_piece = rook}));
+      CHECK(
+          has(ml, Move{d2, d1, .flag = promotion, .promotion_piece = bishop}));
+      CHECK(
+          has(ml, Move{d2, d1, .flag = promotion, .promotion_piece = knight}));
     }
   }
   SECTION("non-promotion catpure moves") {
@@ -151,19 +156,19 @@ TEST_CASE("pawn") {
       fill_default_init(ml);
       Board b0("8/8/8/1q3q1q/P1P3P1/8/8/8 w - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{a4, b5, capture, .c_piece = queen}));
-      CHECK(has(ml, Move{c4, b5, capture, .c_piece = queen}));
-      CHECK(has(ml, Move{g4, f5, capture, .c_piece = queen}));
-      CHECK(has(ml, Move{g4, h5, capture, .c_piece = queen}));
+      CHECK(has(ml, Move{a4, b5, .flag = capture, .c_piece = queen}));
+      CHECK(has(ml, Move{c4, b5, .flag = capture, .c_piece = queen}));
+      CHECK(has(ml, Move{g4, f5, .flag = capture, .c_piece = queen}));
+      CHECK(has(ml, Move{g4, h5, .flag = capture, .c_piece = queen}));
     }
     SECTION("black") {
       fill_default_init(ml);
       Board b0("8/8/p1p3p1/1Q3Q1Q/8/8/8/8 b - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{a6, b5, capture, .c_piece = queen}));
-      CHECK(has(ml, Move{c6, b5, capture, .c_piece = queen}));
-      CHECK(has(ml, Move{g6, f5, capture, .c_piece = queen}));
-      CHECK(has(ml, Move{g6, h5, capture, .c_piece = queen}));
+      CHECK(has(ml, Move{a6, b5, .flag = capture, .c_piece = queen}));
+      CHECK(has(ml, Move{c6, b5, .flag = capture, .c_piece = queen}));
+      CHECK(has(ml, Move{g6, f5, .flag = capture, .c_piece = queen}));
+      CHECK(has(ml, Move{g6, h5, .flag = capture, .c_piece = queen}));
     }
   }
   SECTION("promotion capture moves") {
@@ -171,10 +176,10 @@ TEST_CASE("pawn") {
       fill_default_init(ml);
       Board b0("1q1q4/2P5/8/8/8/8/8/8 w - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(
-          ml, Move{c7, b8, prom_capture, .c_piece = queen, .p_piece = queen}));
-      CHECK(has(
-          ml, Move{c7, d8, prom_capture, .c_piece = queen, .p_piece = queen}));
+      CHECK(has(ml, Move{c7, b8, .flag = prom_capture, .c_piece = queen,
+                         .promotion_piece = queen}));
+      CHECK(has(ml, Move{c7, d8, .flag = prom_capture, .c_piece = queen,
+                         .promotion_piece = queen}));
     }
   }
 }
@@ -185,27 +190,27 @@ TEST_CASE("king") {
       fill_default_init(ml);
       Board b0("8/8/8/2k2K2/8/8/8/8 w - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{f5, e4, normal}));
-      CHECK(has(ml, Move{f5, f4, normal}));
-      CHECK(has(ml, Move{f5, g4, normal}));
-      CHECK(has(ml, Move{f5, e5, normal}));
-      CHECK(has(ml, Move{f5, g5, normal}));
-      CHECK(has(ml, Move{f5, e6, normal}));
-      CHECK(has(ml, Move{f5, f6, normal}));
-      CHECK(has(ml, Move{f5, g6, normal}));
+      CHECK(has(ml, Move{f5, e4, .flag = normal}));
+      CHECK(has(ml, Move{f5, f4, .flag = normal}));
+      CHECK(has(ml, Move{f5, g4, .flag = normal}));
+      CHECK(has(ml, Move{f5, e5, .flag = normal}));
+      CHECK(has(ml, Move{f5, g5, .flag = normal}));
+      CHECK(has(ml, Move{f5, e6, .flag = normal}));
+      CHECK(has(ml, Move{f5, f6, .flag = normal}));
+      CHECK(has(ml, Move{f5, g6, .flag = normal}));
     }
     SECTION("black") {
       fill_default_init(ml);
       Board b0("8/8/8/2k2K2/8/8/8/8 b - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{c5, b4, normal}));
-      CHECK(has(ml, Move{c5, c4, normal}));
-      CHECK(has(ml, Move{c5, d4, normal}));
-      CHECK(has(ml, Move{c5, b5, normal}));
-      CHECK(has(ml, Move{c5, d5, normal}));
-      CHECK(has(ml, Move{c5, b6, normal}));
-      CHECK(has(ml, Move{c5, c6, normal}));
-      CHECK(has(ml, Move{c5, d6, normal}));
+      CHECK(has(ml, Move{c5, b4, .flag = normal}));
+      CHECK(has(ml, Move{c5, c4, .flag = normal}));
+      CHECK(has(ml, Move{c5, d4, .flag = normal}));
+      CHECK(has(ml, Move{c5, b5, .flag = normal}));
+      CHECK(has(ml, Move{c5, d5, .flag = normal}));
+      CHECK(has(ml, Move{c5, b6, .flag = normal}));
+      CHECK(has(ml, Move{c5, c6, .flag = normal}));
+      CHECK(has(ml, Move{c5, d6, .flag = normal}));
     }
   }
   SECTION("capture") {
@@ -213,27 +218,27 @@ TEST_CASE("king") {
       fill_default_init(ml);
       Board b0("8/8/1QRBqrb1/1NkPnKp1/1PPPppp1/8/8/8 w - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{f5, e4, capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{f5, f4, capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{f5, g4, capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{f5, e5, capture, .c_piece = knight}));
-      CHECK(has(ml, Move{f5, g5, capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{f5, e6, capture, .c_piece = queen}));
-      CHECK(has(ml, Move{f5, f6, capture, .c_piece = rook}));
-      CHECK(has(ml, Move{f5, g6, capture, .c_piece = bishop}));
+      CHECK(has(ml, Move{f5, e4, .flag = capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{f5, f4, .flag = capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{f5, g4, .flag = capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{f5, e5, .flag = capture, .c_piece = knight}));
+      CHECK(has(ml, Move{f5, g5, .flag = capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{f5, e6, .flag = capture, .c_piece = queen}));
+      CHECK(has(ml, Move{f5, f6, .flag = capture, .c_piece = rook}));
+      CHECK(has(ml, Move{f5, g6, .flag = capture, .c_piece = bishop}));
     }
     SECTION("black") {
       fill_default_init(ml);
       Board b0("8/8/1QRBqrb1/1NkPnKp1/1PPPppp1/8/8/8 b - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{c5, b4, capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{c5, c4, capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{c5, d4, capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{c5, b5, capture, .c_piece = knight}));
-      CHECK(has(ml, Move{c5, d5, capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{c5, b6, capture, .c_piece = queen}));
-      CHECK(has(ml, Move{c5, c6, capture, .c_piece = rook}));
-      CHECK(has(ml, Move{c5, d6, capture, .c_piece = bishop}));
+      CHECK(has(ml, Move{c5, b4, .flag = capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{c5, c4, .flag = capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{c5, d4, .flag = capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{c5, b5, .flag = capture, .c_piece = knight}));
+      CHECK(has(ml, Move{c5, d5, .flag = capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{c5, b6, .flag = capture, .c_piece = queen}));
+      CHECK(has(ml, Move{c5, c6, .flag = capture, .c_piece = rook}));
+      CHECK(has(ml, Move{c5, d6, .flag = capture, .c_piece = bishop}));
     }
   }
   SECTION("obstructed") {
@@ -258,27 +263,27 @@ TEST_CASE("knight") {
       fill_default_init(ml);
       Board b0("8/8/2n5/8/8/5N2/8/8 w - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{f3, e1, normal}));
-      CHECK(has(ml, Move{f3, g1, normal}));
-      CHECK(has(ml, Move{f3, d2, normal}));
-      CHECK(has(ml, Move{f3, h2, normal}));
-      CHECK(has(ml, Move{f3, d4, normal}));
-      CHECK(has(ml, Move{f3, h4, normal}));
-      CHECK(has(ml, Move{f3, e5, normal}));
-      CHECK(has(ml, Move{f3, g5, normal}));
+      CHECK(has(ml, Move{f3, e1, .flag = normal}));
+      CHECK(has(ml, Move{f3, g1, .flag = normal}));
+      CHECK(has(ml, Move{f3, d2, .flag = normal}));
+      CHECK(has(ml, Move{f3, h2, .flag = normal}));
+      CHECK(has(ml, Move{f3, d4, .flag = normal}));
+      CHECK(has(ml, Move{f3, h4, .flag = normal}));
+      CHECK(has(ml, Move{f3, e5, .flag = normal}));
+      CHECK(has(ml, Move{f3, g5, .flag = normal}));
     }
     SECTION("black") {
       fill_default_init(ml);
       Board b0("8/8/2n5/8/8/5N2/8/8 b - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{c6, b4, normal}));
-      CHECK(has(ml, Move{c6, d4, normal}));
-      CHECK(has(ml, Move{c6, a5, normal}));
-      CHECK(has(ml, Move{c6, e5, normal}));
-      CHECK(has(ml, Move{c6, a7, normal}));
-      CHECK(has(ml, Move{c6, e7, normal}));
-      CHECK(has(ml, Move{c6, b8, normal}));
-      CHECK(has(ml, Move{c6, d8, normal}));
+      CHECK(has(ml, Move{c6, b4, .flag = normal}));
+      CHECK(has(ml, Move{c6, d4, .flag = normal}));
+      CHECK(has(ml, Move{c6, a5, .flag = normal}));
+      CHECK(has(ml, Move{c6, e5, .flag = normal}));
+      CHECK(has(ml, Move{c6, a7, .flag = normal}));
+      CHECK(has(ml, Move{c6, e7, .flag = normal}));
+      CHECK(has(ml, Move{c6, b8, .flag = normal}));
+      CHECK(has(ml, Move{c6, d8, .flag = normal}));
     }
   }
   SECTION("capture") {
@@ -286,27 +291,27 @@ TEST_CASE("knight") {
       fill_default_init(ml);
       Board b0("1Q1R4/B3N3/2n5/P5b1/1R5q/5N2/3b3n/4q1r1 w - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{f3, e1, capture, .c_piece = queen}));
-      CHECK(has(ml, Move{f3, g1, capture, .c_piece = rook}));
-      CHECK(has(ml, Move{f3, d2, capture, .c_piece = bishop}));
-      CHECK(has(ml, Move{f3, h2, capture, .c_piece = knight}));
-      CHECK(has(ml, Move{f3, d4, normal}));
-      CHECK(has(ml, Move{f3, h4, capture, .c_piece = queen}));
-      CHECK(has(ml, Move{f3, e5, normal}));
-      CHECK(has(ml, Move{f3, g5, capture, .c_piece = bishop}));
+      CHECK(has(ml, Move{f3, e1, .flag = capture, .c_piece = queen}));
+      CHECK(has(ml, Move{f3, g1, .flag = capture, .c_piece = rook}));
+      CHECK(has(ml, Move{f3, d2, .flag = capture, .c_piece = bishop}));
+      CHECK(has(ml, Move{f3, h2, .flag = capture, .c_piece = knight}));
+      CHECK(has(ml, Move{f3, d4, .flag = normal}));
+      CHECK(has(ml, Move{f3, h4, .flag = capture, .c_piece = queen}));
+      CHECK(has(ml, Move{f3, e5, .flag = normal}));
+      CHECK(has(ml, Move{f3, g5, .flag = capture, .c_piece = bishop}));
     }
     SECTION("black") {
       fill_default_init(ml);
       Board b0("1Q1R4/B3N3/2n5/P5b1/1R5q/5N2/3b3n/4q1r1 b - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{c6, b4, capture, .c_piece = rook}));
-      CHECK(has(ml, Move{c6, d4, normal}));
-      CHECK(has(ml, Move{c6, a5, capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{c6, e5, normal}));
-      CHECK(has(ml, Move{c6, a7, capture, .c_piece = bishop}));
-      CHECK(has(ml, Move{c6, e7, capture, .c_piece = knight}));
-      CHECK(has(ml, Move{c6, b8, capture, .c_piece = queen}));
-      CHECK(has(ml, Move{c6, d8, capture, .c_piece = rook}));
+      CHECK(has(ml, Move{c6, b4, .flag = capture, .c_piece = rook}));
+      CHECK(has(ml, Move{c6, d4, .flag = normal}));
+      CHECK(has(ml, Move{c6, a5, .flag = capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{c6, e5, .flag = normal}));
+      CHECK(has(ml, Move{c6, a7, .flag = capture, .c_piece = bishop}));
+      CHECK(has(ml, Move{c6, e7, .flag = capture, .c_piece = knight}));
+      CHECK(has(ml, Move{c6, b8, .flag = capture, .c_piece = queen}));
+      CHECK(has(ml, Move{c6, d8, .flag = capture, .c_piece = rook}));
     }
   }
   SECTION("obstructed") {
