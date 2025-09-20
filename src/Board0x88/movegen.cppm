@@ -170,7 +170,7 @@ constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
       };
       ++move_count;
     }
-    if ((b.castling_rights & 2) && all_empty(b, c1, d1) &&
+    if ((b.castling_rights & 2) && all_empty(b, b1, c1, d1) &&
         all_not_attacked(b, black, c1, d1, e1)) {
       *out++ = Move{
           .from_square = e1,
@@ -195,7 +195,7 @@ constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
       };
       ++move_count;
     }
-    if ((b.castling_rights & 8) && all_empty(b, c8, d8) &&
+    if ((b.castling_rights & 8) && all_empty(b, b8, c8, d8) &&
         all_not_attacked(b, white, c8, d8, e8)) {
       *out++ = Move{
           .from_square = e8,
