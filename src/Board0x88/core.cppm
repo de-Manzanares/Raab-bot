@@ -6,6 +6,7 @@
 module;
 
 #include <array>
+#include <cstdint>
 #include <iostream>
 #include <string_view>
 
@@ -35,11 +36,11 @@ export class Board {
 
   // game state tracking
 
-  Color stm;                    ///< side to move
-  Square ep;                    ///< en passant square
-  int castling_rights = 0b0000; ///< bqs = 8, bks = 4, wqs = 2, wks = 1
-  int hmc;                      ///< half move clock
-  int fmc;                      ///< full move clock
+  Color stm;                             ///< side to move
+  Square ep;                             ///< en passant target
+  std::uint8_t castling_rights = 0b0000; ///< bqs = 8, bks = 4, wqs = 2, wks = 1
+  int hmc;                               ///< half move clock
+  int fmc;                               ///< full move clock
 
   int wks{}; ///< white king square
   int bks{}; ///< black king square
@@ -154,4 +155,5 @@ void Board::display() const {
       std::cout << '\n';
     }
   }
+  std::cout << '\n';
 }
