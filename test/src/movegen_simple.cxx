@@ -21,8 +21,8 @@ constexpr bool has(Container ml, const Move m) {
 template <class Container>
   requires std::is_same_v<typename Container::value_type, Move>
 constexpr bool is_immobile(const Container &c, Square sq) {
-  return std::ranges::none_of(
-      c, [sq](const Move &m) { return m.from_square == sq; });
+  return std::ranges::none_of(c,
+                              [sq](const Move &m) { return m.from_sq == sq; });
 }
 
 template <class Container>
@@ -30,7 +30,7 @@ template <class Container>
 constexpr int has_n_moves(const Container &ml, Square sq, Flag f) {
   int n_moves = 0;
   std::ranges::for_each(ml, [&n_moves, sq, f](const Move &m) {
-    if (m.from_square == sq && m.flag == f) {
+    if (m.from_sq == sq && m.flag == f) {
       n_moves++;
     }
   });
@@ -45,8 +45,8 @@ TEST_CASE("castling") {
       fill_default_init(ml);
       Board b0("r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{.from_square = e1, .to_square = g1, .flag = castle}));
-      CHECK(has(ml, Move{.from_square = e1, .to_square = c1, .flag = castle}));
+      CHECK(has(ml, Move{.from_sq = e1, .to_sq = g1, .flag = castle}));
+      CHECK(has(ml, Move{.from_sq = e1, .to_sq = c1, .flag = castle}));
     }
     SECTION("black") {
       fill_default_init(ml);
@@ -156,19 +156,19 @@ TEST_CASE("pawn") {
       fill_default_init(ml);
       Board b0("8/8/8/1q3q1q/P1P3P1/8/8/8 w - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{a4, b5, .flag = capture, .c_piece = queen}));
-      CHECK(has(ml, Move{c4, b5, .flag = capture, .c_piece = queen}));
-      CHECK(has(ml, Move{g4, f5, .flag = capture, .c_piece = queen}));
-      CHECK(has(ml, Move{g4, h5, .flag = capture, .c_piece = queen}));
+      CHECK(has(ml, Move{a4, b5, .flag = capture, .cap_piece = queen}));
+      CHECK(has(ml, Move{c4, b5, .flag = capture, .cap_piece = queen}));
+      CHECK(has(ml, Move{g4, f5, .flag = capture, .cap_piece = queen}));
+      CHECK(has(ml, Move{g4, h5, .flag = capture, .cap_piece = queen}));
     }
     SECTION("black") {
       fill_default_init(ml);
       Board b0("8/8/p1p3p1/1Q3Q1Q/8/8/8/8 b - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{a6, b5, .flag = capture, .c_piece = queen}));
-      CHECK(has(ml, Move{c6, b5, .flag = capture, .c_piece = queen}));
-      CHECK(has(ml, Move{g6, f5, .flag = capture, .c_piece = queen}));
-      CHECK(has(ml, Move{g6, h5, .flag = capture, .c_piece = queen}));
+      CHECK(has(ml, Move{a6, b5, .flag = capture, .cap_piece = queen}));
+      CHECK(has(ml, Move{c6, b5, .flag = capture, .cap_piece = queen}));
+      CHECK(has(ml, Move{g6, f5, .flag = capture, .cap_piece = queen}));
+      CHECK(has(ml, Move{g6, h5, .flag = capture, .cap_piece = queen}));
     }
   }
   SECTION("promotion capture moves") {
@@ -176,9 +176,9 @@ TEST_CASE("pawn") {
       fill_default_init(ml);
       Board b0("1q1q4/2P5/8/8/8/8/8/8 w - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{c7, b8, .flag = prom_capture, .c_piece = queen,
+      CHECK(has(ml, Move{c7, b8, .flag = prom_capture, .cap_piece = queen,
                          .promotion_piece = queen}));
-      CHECK(has(ml, Move{c7, d8, .flag = prom_capture, .c_piece = queen,
+      CHECK(has(ml, Move{c7, d8, .flag = prom_capture, .cap_piece = queen,
                          .promotion_piece = queen}));
     }
   }
@@ -218,27 +218,27 @@ TEST_CASE("king") {
       fill_default_init(ml);
       Board b0("8/8/1QRBqrb1/1NkPnKp1/1PPPppp1/8/8/8 w - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{f5, e4, .flag = capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{f5, f4, .flag = capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{f5, g4, .flag = capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{f5, e5, .flag = capture, .c_piece = knight}));
-      CHECK(has(ml, Move{f5, g5, .flag = capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{f5, e6, .flag = capture, .c_piece = queen}));
-      CHECK(has(ml, Move{f5, f6, .flag = capture, .c_piece = rook}));
-      CHECK(has(ml, Move{f5, g6, .flag = capture, .c_piece = bishop}));
+      CHECK(has(ml, Move{f5, e4, .flag = capture, .cap_piece = pawn}));
+      CHECK(has(ml, Move{f5, f4, .flag = capture, .cap_piece = pawn}));
+      CHECK(has(ml, Move{f5, g4, .flag = capture, .cap_piece = pawn}));
+      CHECK(has(ml, Move{f5, e5, .flag = capture, .cap_piece = knight}));
+      CHECK(has(ml, Move{f5, g5, .flag = capture, .cap_piece = pawn}));
+      CHECK(has(ml, Move{f5, e6, .flag = capture, .cap_piece = queen}));
+      CHECK(has(ml, Move{f5, f6, .flag = capture, .cap_piece = rook}));
+      CHECK(has(ml, Move{f5, g6, .flag = capture, .cap_piece = bishop}));
     }
     SECTION("black") {
       fill_default_init(ml);
       Board b0("8/8/1QRBqrb1/1NkPnKp1/1PPPppp1/8/8/8 b - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{c5, b4, .flag = capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{c5, c4, .flag = capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{c5, d4, .flag = capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{c5, b5, .flag = capture, .c_piece = knight}));
-      CHECK(has(ml, Move{c5, d5, .flag = capture, .c_piece = pawn}));
-      CHECK(has(ml, Move{c5, b6, .flag = capture, .c_piece = queen}));
-      CHECK(has(ml, Move{c5, c6, .flag = capture, .c_piece = rook}));
-      CHECK(has(ml, Move{c5, d6, .flag = capture, .c_piece = bishop}));
+      CHECK(has(ml, Move{c5, b4, .flag = capture, .cap_piece = pawn}));
+      CHECK(has(ml, Move{c5, c4, .flag = capture, .cap_piece = pawn}));
+      CHECK(has(ml, Move{c5, d4, .flag = capture, .cap_piece = pawn}));
+      CHECK(has(ml, Move{c5, b5, .flag = capture, .cap_piece = knight}));
+      CHECK(has(ml, Move{c5, d5, .flag = capture, .cap_piece = pawn}));
+      CHECK(has(ml, Move{c5, b6, .flag = capture, .cap_piece = queen}));
+      CHECK(has(ml, Move{c5, c6, .flag = capture, .cap_piece = rook}));
+      CHECK(has(ml, Move{c5, d6, .flag = capture, .cap_piece = bishop}));
     }
   }
   SECTION("obstructed") {
@@ -291,27 +291,27 @@ TEST_CASE("knight") {
       fill_default_init(ml);
       Board b0("1Q1R4/B3N3/2n5/P5b1/1R5q/5N2/3b3n/4q1r1 w - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{f3, e1, .flag = capture, .c_piece = queen}));
-      CHECK(has(ml, Move{f3, g1, .flag = capture, .c_piece = rook}));
-      CHECK(has(ml, Move{f3, d2, .flag = capture, .c_piece = bishop}));
-      CHECK(has(ml, Move{f3, h2, .flag = capture, .c_piece = knight}));
+      CHECK(has(ml, Move{f3, e1, .flag = capture, .cap_piece = queen}));
+      CHECK(has(ml, Move{f3, g1, .flag = capture, .cap_piece = rook}));
+      CHECK(has(ml, Move{f3, d2, .flag = capture, .cap_piece = bishop}));
+      CHECK(has(ml, Move{f3, h2, .flag = capture, .cap_piece = knight}));
       CHECK(has(ml, Move{f3, d4, .flag = normal}));
-      CHECK(has(ml, Move{f3, h4, .flag = capture, .c_piece = queen}));
+      CHECK(has(ml, Move{f3, h4, .flag = capture, .cap_piece = queen}));
       CHECK(has(ml, Move{f3, e5, .flag = normal}));
-      CHECK(has(ml, Move{f3, g5, .flag = capture, .c_piece = bishop}));
+      CHECK(has(ml, Move{f3, g5, .flag = capture, .cap_piece = bishop}));
     }
     SECTION("black") {
       fill_default_init(ml);
       Board b0("1Q1R4/B3N3/2n5/P5b1/1R5q/5N2/3b3n/4q1r1 b - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{c6, b4, .flag = capture, .c_piece = rook}));
+      CHECK(has(ml, Move{c6, b4, .flag = capture, .cap_piece = rook}));
       CHECK(has(ml, Move{c6, d4, .flag = normal}));
-      CHECK(has(ml, Move{c6, a5, .flag = capture, .c_piece = pawn}));
+      CHECK(has(ml, Move{c6, a5, .flag = capture, .cap_piece = pawn}));
       CHECK(has(ml, Move{c6, e5, .flag = normal}));
-      CHECK(has(ml, Move{c6, a7, .flag = capture, .c_piece = bishop}));
-      CHECK(has(ml, Move{c6, e7, .flag = capture, .c_piece = knight}));
-      CHECK(has(ml, Move{c6, b8, .flag = capture, .c_piece = queen}));
-      CHECK(has(ml, Move{c6, d8, .flag = capture, .c_piece = rook}));
+      CHECK(has(ml, Move{c6, a7, .flag = capture, .cap_piece = bishop}));
+      CHECK(has(ml, Move{c6, e7, .flag = capture, .cap_piece = knight}));
+      CHECK(has(ml, Move{c6, b8, .flag = capture, .cap_piece = queen}));
+      CHECK(has(ml, Move{c6, d8, .flag = capture, .cap_piece = rook}));
     }
   }
   SECTION("obstructed") {
