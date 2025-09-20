@@ -7,6 +7,7 @@ module;
 
 #include <array>
 #include <concepts>
+#include <iostream>
 
 export module Board0x88:movegen;
 import :attack;
@@ -48,6 +49,45 @@ export template <class OutputIt>
   requires std::output_iterator<OutputIt, Move>
 constexpr std::size_t movegen(const Board &b, OutputIt out);
 // todo ^ history scoring
+
+export constexpr std::size_t n_legal_moves(Board &b) {
+  std::size_t legal_moves{};
+  std::array<Move, 256> ml{};
+  movegen(b, ml.begin());
+  for (const auto m : ml) {
+    if (m.from_square == null_square) {
+      break;
+    }
+    move(b, m);
+    // b.display();
+    if (!in_check(b)) {
+      ++legal_moves;
+    }
+    un_move(b, m);
+    // b.display();
+  }
+  return legal_moves;
+}
+
+export constexpr std::size_t movegen_perft(Board &b, int depth) {
+  std::size_t nodes{};
+  std::array<Move, 256> ml{};
+  if (depth == 1) {
+    return n_legal_moves(b);
+  }
+  movegen(b, ml.begin());
+  for (const auto m : ml) {
+    if (m.from_square == null_square) {
+      break;
+    }
+    move(b, m);
+    if (!in_check(b)) {
+      nodes += movegen_perft(b, depth - 1);
+    }
+    un_move(b, m);
+  }
+  return nodes;
+}
 
 //------------------------------------------------------------------------------
 
@@ -120,23 +160,43 @@ constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
   if (b.stm == white) {
     if ((b.castling_rights & 1) && all_empty(b, f1, g1) &&
         all_not_attacked(b, black, e1, f1, g1)) {
-      *out++ = {.from = e1, .to = g1, .flag = castle};
+      *out++ = Move{
+          .from_square = e1,
+          .to_square = g1,
+          .from_piece = {.piece_type = king, .color = white},
+          .flag = castle,
+      };
       ++move_count;
     }
     if ((b.castling_rights & 2) && all_empty(b, c1, d1) &&
         all_not_attacked(b, black, c1, d1, e1)) {
-      *out++ = {.from = e1, .to = c1, .flag = castle};
+      *out++ = Move{
+          .from_square = e1,
+          .to_square = c1,
+          .from_piece = {.piece_type = king, .color = white},
+          .flag = castle,
+      };
       ++move_count;
     }
   } else {
     if ((b.castling_rights & 4) && all_empty(b, f8, g8) &&
         all_not_attacked(b, white, e8, f8, g8)) {
-      *out++ = {.from = e8, .to = g8, .flag = castle};
+      *out++ = Move{
+          .from_square = e8,
+          .to_square = g8,
+          .from_piece = {.piece_type = king, .color = black},
+          .flag = castle,
+      };
       ++move_count;
     }
     if ((b.castling_rights & 8) && all_empty(b, c8, d8) &&
         all_not_attacked(b, white, c8, d8, e8)) {
-      *out++ = {.from = e8, .to = c8, .flag = castle};
+      *out++ = Move{
+          .from_square = e8,
+          .to_square = c8,
+          .from_piece = {.piece_type = king, .color = black},
+          .flag = castle,
+      };
       ++move_count;
     }
   }
@@ -152,18 +212,36 @@ constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
   const Square double_row = b.stm == white ? a2 : a7;
   if (Square to{from + dir}; all_empty(b, to)) {
     if (from >> 4 == prom_row >> 4) { // if on 7th rank -> promotions
-      for (constexpr std::array pieces = {queen, rook, bishop, knight};
-           const auto piece : pieces) {
-        *out++ = {.from = from, .to = to, .flag = promotion, .p_piece = piece};
+      for (constexpr std::array p_pieces = {queen, rook, bishop, knight};
+           const auto p_piece : p_pieces) {
+        *out++ = Move{
+            .from_square = from,
+            .to_square = to,
+            .from_piece = {.piece_type = pawn, .color = b.stm},
+            .flag = promotion,
+            .promotion_piece = p_piece,
+        };
         ++move_count;
       }
     } else {
       // single move
-      *out++ = {.from = from, .to = to, .flag = normal};
+      *out++ = Move{
+          .from_square = from,
+          .to_square = to,
+          .from_piece = {.piece_type = pawn, .color = b.stm},
+          .flag = normal,
+      };
+      ++move_count;
       // double move
       if (from >> 4 == double_row >> 4 && all_empty(b, from + (2 * dir))) {
         to = from + (2 * dir);
-        *out++ = {.from = from, .to = to, .flag = en_passant};
+        *out++ = Move{
+            .from_square = from,
+            .to_square = to,
+            .from_piece = {.piece_type = pawn, .color = b.stm},
+            .flag = en_passant,
+            .ep_target = from + dir,
+        };
         ++move_count;
         // todo ep target
         // b.ep = from + N; (?)
@@ -175,7 +253,7 @@ constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
 
 template <class OutputIt>
   requires std::output_iterator<OutputIt, Move>
-constexpr std::size_t c_pm(const Board &b, OutputIt &out, Square from) {
+constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
   std::size_t move_count{};
   std::array<Direction, 2> dirs;
   Square prom_row = b.stm == white ? a7 : a2;
@@ -185,27 +263,45 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, Square from) {
     dirs = {SW, SE};
   }
   for (const auto dir : dirs) {
-    if (const Square to = from + dir;
-        is_valid_square(to) && b.color_on[to] == ~b.stm) {
-      // mvv/lva: most valuable victim, least valuable attacker
-      int score = score_capture(b.piece_on[to], b.piece_on[from]);
-      if ((from >> 4) == (prom_row >> 4)) {
-        for (constexpr std::array p_pieces = {queen, rook, bishop, knight};
-             const auto p_piece : p_pieces) {
-          *out++ = {.from = from,
-                    .to = to,
-                    .flag = prom_capture,
-                    .c_piece = b.piece_on[to],
-                    .p_piece = p_piece,
-                    .score = score};
+    const Square to = from + dir;
+    if (is_valid_square(to)) {
+      if (b.color_on[to] == ~b.stm) {
+        // mvv/lva: most valuable victim, least valuable attacker
+        const int score = score_capture(pawn, pawn);
+        if ((from >> 4) == (prom_row >> 4)) {
+          for (constexpr std::array p_pieces = {queen, rook, bishop, knight};
+               const auto p_piece : p_pieces) {
+            *out++ = Move{
+                .from_square = from,
+                .to_square = to,
+                .from_piece = {.piece_type = pawn, .color = b.stm},
+                .flag = prom_capture,
+                .c_piece = b.piece_on[to],
+                .promotion_piece = p_piece,
+                .score = score + piece_value[p_piece],
+            };
+            ++move_count;
+          }
+        } else {
+          *out++ = Move{
+              .from_square = from,
+              .to_square = to,
+              .from_piece = {.piece_type = pawn, .color = b.stm},
+              .flag = capture,
+              .c_piece = b.piece_on[to],
+              .score = score,
+          };
           ++move_count;
         }
-      } else {
-        *out++ = {.from = from,
-                  .to = to,
-                  .flag = capture,
-                  .c_piece = b.piece_on[to],
-                  .score = score};
+      } else if (to == b.ep) {
+        *out++ = Move{
+            .from_square = from,
+            .to_square = to,
+            .from_piece = {.piece_type = pawn, .color = b.stm},
+            .flag = en_passant_capture,
+            .c_piece = pawn,
+            .score = score_capture(pawn, pawn),
+        };
         ++move_count;
       }
     }
@@ -226,14 +322,22 @@ constexpr std::size_t movegen_not_pawn(const Board &b, OutputIt &out,
         break;
       }
       if (all_empty(b, to)) {
-        *out++ = {.from = from, .to = to, .flag = normal};
+        *out++ = Move{
+            .from_square = from,
+            .to_square = to,
+            .from_piece = {.piece_type = piece_t, .color = b.stm},
+            .flag = normal,
+        };
         ++move_count;
       } else if (all_capturable(b, to)) {
-        *out++ = {.from = from,
-                  .to = to,
-                  .flag = capture,
-                  .c_piece = b.piece_on[to],
-                  .score = score_capture(b.piece_on[to], b.piece_on[from])};
+        *out++ = Move{
+            .from_square = from,
+            .to_square = to,
+            .from_piece = {.piece_type = piece_t, .color = b.stm},
+            .flag = capture,
+            .c_piece = b.piece_on[to],
+            .score = score_capture(b.piece_on[to], b.piece_on[from]),
+        };
         ++move_count;
         break;
       }
