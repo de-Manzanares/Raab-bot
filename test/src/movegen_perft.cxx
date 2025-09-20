@@ -1,6 +1,9 @@
 #include <catch2/catch_all.hpp>
+#include <iostream>
 
 // https://www.chessprogramming.org/Perft_Results
+
+import Board0x88;
 
 std::size_t perft_results[7][7] = {
     {0, 0, 0, 0, 0, 0, 0},
@@ -11,36 +14,88 @@ std::size_t perft_results[7][7] = {
     {0, 44, 1486, 62379, 2103487, 89941194, 0},
     {0, 46, 2079, 89890, 3894594, 164075551, 6923051137}};
 
-import Board0x88;
+struct PerftCounts {
+  std::size_t captures{};
+  std::size_t ep{};
+  std::size_t castles{};
+  std::size_t promotions{};
+  std::size_t checks{};
+  std::size_t checkmates{};
+};
+
+void cnt_mv_t(const Move &m, PerftCounts *pc) {
+  switch (m.flag) {
+  case capture:
+    pc->captures++;
+    break;
+  case en_passant_capture:
+    pc->captures++;
+    pc->ep++;
+    break;
+  case castle:
+    pc->castles++;
+    break;
+  case promotion:
+    pc->promotions++;
+    break;
+  default:
+  }
+}
+
+constexpr std::size_t movegen_perft(Board &b, const int depth,
+                                    PerftCounts *pc = nullptr) {
+  std::array<Move, 256> ml;
+  std::size_t nodes{};
+  if (depth == 0) {
+    return 1ULL;
+  }
+  movegen(b, ml.begin());
+  for (const auto &m : ml) {
+    if (m.from_sq == null_square) {
+      break;
+    }
+    move(b, m);
+    if (!is_legal(b)) {
+      if (pc) {
+        cnt_mv_t(m, pc);
+      }
+      nodes += movegen_perft(b, depth - 1, pc);
+    }
+    un_move(b, m);
+  }
+  return nodes;
+}
+
+void print_res(const PerftCounts *pc) {
+  std::cout << "captures " << pc->captures << '\n';
+  std::cout << "ep cap   " << pc->ep << '\n';
+  std::cout << "castles  " << pc->castles << '\n';
+  std::cout << "prom     " << pc->promotions << '\n';
+}
 
 TEST_CASE("perft initial") {
   Board b0;
-  SECTION("depth 4") { CHECK(movegen_perft(b0, 4) == 197281); }
-  SECTION("depth 5") { CHECK(movegen_perft(b0, 5) == 4865609); }
+  SECTION("depth 5") { CHECK(movegen_perft(b0, 5) == perft_results[1][5]); }
 }
 
 TEST_CASE("perft position 2") {
   Board b0("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ");
-  SECTION("depth 2") { CHECK(movegen_perft(b0, 2) == perft_results[2][2]); }
   SECTION("depth 3") { CHECK(movegen_perft(b0, 3) == perft_results[2][3]); }
 }
 
 TEST_CASE("perft position 3") {
   Board b0("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1 ");
   SECTION("depth 4") { CHECK(movegen_perft(b0, 4) == perft_results[3][4]); }
-  SECTION("depth 5") { CHECK(movegen_perft(b0, 5) == perft_results[3][5]); }
 }
 
 TEST_CASE("perft position 4") {
   Board b0("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
-  SECTION("depth 2") { CHECK(movegen_perft(b0, 2) == 264); }
-  SECTION("depth 3") { CHECK(movegen_perft(b0, 3) == 9467); }
+  SECTION("depth 4") { CHECK(movegen_perft(b0, 4) == perft_results[4][4]); }
 }
 
 TEST_CASE("perft position 5") {
   Board b0("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8  ");
-  SECTION("depth 1") { CHECK(movegen_perft(b0, 1) == perft_results[5][1]); }
-  SECTION("depth 2") { CHECK(movegen_perft(b0, 2) == perft_results[5][2]); }
+  SECTION("depth 4") { CHECK(movegen_perft(b0, 4) == perft_results[5][4]); }
 }
 
 TEST_CASE("perft position 6") {

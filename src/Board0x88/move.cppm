@@ -37,6 +37,9 @@ export struct Move {
 
 export bool operator==(Move lhs, Move rhs);
 
+export void move(Board &b, Move m);
+export void un_move(Board &b, Move m);
+
 //------------------------------------------------------------------------------
 
 /// for tests only, doesn't do full comparison
@@ -137,6 +140,9 @@ void unfinish_castle(Board &b, const Square to) {
   default:
   }
 }
+
+export void move(Board &b, Move m);
+export void un_move(Board &b, Move m);
 
 void move(Board &b, const Move m) {
   // move pieces
