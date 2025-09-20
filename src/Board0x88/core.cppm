@@ -5,6 +5,7 @@
 
 module;
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <iostream>
@@ -27,6 +28,7 @@ export class Board {
 
   [[nodiscard]] PieceInfo piece_info(Square sq) const;
 
+  void reset();
   void display() const; ///< print a simple visualization of the board
 
   // piece tracking
@@ -36,11 +38,11 @@ export class Board {
 
   // game state tracking
 
-  Color stm;                             ///< side to move
-  Square ep;                             ///< en passant target
+  Color stm;                ///< side to move
+  Square ep;                ///< en passant target
   std::uint8_t cr = 0b0000; ///< bqs = 8, bks = 4, wqs = 2, wks = 1
-  int hmc;                               ///< half move clock
-  int fmc;                               ///< full move clock
+  int hmc;                  ///< half move clock
+  int fmc;                  ///< full move clock
 
   int wks{}; ///< white king square
   int bks{}; ///< black king square
@@ -142,6 +144,8 @@ Board::Board(const std::string_view fen) {
 PieceInfo Board::piece_info(const Square sq) const {
   return {.piece_t = piece_on[sq], .color = color_on[sq]};
 }
+
+void Board::reset() { *this = Board(fen::startpos); }
 
 void Board::display() const {
   using namespace fen;

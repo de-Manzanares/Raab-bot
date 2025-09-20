@@ -5,6 +5,7 @@
 module;
 
 #include <cstdint>
+#include <iostream>
 
 export module Board0x88:move;
 import :core;
@@ -33,12 +34,31 @@ export struct Move {
   int score{};                        ///< for move ordering
   Square ep_target = null_square;
   std::uint8_t prev_castling_rights{};
+
+  friend std::ostream &operator<<(std::ostream &os, const Move &m);
 };
+
+std::ostream &print_square(std::ostream &os, const Square sq) {
+  const char file = static_cast<char>('a' + (sq & 0x7));
+  const char rank = static_cast<char>('1' + ((sq >> 4) & 0x7));
+  os.put(file).put(rank);
+  return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const Move &m) {
+  if (m.from_sq == null_square) {
+    os << "0000";
+    return os;
+  }
+  print_square(os, m.from_sq);
+  print_square(os, m.to_sq);
+  return os;
+}
 
 export bool operator==(Move lhs, Move rhs);
 
 export void move(Board &b, Move m);
-export void un_move(Board &b, Move m);
+export void unmove(Board &b, Move m);
 
 //------------------------------------------------------------------------------
 
@@ -142,7 +162,7 @@ void unfinish_castle(Board &b, const Square to) {
 }
 
 export void move(Board &b, Move m);
-export void un_move(Board &b, Move m);
+export void unmove(Board &b, Move m);
 
 void move(Board &b, const Move m) {
   // move pieces
@@ -191,7 +211,7 @@ void move(Board &b, const Move m) {
   b.stm = ~b.stm;
 }
 
-void un_move(Board &b, const Move m) {
+void unmove(Board &b, const Move m) {
   // move pieces
   set_sq(b, m.from_sq, from_piece(m));
   if (m.flag == en_passant_capture) {

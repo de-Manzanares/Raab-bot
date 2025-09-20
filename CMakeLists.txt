@@ -49,10 +49,13 @@ target_sources(
         src/Board0x88.ixx
         src/Board0x88/attack.cppm
         src/Board0x88/core.cppm
+        src/Board0x88/eval.cppm
         src/Board0x88/fen.cppm
         src/Board0x88/move.cppm
         src/Board0x88/movegen.cppm
         src/Board0x88/types.cppm
+        src/Board0x88/search.cppm
+        src/uci.cpp
 )
 target_link_libraries(
         chess_modules

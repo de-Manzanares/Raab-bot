@@ -11,7 +11,7 @@ export module Board0x88:types;
 
 //------------------------------------------------------------------------------
 
-export enum Color : uint8_t { white = 'w', black = 'b', null_color = '.' };
+export enum Color : uint8_t { white, black, null_color = '.' };
 
 export Color operator~(Color color);
 
@@ -26,8 +26,6 @@ export enum Direction : int8_t {
   S,
   SE
 };
-
-export constexpr uint8_t piece_value[6] = {100, 9, 5, 3, 3, 1};
 
 /// piece codes to easily access movement types by piece type
 /// see the vectors[5][8] array below
