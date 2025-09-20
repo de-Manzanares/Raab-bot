@@ -38,7 +38,7 @@ export class Board {
 
   Color stm;                             ///< side to move
   Square ep;                             ///< en passant target
-  std::uint8_t castling_rights = 0b0000; ///< bqs = 8, bks = 4, wqs = 2, wks = 1
+  std::uint8_t cr = 0b0000; ///< bqs = 8, bks = 4, wqs = 2, wks = 1
   int hmc;                               ///< half move clock
   int fmc;                               ///< full move clock
 
@@ -98,22 +98,22 @@ Board::Board(const std::string_view fen) {
 
   // castling rights
   if (*ch == '-') {
-    castling_rights = 0;
+    cr = 0;
     ++ch;
   } else {
     for (; ch != fen.end() && *ch != ' '; ++ch) {
       switch (*ch) {
       case 'K':
-        castling_rights += 0b0001;
+        cr += 0b0001;
         break;
       case 'Q':
-        castling_rights += 0b0010;
+        cr += 0b0010;
         break;
       case 'k':
-        castling_rights += 0b0100;
+        cr += 0b0100;
         break;
       case 'q':
-        castling_rights += 0b1000;
+        cr += 0b1000;
         break;
       default:
       }
@@ -140,7 +140,7 @@ Board::Board(const std::string_view fen) {
 }
 
 PieceInfo Board::piece_info(const Square sq) const {
-  return {.piece_type = piece_on[sq], .color = color_on[sq]};
+  return {.piece_t = piece_on[sq], .color = color_on[sq]};
 }
 
 void Board::display() const {
@@ -148,7 +148,7 @@ void Board::display() const {
 
   for (int i = 0; i < 64; ++i) {
     const auto sq = to_0x88_idx(i);
-    const PieceInfo pi{.piece_type = piece_on[sq], .color = color_on[sq]};
+    const PieceInfo pi{.piece_t = piece_on[sq], .color = color_on[sq]};
     const char ch = get_char_code(pi);
     std::cout << ' ' << ch;
     if ((i + 1) % 8 == 0) {

@@ -23,7 +23,7 @@ import :types;
  */
 export bool is_attacked(const Board &board, Square sq, Color by_color);
 
-export bool in_check(const Board &b) {
+export bool is_legal(const Board &b) {
   return is_attacked(
       b, Square{static_cast<std::int8_t>(b.stm == white ? b.bks : b.wks)},
       b.stm);
@@ -102,7 +102,7 @@ bool ia_b_r_q(const Board &board, const Square sq, const Color by_color,
         break;
       }
       const auto pi = board.piece_info(from);
-      if (pi.piece_type == null_piece) {
+      if (pi.piece_t == null_piece) {
         continue;
       }
       if (pi.color == ~by_color) {
@@ -112,7 +112,7 @@ bool ia_b_r_q(const Board &board, const Square sq, const Color by_color,
           pi == PieceInfo{queen, by_color}) {
         return true;
       }
-      if (pi.piece_type != null_piece) {
+      if (pi.piece_t != null_piece) {
         break;
       }
     }

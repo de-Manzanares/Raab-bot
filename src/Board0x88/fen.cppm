@@ -94,22 +94,22 @@ PieceInfo fen::get_piece_info(char ch) {
 
   switch (std::tolower(ch)) {
   case 'p':
-    piece_info.piece_type = pawn;
+    piece_info.piece_t = pawn;
     break;
   case 'b':
-    piece_info.piece_type = bishop;
+    piece_info.piece_t = bishop;
     break;
   case 'n':
-    piece_info.piece_type = knight;
+    piece_info.piece_t = knight;
     break;
   case 'r':
-    piece_info.piece_type = rook;
+    piece_info.piece_t = rook;
     break;
   case 'k':
-    piece_info.piece_type = king;
+    piece_info.piece_t = king;
     break;
   case 'q':
-    piece_info.piece_type = queen;
+    piece_info.piece_t = queen;
     break;
   default:
   }
@@ -126,7 +126,7 @@ PieceInfo fen::get_piece_info(char ch) {
 char fen::get_char_code(const PieceInfo piece_info) {
   char ch = '.';
 
-  switch (piece_info.piece_type) {
+  switch (piece_info.piece_t) {
   case pawn:
     ch = 'p';
     break;

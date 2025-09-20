@@ -42,7 +42,7 @@ export enum Piece : uint8_t {
 };
 
 export struct PieceInfo {
-  Piece piece_type{null_piece};
+  Piece piece_t{null_piece};
   Color color{null_color};
 };
 
@@ -78,7 +78,7 @@ export Square operator+(Square lhs, int rhs);
 //------------------------------------------------------------------------------
 
 bool operator==(const PieceInfo lhs, const PieceInfo rhs) {
-  return lhs.piece_type == rhs.piece_type && lhs.color == rhs.color;
+  return lhs.piece_t == rhs.piece_t && lhs.color == rhs.color;
 }
 
 Square operator+(const Square lhs, const Direction rhs) {
