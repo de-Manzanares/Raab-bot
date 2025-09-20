@@ -48,8 +48,13 @@ void move(Board &b, const Move m) {
   b.piece_on[m.from_square] = null_piece;
   b.color_on[m.from_square] = null_color;
 
-  b.piece_on[m.to_square] = m.from_piece.piece_type;
-  b.color_on[m.to_square] = m.from_piece.color;
+  if (m.flag == promotion) {
+    b.piece_on[m.to_square] = m.promotion_piece;
+    b.color_on[m.to_square] = m.from_piece.color;
+  } else {
+    b.piece_on[m.to_square] = m.from_piece.piece_type;
+    b.color_on[m.to_square] = m.from_piece.color;
+  }
 
   if (m.flag == en_passant_capture) {
     auto sq = m.to_square + (b.stm == white ? S : N);

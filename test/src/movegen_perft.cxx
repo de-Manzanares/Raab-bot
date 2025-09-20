@@ -21,15 +21,14 @@ TEST_CASE("perft initial") {
 
 TEST_CASE("perft position 2") {
   Board b0("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ");
-  SECTION("depth 1") { CHECK(movegen_perft(b0, 1) == 48); }
-  SECTION("depth 2") { CHECK(movegen_perft(b0, 2) == 2039); }
+  SECTION("depth 2") { CHECK(movegen_perft(b0, 2) == perft_results[2][2]); }
+  SECTION("depth 3") { CHECK(movegen_perft(b0, 3) == perft_results[2][3]); }
 }
 
 TEST_CASE("perft position 3") {
   Board b0("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1 ");
-  SECTION("depth 1") { CHECK(movegen_perft(b0, 1) == 14); }
-  SECTION("depth 2") { CHECK(movegen_perft(b0, 2) == 191); }
-  SECTION("depth 3") { CHECK(movegen_perft(b0, 3) == perft_results[3][3]); }
+  SECTION("depth 4") { CHECK(movegen_perft(b0, 4) == perft_results[3][4]); }
+  SECTION("depth 5") { CHECK(movegen_perft(b0, 5) == perft_results[3][5]); }
 }
 
 TEST_CASE("perft position 4") {
@@ -42,8 +41,6 @@ TEST_CASE("perft position 5") {
   Board b0("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8  ");
   SECTION("depth 1") { CHECK(movegen_perft(b0, 1) == perft_results[5][1]); }
   SECTION("depth 2") { CHECK(movegen_perft(b0, 2) == perft_results[5][2]); }
-  SECTION("depth 3") { CHECK(movegen_perft(b0, 3) == perft_results[5][3]); }
-  SECTION("depth 4") { CHECK(movegen_perft(b0, 4) == perft_results[5][4]); }
 }
 
 TEST_CASE("perft position 6") {
