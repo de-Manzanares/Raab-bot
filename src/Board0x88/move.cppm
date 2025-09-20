@@ -31,7 +31,6 @@ export struct Move {
   int score{};                        ///< for move ordering
   Square ep_target = null_square;
   std::uint8_t prev_castling_rights{};
-  Square prev_ep = null_square;
 };
 
 export bool operator==(Move lhs, Move rhs);
@@ -106,6 +105,7 @@ void move(Board &b, const Move m) {
     }
   }
 
+  // update castling rights
   if (m.from_piece.piece_type == rook) {
     if (b.castling_rights) {
       switch (m.from_square) {
@@ -124,7 +124,6 @@ void move(Board &b, const Move m) {
       }
     }
   }
-
   if (m.c_piece == rook) {
     if (b.castling_rights) {
       switch (m.to_square) {
@@ -213,9 +212,6 @@ void un_move(Board &b, const Move m) {
       b.bks = m.from_square;
     }
   }
-
-  // update en_passant target
-  b.ep = m.prev_ep; // (?)
 
   // update castling rights
   b.castling_rights = m.prev_castling_rights;
