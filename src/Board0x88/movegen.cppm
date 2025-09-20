@@ -210,7 +210,7 @@ constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
   const Direction dir = b.stm == white ? N : S;
   const Square prom_row = b.stm == white ? a7 : a2;
   const Square double_row = b.stm == white ? a2 : a7;
-  if (Square to{from + dir}; all_empty(b, to)) {
+  if (Square to{from + dir}; is_valid_square(to) && all_empty(b, to)) {
     if (from >> 4 == prom_row >> 4) { // if on 7th rank -> promotions
       for (constexpr std::array p_pieces = {queen, rook, bishop, knight};
            const auto p_piece : p_pieces) {
