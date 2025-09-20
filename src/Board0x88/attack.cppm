@@ -24,7 +24,7 @@ import :types;
 export bool is_attacked(const Board &board, Square sq, Color by_color);
 
 export bool is_legal(const Board &b) {
-  return is_attacked(
+  return !is_attacked(
       b, Square{static_cast<std::int8_t>(b.stm == white ? b.bks : b.wks)},
       b.stm);
 }

@@ -55,7 +55,7 @@ constexpr std::size_t movegen_perft(Board &b, const int depth,
       break;
     }
     move(b, m);
-    if (!is_legal(b)) {
+    if (is_legal(b)) {
       if (pc) {
         cnt_mv_t(m, pc);
       }
