@@ -51,6 +51,23 @@ export template <class OutputIt>
 constexpr std::size_t movegen(const Board &b, OutputIt out);
 // todo ^ history scoring
 
+export constexpr std::size_t cnt_legal_moves(Board &b) {
+  std::array<Move, 256> ml;
+  std::size_t cnt_legal_moves{};
+  movegen(b, ml.begin());
+  for (auto it = ml.begin();; ++it) {
+    if (it->from_sq == null_square) {
+      break;
+    }
+    move(b, *it);
+    if (is_legal(b)) {
+      ++cnt_legal_moves;
+    }
+    un_move(b, *it);
+  }
+  return cnt_legal_moves;
+}
+
 //------------------------------------------------------------------------------
 
 // clang-format off

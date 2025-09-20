@@ -3,14 +3,7 @@
 import Board0x88;
 
 int main() {
-  Board board1("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-  Board board2("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
-  Board board3("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b - e3 0 1");
-  Board board0("rnbqkbnr/pppppppp/8/8/8/8/PPP1PPPP/RNBQKBNR w KQkq - 0 1");
-  board1.display();
-  std::cout << '\n';
-  board2.display();
-  std::cout << '\n';
-  board0.display();
-  auto moves = movegen(board0);
+  Board b("5K2/8/5kp1/7r/8/8/3b4/8 b - - 5 66");
+  std::array<Move, 1024> ml{};
+  auto mv = negamax_root(b, 4);
 }
