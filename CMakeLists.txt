@@ -55,6 +55,7 @@ target_sources(
         src/Board0x88/movegen.cppm
         src/Board0x88/types.cppm
         src/Board0x88/search.cppm
+        src/uci.cpp
 )
 target_link_libraries(
         chess_modules

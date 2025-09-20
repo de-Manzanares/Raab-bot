@@ -5,6 +5,7 @@
 module;
 
 #include <cstdint>
+#include <iosfwd>
 
 export module Board0x88:move;
 import :core;
@@ -33,7 +34,23 @@ export struct Move {
   int score{};                        ///< for move ordering
   Square ep_target = null_square;
   std::uint8_t prev_castling_rights{};
+
+  friend std::ostream &operator<<(std::ostream &os, const Move &m);
 };
+
+std::ostream& print_square(std::ostream& os, const Square sq) {
+  const int isq = sq;
+  const char file = static_cast<char>('a' + (sq & 0x7));
+  const char rank = static_cast<char>('1' + ((sq >> 4) & 0x7));
+  os.put(file).put(rank);
+  return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const Move &m) {
+  print_square(os, m.from_sq);
+  print_square(os, m.to_sq);
+  return os;
+}
 
 export bool operator==(Move lhs, Move rhs);
 
