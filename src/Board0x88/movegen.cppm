@@ -15,6 +15,15 @@ import :core;
 import :move;
 import :types;
 
+export struct PerftCounts {
+  std::size_t captures{};
+  std::size_t ep{};
+  std::size_t castles{};
+  std::size_t promotions{};
+  std::size_t checks{};
+  std::size_t checkmates{};
+};
+
 template <class... Squares>
   requires(std::same_as<Square, Squares> && ...)
 constexpr bool all_empty(const Board &b, Squares... sq) {
@@ -43,17 +52,19 @@ constexpr int score_capture(const Piece victim, const Piece attacker) {
  * populate a container with pseudo-legal moves, return the count
  * @param b the board in question
  * @param out output iterator
+ * @param pc
  * @return number of pseudo-legal moves
  */
 export template <class OutputIt>
   requires std::output_iterator<OutputIt, Move>
-constexpr std::size_t movegen(const Board &b, OutputIt out);
+constexpr std::size_t movegen(const Board &b, OutputIt out,
+                              PerftCounts *pc = nullptr);
 // todo ^ history scoring
 
-export constexpr std::size_t n_legal_moves(Board &b) {
+export constexpr std::size_t n_legal_moves(Board &b, PerftCounts *pc) {
   std::size_t legal_moves{};
   std::array<Move, 256> ml{};
-  movegen(b, ml.begin());
+  movegen(b, ml.begin(), pc);
   for (const auto m : ml) {
     if (m.from_square == null_square) {
       break;
@@ -61,6 +72,24 @@ export constexpr std::size_t n_legal_moves(Board &b) {
     move(b, m);
     // b.display();
     if (!in_check(b)) {
+      if (pc) {
+        switch (m.flag) {
+        case capture:
+          pc->captures++;
+          break;
+        case en_passant_capture:
+          pc->ep++;
+          pc->captures++;
+          break;
+        case castle:
+          pc->castles++;
+          break;
+        case promotion:
+          pc->promotions++;
+          break;
+        default:
+        }
+      }
       ++legal_moves;
     }
     un_move(b, m);
@@ -69,20 +98,39 @@ export constexpr std::size_t n_legal_moves(Board &b) {
   return legal_moves;
 }
 
-export constexpr std::size_t movegen_perft(Board &b, int depth) {
+export std::size_t movegen_perft(Board &b, int depth,
+                                 PerftCounts *pc = nullptr) {
   std::size_t nodes{};
   std::array<Move, 256> ml{};
   if (depth == 1) {
-    return n_legal_moves(b);
+    return n_legal_moves(b, pc);
   }
-  movegen(b, ml.begin());
+  movegen(b, ml.begin(), pc);
   for (const auto m : ml) {
     if (m.from_square == null_square) {
       break;
     }
     move(b, m);
     if (!in_check(b)) {
-      nodes += movegen_perft(b, depth - 1);
+      if (pc) {
+        switch (m.flag) {
+        case capture:
+          pc->captures++;
+          break;
+        case en_passant_capture:
+          pc->captures++;
+          pc->ep++;
+          break;
+        case castle:
+          pc->castles++;
+          break;
+        case promotion:
+          pc->promotions++;
+          break;
+        default:
+        }
+      }
+      nodes += movegen_perft(b, depth - 1, pc);
     }
     un_move(b, m);
   }
@@ -106,7 +154,8 @@ constexpr std::array<Square, 64> square_sequence{
 
 template <class OutputIt>
   requires std::output_iterator<OutputIt, Move>
-constexpr std::size_t movegen_castle(const Board &b, OutputIt &out);
+constexpr std::size_t movegen_castle(const Board &b, OutputIt &out,
+                                     PerftCounts *pc);
 
 /// non-capture pawn moves
 template <class OutputIt>
@@ -133,9 +182,10 @@ constexpr std::size_t movegen_not_pawn(const Board &b, OutputIt &out,
 
 export template <class OutputIt>
   requires std::output_iterator<OutputIt, Move>
-[[nodiscard]] constexpr std::size_t movegen(const Board &b, OutputIt out) {
+[[nodiscard]] constexpr std::size_t movegen(const Board &b, OutputIt out,
+                                            PerftCounts *pc) {
   std::size_t move_count = 0;
-  move_count += movegen_castle(b, out);
+  move_count += movegen_castle(b, out, pc);
   for (const auto from : square_sequence) {
     if (b.color_on[from] == b.stm) {
       const auto [piece_t, color] = b.piece_info(from);
@@ -155,7 +205,8 @@ export template <class OutputIt>
 
 template <class OutputIt>
   requires std::output_iterator<OutputIt, Move>
-constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
+constexpr std::size_t movegen_castle(const Board &b, OutputIt &out,
+                                     PerftCounts *pc) {
   std::size_t move_count{};
   if (b.stm == white) {
     if ((b.castling_rights & 1) && all_empty(b, f1, g1) &&
@@ -166,7 +217,6 @@ constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
           .from_piece = {.piece_type = king, .color = white},
           .flag = castle,
           .prev_castling_rights = b.castling_rights,
-          .prev_ep = b.ep,
       };
       ++move_count;
     }
@@ -178,7 +228,6 @@ constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
           .from_piece = {.piece_type = king, .color = white},
           .flag = castle,
           .prev_castling_rights = b.castling_rights,
-          .prev_ep = b.ep,
       };
       ++move_count;
     }
@@ -191,7 +240,6 @@ constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
           .from_piece = {.piece_type = king, .color = black},
           .flag = castle,
           .prev_castling_rights = b.castling_rights,
-          .prev_ep = b.ep,
       };
       ++move_count;
     }
@@ -203,7 +251,6 @@ constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
           .from_piece = {.piece_type = king, .color = black},
           .flag = castle,
           .prev_castling_rights = b.castling_rights,
-          .prev_ep = b.ep,
       };
       ++move_count;
     }
@@ -229,7 +276,6 @@ constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
             .flag = promotion,
             .promotion_piece = p_piece,
             .prev_castling_rights = b.castling_rights,
-            .prev_ep = b.ep,
         };
         ++move_count;
       }
@@ -241,7 +287,6 @@ constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
           .from_piece = {.piece_type = pawn, .color = b.stm},
           .flag = normal,
           .prev_castling_rights = b.castling_rights,
-          .prev_ep = b.ep,
       };
       ++move_count;
       // double move
@@ -254,7 +299,6 @@ constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
             .flag = en_passant,
             .ep_target = from + dir,
             .prev_castling_rights = b.castling_rights,
-            .prev_ep = b.ep,
         };
         ++move_count;
         // todo ep target
@@ -294,7 +338,6 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
                 .promotion_piece = p_piece,
                 .score = score + piece_value[p_piece],
                 .prev_castling_rights = b.castling_rights,
-                .prev_ep = b.ep,
             };
             ++move_count;
           }
@@ -307,7 +350,6 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
               .c_piece = b.piece_on[to],
               .score = score,
               .prev_castling_rights = b.castling_rights,
-              .prev_ep = b.ep,
           };
           ++move_count;
         }
@@ -320,7 +362,6 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
             .c_piece = pawn,
             .score = score_capture(pawn, pawn),
             .prev_castling_rights = b.castling_rights,
-            .prev_ep = b.ep,
         };
         ++move_count;
       }
@@ -348,7 +389,6 @@ constexpr std::size_t movegen_not_pawn(const Board &b, OutputIt &out,
             .from_piece = {.piece_type = piece_t, .color = b.stm},
             .flag = normal,
             .prev_castling_rights = b.castling_rights,
-            .prev_ep = b.ep,
         };
         ++move_count;
       } else if (all_capturable(b, to)) {
@@ -360,7 +400,6 @@ constexpr std::size_t movegen_not_pawn(const Board &b, OutputIt &out,
             .c_piece = b.piece_on[to],
             .score = score_capture(b.piece_on[to], b.piece_on[from]),
             .prev_castling_rights = b.castling_rights,
-            .prev_ep = b.ep,
         };
         ++move_count;
         break;
