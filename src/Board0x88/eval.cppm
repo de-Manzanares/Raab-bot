@@ -54,7 +54,14 @@ constexpr score_t material(const Board &b) {
   return mat;
 }
 
-export constexpr score_t eval(const Board &b) {
+export constexpr score_t eval(Board &b) {
+  switch (auto [term_t, term_v] = terminus_check(b); term_t) {
+  case checkmate:
+    return -term_v;
+  case stalemate:
+    return term_v;
+  default:;
+  }
   const auto score = material(b);
   return score * (b.stm == white ? 1 : -1);
 }

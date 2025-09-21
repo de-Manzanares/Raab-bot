@@ -239,6 +239,9 @@ void unmove(Board &b, const Move m) {
   // update castling rights
   b.cr = m.prev_castling_rights;
 
+  // en passant
+  b.ep = null_square;
+
   // update side to move
   b.stm = ~b.stm;
 }

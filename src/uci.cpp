@@ -1,6 +1,8 @@
 module;
 
+#include <fstream>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -56,9 +58,11 @@ void startpos_moves(Board &b, const std::string *in) {
 }
 
 export void uci_loop() {
+  std::ofstream ofile("Raab-bot-log.txt");
   std::string in; // the command from the GUI
   Board b;
   while (std::getline(std::cin, in)) {
+    ofile << in << std::endl;
     preamble(&in);
     if (simon_says(&in, "position")) {
       if (simon_says(&in, "fen")) {
@@ -69,8 +73,13 @@ export void uci_loop() {
           startpos_moves(b, &in);
         }
       }
-    } else if (simon_says(&in, "go")) {
-      std::cout << "bestmove " << negamax_root(b, 5) << '\n';
+    }
+    if (simon_says(&in, "go")) {
+      constexpr int alpha = std::numeric_limits<int>::min() / 2;
+      constexpr int beta = std::numeric_limits<int>::max() / 2;
+      auto m = alpha_beta_root(b, alpha, beta, 5);
+      std::cout << "bestmove " << m << std::endl;
+      ofile << "bestmove " << m << std::endl;
     } else if (in.find("stop") != std::string::npos) {
     } else if (in == "quit") {
       break;
