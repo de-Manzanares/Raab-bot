@@ -61,7 +61,7 @@ constexpr std::size_t movegen_perft(Board &b, const int depth,
       }
       nodes += movegen_perft(b, depth - 1, pc);
     }
-    un_move(b, m);
+    unmove(b, m);
   }
   return nodes;
 }
