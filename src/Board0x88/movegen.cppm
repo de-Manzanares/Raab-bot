@@ -7,6 +7,7 @@ module;
 
 #include <array>
 #include <concepts>
+#include <cstdint>
 #include <iostream>
 
 export module Board0x88:movegen;
@@ -33,8 +34,11 @@ constexpr bool all_not_attacked(const Board &b, Color c, Squares... sq) {
   return (... && !is_attacked(b, sq, c));
 }
 
-constexpr int score_capture(const Piece victim, const Piece attacker) {
-  return (10 * piece_value[victim]) - piece_value[attacker];
+/// MVV/LVA vals
+constexpr std::uint8_t vavals[6] = {9, 9, 5, 3, 3, 1};
+
+constexpr int mvvlva(const Piece victim, const Piece attacker) {
+  return (10 * vavals[victim]) - vavals[attacker];
 }
 
 //------------------------------------------------------------------------------
@@ -51,37 +55,35 @@ export template <class OutputIt>
 constexpr std::size_t movegen(const Board &b, OutputIt out);
 // todo ^ history scoring
 
-export constexpr std::size_t cnt_legal_moves(Board &b) {
-  std::array<Move, 256> ml;
-  std::size_t cnt_legal_moves{};
-  movegen(b, ml.begin());
-  for (auto it = ml.begin();; ++it) {
-    if (it->from_sq == null_square) {
-      break;
-    }
-    move(b, *it);
-    if (is_legal(b)) {
-      ++cnt_legal_moves;
-    }
-    un_move(b, *it);
-  }
-  return cnt_legal_moves;
-}
+/**
+ * @param b the board in question
+ * @return the count of legal moves
+ */
+export constexpr std::size_t cnt_legal_moves(Board &b);
 
-//------------------------------------------------------------------------------
+/**
+ * find the highest scored move and put it at the front of the range
+ * @param first first iterator in range
+ * @param sz the number of elements in the range
+ */
+export template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+void movegen_sort(OutputIt first, std::size_t sz);
 
 // clang-format off
 export constexpr std::array<Square, 64> square_sequence{
-    { a1 , b1, c1, d1, e1, f1, g1, h1,
-         a2 , b2, c2, d2, e2, f2, g2, h2,
-         a3 , b3, c3, d3, e3, f3, g3, h3,
-         a4 , b4, c4, d4, e4, f4, g4, h4,
-         a5 , b5, c5, d5, e5, f5, g5, h5,
-         a6 , b6, c6, d6, e6, f6, g6, h6,
-         a7 , b7, c7, d7, e7, f7, g7, h7,
-         a8 , b8, c8, d8, e8, f8, g8, h8,
-    }};
+      { a1 , b1, c1, d1, e1, f1, g1, h1,
+           a2 , b2, c2, d2, e2, f2, g2, h2,
+           a3 , b3, c3, d3, e3, f3, g3, h3,
+           a4 , b4, c4, d4, e4, f4, g4, h4,
+           a5 , b5, c5, d5, e5, f5, g5, h5,
+           a6 , b6, c6, d6, e6, f6, g6, h6,
+           a7 , b7, c7, d7, e7, f7, g7, h7,
+           a8 , b8, c8, d8, e8, f8, g8, h8,
+      }};
 // clang-format on
+
+//------------------------------------------------------------------------------
 
 template <class OutputIt>
   requires std::output_iterator<OutputIt, Move>
@@ -252,8 +254,7 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
     const Square to = from + dir;
     if (is_valid_square(to)) {
       if (b.color_on[to] == ~b.stm) {
-        // mvv/lva: most valuable victim, least valuable attacker
-        const int score = score_capture(pawn, pawn);
+        const int score = mvvlva(pawn, pawn);
         if ((from >> 4) == (prom_row >> 4)) {
           for (constexpr std::array p_pieces = {queen, rook, bishop, knight};
                const auto p_piece : p_pieces) {
@@ -264,7 +265,7 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
                 .flag = prom_capture,
                 .cap_piece = b.piece_on[to],
                 .promotion_piece = p_piece,
-                .score = score + piece_value[p_piece],
+                .score = score + vavals[p_piece],
                 .prev_castling_rights = b.cr,
             };
             ++move_count;
@@ -288,7 +289,7 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
             .from_piece = {.piece_t = pawn, .color = b.stm},
             .flag = en_passant_capture,
             .cap_piece = pawn,
-            .score = score_capture(pawn, pawn),
+            .score = mvvlva(pawn, pawn),
             .prev_castling_rights = b.cr,
         };
         ++move_count;
@@ -326,7 +327,7 @@ constexpr std::size_t movegen_not_pawn(const Board &b, OutputIt &out,
             .from_piece = {.piece_t = piece_t, .color = b.stm},
             .flag = capture,
             .cap_piece = b.piece_on[to],
-            .score = score_capture(b.piece_on[to], b.piece_on[from]),
+            .score = mvvlva(b.piece_on[to], b.piece_on[from]),
             .prev_castling_rights = b.cr,
         };
         ++move_count;
@@ -335,4 +336,33 @@ constexpr std::size_t movegen_not_pawn(const Board &b, OutputIt &out,
     }
   }
   return move_count;
+}
+
+export constexpr std::size_t cnt_legal_moves(Board &b) {
+  std::array<Move, 256> ml;
+  std::size_t cnt_legal_moves{};
+  movegen(b, ml.begin());
+  for (auto it = ml.begin();; ++it) {
+    if (it->from_sq == null_square) {
+      break;
+    }
+    move(b, *it);
+    if (is_legal(b)) {
+      ++cnt_legal_moves;
+    }
+    unmove(b, *it);
+  }
+  return cnt_legal_moves;
+}
+
+export template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+void movegen_sort(OutputIt first, std::size_t sz) {
+  auto max = first;
+  for (auto it = std::next(first); it != std::next(first, sz); ++it) {
+    if (it->score > max->score) {
+      max = it;
+    }
+  }
+  std::iter_swap(first, max);
 }

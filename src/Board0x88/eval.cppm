@@ -28,6 +28,8 @@ struct Terminus {
   int val{};
 };
 
+// todo calling movegen twice per search depth seems less than optimal
+
 constexpr Terminus terminus_check(Board &b) {
   if (cnt_legal_moves(b) != 0) {
     return {null_terminus, 0};
@@ -40,14 +42,7 @@ constexpr Terminus terminus_check(Board &b) {
   }
 }
 
-constexpr constexpr bool is_checkmate(Board &b) {
-  if (in_check(b) && cnt_legal_moves(b) == 0) {
-    return true;
-  }
-  return false;
-}
-
-constexpr score_t material(Board &b) {
+constexpr score_t material(const Board &b) {
   int mat{};
   for (const auto sq : square_sequence) {
     if (b.piece_on[sq] != null_piece) {
@@ -59,7 +54,7 @@ constexpr score_t material(Board &b) {
   return mat;
 }
 
-export constexpr score_t eval(Board &b) {
+export constexpr score_t eval(const Board &b) {
   const auto score = material(b);
   return score * (b.stm == white ? 1 : -1);
 }

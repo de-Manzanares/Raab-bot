@@ -10,25 +10,27 @@ import :eval;
 import :move;
 import :movegen;
 
-export int negamax(Board &b, std::uint8_t depth) {
-  auto [term_t, val] = terminus_check(b);
-  if (term_t == checkmate) {
-    return -CHECKMATE;
+export int negamax(Board &b, const std::uint8_t depth) {
+  switch (auto [term_t, term_v] = terminus_check(b); term_t) {
+  case checkmate:
+    return -term_v;
+  case stalemate:
+    return term_v;
+  default:;
   }
-  if (term_t == stalemate) {
-    return 0;
-  }
+
   if (depth == 0) {
     return eval(b);
   }
+
   int score{};
   int max = std::numeric_limits<int>::min();
   std::array<Move, 256> ml{};
-  movegen(b, ml.begin());
-  for (const auto &m : ml) {
-    if (m.from_sq == null_square) {
-      break;
-    }
+  int move_n{};
+
+  for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n) {
+    movegen_sort(std::next(ml.begin(), move_n), sz);
+    const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
       score = -negamax(b, depth - 1);
@@ -36,21 +38,31 @@ export int negamax(Board &b, std::uint8_t depth) {
         max = score;
       }
     }
-    un_move(b, m);
+    unmove(b, m);
   }
+
   return max;
 }
 
-export Move negamax_root(Board &b, std::uint8_t depth) {
+export Move negamax_root(Board &b, const std::uint8_t depth) {
+  // if the root node is already checkmate or stalemate, we done
+  switch (auto [term_t, term_v] = terminus_check(b); term_t) {
+  case checkmate:
+    return Move{};
+  case stalemate:
+    return Move{};
+  default:;
+  }
+
   Move best_move{};
   int score{};
   int max = std::numeric_limits<int>::min();
   std::array<Move, 256> ml{};
-  movegen(b, ml.begin());
-  for (const auto &m : ml) {
-    if (m.from_sq == null_square) {
-      break;
-    }
+  int move_n{};
+
+  for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n) {
+    movegen_sort(std::next(ml.begin(), move_n), sz);
+    const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
       score = -negamax(b, depth - 1);
@@ -59,7 +71,8 @@ export Move negamax_root(Board &b, std::uint8_t depth) {
         best_move = m;
       }
     }
-    un_move(b, m);
+    unmove(b, m);
   }
+
   return best_move;
 }
