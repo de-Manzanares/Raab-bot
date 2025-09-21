@@ -11,7 +11,7 @@ export module Board0x88:types;
 
 //------------------------------------------------------------------------------
 
-export enum Color : uint8_t { white = 'w', black = 'b', null_color = '.' };
+export enum Color : uint8_t { white , black , null_color = '.' };
 
 export Color operator~(Color color);
 

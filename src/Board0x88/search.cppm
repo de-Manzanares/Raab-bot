@@ -3,6 +3,7 @@ module;
 #include <array>
 #include <cstdint>
 #include <limits>
+#include <vector>
 
 export module Board0x88:search;
 import :eval;
@@ -10,8 +11,12 @@ import :move;
 import :movegen;
 
 export int negamax(Board &b, std::uint8_t depth) {
-  if (is_checkmate(b)) {
-    return b.stm == white ? -CHECKMATE : CHECKMATE;
+  auto [term_t, val] = terminus_check(b);
+  if (term_t == checkmate) {
+    return -CHECKMATE;
+  }
+  if (term_t == stalemate) {
+    return 0;
   }
   if (depth == 0) {
     return eval(b);
@@ -30,7 +35,6 @@ export int negamax(Board &b, std::uint8_t depth) {
       if (score > max) {
         max = score;
       }
-      max = std::max(max, score);
     }
     un_move(b, m);
   }
