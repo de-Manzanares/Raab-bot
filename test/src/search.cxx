@@ -28,7 +28,11 @@ TEST_CASE("questionable capture") {
 
 TEST_CASE("mate in 1") {
   Board b("rnb1k1nr/pppp1ppp/8/2b1p3/7q/N7/PPPPPPPP/1RBQKBNR b Kkq - 5 4");
-  std::cout << alpha_beta_root(b, alpha, beta, 5) << '\n';
+  SECTION("alpha beta") {
+    CHECK(Move{.from_sq = c5, .to_sq = f2, .flag = capture} ==
+          alpha_beta_root(b, alpha, beta, 5));
+  }
+  SECTION("quiesce") { CHECK(1ULL << 30 == quiesce(b, alpha, beta, 0)); }
 }
 
 TEST_CASE("avoid mate in 1") {
@@ -41,10 +45,9 @@ TEST_CASE("restrict the king") {
   std::cout << alpha_beta_root(b, alpha, beta, 5) << '\n';
 }
 
-// fails at depth 3 and greater
 TEST_CASE("mate in 1 as white") {
   Board b("2r2k2/6RR/4p2B/1r2P2P/8/3P3P/4KP2/8 w - - 6 39");
-  std::cout << alpha_beta_root(b, alpha, beta, 2) << '\n';
+  std::cout << alpha_beta_root(b, alpha, beta, 5) << '\n';
 }
 
 // clang-format off

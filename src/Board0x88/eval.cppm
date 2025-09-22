@@ -33,13 +33,13 @@ struct Terminus {
 
 // todo calling movegen twice per search depth seems less than optimal
 
-Terminus terminus_check(Board &b) {
+Terminus terminus_check(Board &b, std::uint8_t ply) {
   Board tmp = b;
   if (cnt_legal_moves(tmp) != 0) {
     return {null_terminus, 0};
   }
   if (in_check(tmp)) {
-    return {checkmate, CHECKMATE};
+    return {checkmate, CHECKMATE - ply};
   }
   if (!in_check(tmp)) {
     return {stalemate, 0};
@@ -101,9 +101,9 @@ score_t attack_enemy_king(Board &b) {
 
 // kinda sorta static, we still use movegen to count legal moves for
 // terminal detection
-export constexpr score_t static_eval(Board &b) {
+export constexpr score_t static_eval(Board &b, std::uint8_t ply) {
   // doesn't find checkmate or stalemate
-  switch (auto [term_t, term_v] = terminus_check(b); term_t) {
+  switch (auto [term_t, term_v] = terminus_check(b, ply); term_t) {
   case checkmate:
     return -term_v;
   case stalemate:
