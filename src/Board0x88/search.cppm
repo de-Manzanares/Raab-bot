@@ -10,8 +10,8 @@ import :eval;
 import :move;
 import :movegen;
 
-export int quiesce(Board &b, int alpha, int beta) {
-  int best = static_eval(b);
+export int quiesce(Board &b, int alpha, int beta, std::uint8_t ply) {
+  int best = static_eval(b, ply);
   if (best >= beta) {
     return best;
   }
@@ -29,7 +29,7 @@ export int quiesce(Board &b, int alpha, int beta) {
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
-      score = -quiesce(b, -beta, -alpha);
+      score = -quiesce(b, -beta, -alpha, ply + 1);
       if (score > best) {
         best = score;
         if (score > alpha) {
@@ -47,9 +47,10 @@ export int quiesce(Board &b, int alpha, int beta) {
   return best;
 }
 
-export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth) {
+export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth,
+                      const std::uint8_t ply) {
   if (depth == 0) {
-    return quiesce(b, alpha, beta);
+    return quiesce(b, alpha, beta, ply);
   }
 
   int score{};
@@ -64,7 +65,7 @@ export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth) {
     move(b, m);
     if (is_legal(b)) {
       ++legal_moves;
-      score = -alpha_beta(b, -beta, -alpha, depth - 1);
+      score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1);
       if (score > best) {
         best = score;
         if (score > alpha) {
@@ -81,7 +82,7 @@ export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth) {
 
   if (legal_moves == 0) {
     if (bool checkmate = in_check(b)) {
-      return -CHECKMATE;
+      return -(CHECKMATE - ply);
     }
     return 0; // stalemate
   }
@@ -91,6 +92,7 @@ export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth) {
 
 export Move alpha_beta_root(Board &b, int alpha, int beta,
                             const std::uint8_t depth) {
+  const std::uint8_t ply{};
   Move best_move{};
   int score{};
   int best = std::numeric_limits<int>::min();
@@ -104,7 +106,7 @@ export Move alpha_beta_root(Board &b, int alpha, int beta,
     move(b, m);
     if (is_legal(b)) {
       ++legal_moves;
-      score = -alpha_beta(b, -beta, -alpha, depth - 1);
+      score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1);
       if (score > best) {
         best = score;
         best_move = m; // bestmove here? or below?
