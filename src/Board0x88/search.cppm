@@ -56,12 +56,11 @@ export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth) {
   }
 
   if (depth == 0) {
-    return quiesce(b, std::numeric_limits<int>::min(),
-                   std::numeric_limits<int>::max());
+    return quiesce(b, alpha, beta);
   }
 
   int score{};
-  int best = std::numeric_limits<int>::min();
+  int best = std::numeric_limits<int>::min() / 2;
   std::array<Move, 256> ml{};
   int move_n{};
 
@@ -101,7 +100,7 @@ export Move alpha_beta_root(Board &b, int alpha, int beta,
 
   Move best_move{};
   int score{};
-  int best = std::numeric_limits<int>::min();
+  int best = std::numeric_limits<int>::min() / 2;
   std::array<Move, 256> ml{};
   int move_n{};
 
