@@ -34,11 +34,11 @@ constexpr bool all_not_attacked(const Board &b, Color c, Squares... sq) {
   return (... && !is_attacked(b, sq, c));
 }
 
-/// MVV/LVA vals
-constexpr std::uint8_t vavals[6] = {9, 9, 5, 3, 3, 1};
+/// piece values
+constexpr std::uint8_t p_vals[6] = {9, 9, 5, 3, 3, 1};
 
 constexpr int mvvlva(const Piece victim, const Piece attacker) {
-  return (10 * vavals[victim]) - vavals[attacker];
+  return (10 * p_vals[victim]) - p_vals[attacker];
 }
 
 //------------------------------------------------------------------------------
@@ -54,6 +54,17 @@ export template <class OutputIt>
   requires std::output_iterator<OutputIt, Move>
 constexpr std::size_t movegen(const Board &b, OutputIt out);
 // todo ^ history scoring
+
+/**
+ * populate a container with pseudo-legal capture moves
+ * @param b the board in question
+ * @param out
+ * @return the number of pseudo-legal capture moves
+ * @note used by the quiescence search
+ */
+export template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+constexpr std::size_t quiescence_movegen(const Board &b, OutputIt out);
 
 /**
  * @param b the board in question
@@ -127,6 +138,46 @@ export template <class OutputIt>
       int max_i{};
       piece_t == knight || piece_t == king ? max_i = 1 : max_i = 7;
       move_count += movegen_not_pawn(b, out, from, piece_t, max_i);
+    }
+  }
+  return move_count;
+}
+
+export template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+[[nodiscard]] constexpr std::size_t quiescence_movegen(const Board &b,
+                                                       OutputIt out) {
+  std::size_t move_count = 0;
+  for (const auto from : square_sequence) {
+    if (b.color_on[from] == b.stm) {
+      const auto [piece_t, color] = b.piece_info(from);
+      if (piece_t == pawn) {
+        move_count += c_pm(b, out, from);
+        continue;
+      }
+      int max_i{};
+      piece_t == knight || piece_t == king ? max_i = 1 : max_i = 7;
+      for (const auto vec : vectors[piece_t]) {
+        for (int i = 1; i <= max_i; ++i) {
+          const Square to{from + (vec * i)};
+          if (!is_valid_square(to) || b.color_on[to] == b.stm) {
+            break;
+          }
+          if (all_capturable(b, to)) {
+            *out++ = Move{
+                .from_sq = from,
+                .to_sq = to,
+                .from_piece = {.piece_t = piece_t, .color = b.stm},
+                .flag = capture,
+                .cap_piece = b.piece_on[to],
+                .score = mvvlva(b.piece_on[to], b.piece_on[from]),
+                .prev_castling_rights = b.cr,
+            };
+            ++move_count;
+            break;
+          }
+        }
+      }
     }
   }
   return move_count;
@@ -254,7 +305,7 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
     const Square to = from + dir;
     if (is_valid_square(to)) {
       if (b.color_on[to] == ~b.stm) {
-        const int score = mvvlva(pawn, pawn);
+        const int score = mvvlva(b.piece_on[to], pawn);
         if ((from >> 4) == (prom_row >> 4)) {
           for (constexpr std::array p_pieces = {queen, rook, bishop, knight};
                const auto p_piece : p_pieces) {
@@ -265,7 +316,7 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
                 .flag = prom_capture,
                 .cap_piece = b.piece_on[to],
                 .promotion_piece = p_piece,
-                .score = score + vavals[p_piece],
+                .score = score + p_vals[p_piece],
                 .prev_castling_rights = b.cr,
             };
             ++move_count;

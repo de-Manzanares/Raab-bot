@@ -75,9 +75,9 @@ export void uci_loop() {
       }
     }
     if (simon_says(&in, "go")) {
-      constexpr int alpha = std::numeric_limits<int>::min();
-      constexpr int beta = std::numeric_limits<int>::max();
-      auto m = alpha_beta_root(b, alpha, beta, 7);
+      constexpr int alpha = std::numeric_limits<int>::min() / 2;
+      constexpr int beta = std::numeric_limits<int>::max() / 2;
+      auto m = alpha_beta_root(b, alpha, beta, 5);
       std::cout << "bestmove " << m << std::endl;
       ofile << "bestmove " << m << std::endl;
     } else if (in.find("stop") != std::string::npos) {
