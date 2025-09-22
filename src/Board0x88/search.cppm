@@ -10,7 +10,7 @@ import :eval;
 import :move;
 import :movegen;
 
-export int negamax(Board &b, const std::uint8_t depth) {
+export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth) {
   switch (auto [term_t, term_v] = terminus_check(b); term_t) {
   case checkmate:
     return -term_v;
@@ -33,9 +33,16 @@ export int negamax(Board &b, const std::uint8_t depth) {
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
-      score = -negamax(b, depth - 1);
+      score = -alpha_beta(b, -beta, -alpha, depth - 1);
       if (score > max) {
         max = score;
+        if (score > alpha) {
+          alpha = score;
+        }
+      }
+      if (score >= beta) {
+        unmove(b, m);
+        return max;
       }
     }
     unmove(b, m);
@@ -44,7 +51,8 @@ export int negamax(Board &b, const std::uint8_t depth) {
   return max;
 }
 
-export Move negamax_root(Board &b, const std::uint8_t depth) {
+export Move alpha_beta_root(Board &b, int alpha, int beta,
+                            const std::uint8_t depth) {
   // if the root node is already checkmate or stalemate, we done
   switch (auto [term_t, term_v] = terminus_check(b); term_t) {
   case checkmate:
@@ -65,10 +73,17 @@ export Move negamax_root(Board &b, const std::uint8_t depth) {
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
-      score = -negamax(b, depth - 1);
+      score = -alpha_beta(b, -beta, -alpha, depth - 1);
       if (score > max) {
         max = score;
-        best_move = m;
+        best_move = m; // bestmove here? or below?
+        if (score > alpha) {
+          alpha = score;
+        }
+      }
+      if (score >= beta) {
+        unmove(b, m);
+        return best_move;
       }
     }
     unmove(b, m);
