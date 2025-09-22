@@ -99,8 +99,17 @@ score_t attack_enemy_king(Board &b) {
   return b.stm == white ? -attack_bonus : attack_bonus;
 }
 
+// kinda sorta static, we still use movegen to count legal moves for
+// terminal detection
 export constexpr score_t static_eval(Board &b) {
   // doesn't find checkmate or stalemate
+  switch (auto [term_t, term_v] = terminus_check(b); term_t) {
+  case checkmate:
+    return -term_v;
+  case stalemate:
+    return term_v;
+  default:;
+  }
   const auto score = material(b) * 128 + mobility(b) / 8 + check_bonus(b) +
                      attack_enemy_king(b) * 16;
   return score * (b.stm == white ? 1 : -1);

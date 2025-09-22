@@ -22,7 +22,6 @@ export int quiesce(Board &b, int alpha, int beta) {
   int score{};
   std::array<Move, 256> ml{};
   int move_n{};
-  int legal_moves{};
 
   for (const auto sz = quiescence_movegen(b, ml.begin()); move_n < sz;
        ++move_n) {
@@ -30,7 +29,6 @@ export int quiesce(Board &b, int alpha, int beta) {
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
-      ++legal_moves;
       score = -quiesce(b, -beta, -alpha);
       if (score > best) {
         best = score;
@@ -45,12 +43,7 @@ export int quiesce(Board &b, int alpha, int beta) {
     }
     unmove(b, m);
   }
-  if (legal_moves == 0) {
-    if (bool checkmate = in_check(b)) {
-      return -CHECKMATE;
-    }
-    return 0; // stalemate
-  }
+
   return best;
 }
 
