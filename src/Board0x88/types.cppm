@@ -20,8 +20,8 @@ export enum Direction : int8_t {
   NW = 15,
   N,
   NE,
-  E = -1,
-  W = 1,
+  E = 1,
+  W = -1,
   SW = -17,
   S,
   SE
