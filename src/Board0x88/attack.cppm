@@ -82,7 +82,7 @@ bool ia_p(const Board &board, const Square sq, const Color by_color) {
 
 bool ia_n_k(const Board &board, const Square sq, const Color by_color,
             const Piece piece) {
-  for (const auto vec : vectors[piece]) {
+  for (const auto vec : move_vectors[piece]) {
     if (const Square from{sq + vec};
         is_valid_square(from) &&
         board.piece_info(from) == PieceInfo{piece, by_color}) {
@@ -95,7 +95,7 @@ bool ia_n_k(const Board &board, const Square sq, const Color by_color,
 bool ia_b_r_q(const Board &board, const Square sq, const Color by_color,
               const Piece piece) {
   int n_dirs = 4;
-  for (const auto vec : vectors[piece]) {
+  for (const auto vec : move_vectors[piece]) {
     for (int i = 1;; ++i) {
       const Square from{sq + vec * i};
       if (!is_valid_square(from)) {
