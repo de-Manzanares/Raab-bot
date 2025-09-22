@@ -1,6 +1,7 @@
 module;
 
 #include <cstddef>
+#include <cstdint>
 #include <iterator>
 #include <limits>
 
@@ -9,9 +10,11 @@ import :core;
 import :move;
 import :movegen;
 
-export using score_t = int;
+export using score_t = std::int32_t;
 
-constexpr score_t CHECKMATE = 100'000'000;
+// arbitrary values should be powers of 2 from now on LOL
+
+constexpr score_t CHECKMATE = 1ULL << 30;
 
 constexpr int piece_vals[6] = {0, 9, 5, 3, 3, 1};
 
@@ -96,14 +99,8 @@ score_t attack_enemy_king(Board &b) {
   return b.stm == white ? -attack_bonus : attack_bonus;
 }
 
-export constexpr score_t eval(Board &b) {
-  switch (auto [term_t, term_v] = terminus_check(b); term_t) {
-  case checkmate:
-    return -term_v;
-  case stalemate:
-    return term_v;
-  default:;
-  }
+export constexpr score_t static_eval(Board &b) {
+  // doesn't find checkmate or stalemate
   const auto score = material(b) * 128 + mobility(b) / 8 + check_bonus(b) +
                      attack_enemy_king(b) * 16;
   return score * (b.stm == white ? 1 : -1);
