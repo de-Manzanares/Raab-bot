@@ -47,7 +47,7 @@ export struct PieceInfo {
 export bool operator==(PieceInfo lhs, PieceInfo rhs);
 
 /// the movement directions of each piece, excluding pawns
-export constexpr int8_t vectors[5][8] = {{SW, S, SE, E, W, NW, N, NE},
+export constexpr int8_t move_vectors[5][8] = {{SW, S, SE, E, W, NW, N, NE},
                                          {SW, S, SE, E, W, NW, N, NE},
                                          {S, E, W, N},
                                          {SW, SE, NW, NE},

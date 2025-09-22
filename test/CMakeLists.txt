@@ -54,3 +54,19 @@ add_test(
         NAME MovegenPerftTest
         COMMAND movegen-perft-test
 )
+
+add_executable(
+        search-test
+        src/search.cxx
+)
+target_link_libraries(
+        search-test
+        PRIVATE
+        common_options
+        chess_modules
+        Catch2::Catch2WithMain
+)
+add_test(
+        NAME SearchTest
+        COMMAND search-test
+)
