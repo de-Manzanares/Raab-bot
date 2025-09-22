@@ -66,7 +66,7 @@ export void uci_loop() {
     preamble(&in);
     if (simon_says(&in, "position")) {
       if (simon_says(&in, "fen")) {
-        // nothing yet
+        b = Board{in.substr(13)};
       } else if (simon_says(&in, "startpos")) {
         b.reset();
         if (simon_says(&in, "moves")) {
@@ -77,7 +77,7 @@ export void uci_loop() {
     if (simon_says(&in, "go")) {
       constexpr int alpha = std::numeric_limits<int>::min() / 2;
       constexpr int beta = std::numeric_limits<int>::max() / 2;
-      auto m = alpha_beta_root(b, alpha, beta, 5);
+      auto m = alpha_beta_root(b, alpha, beta, 4);
       std::cout << "bestmove " << m << std::endl;
       ofile << "bestmove " << m << std::endl;
     } else if (in.find("stop") != std::string::npos) {

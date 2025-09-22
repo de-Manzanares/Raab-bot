@@ -9,6 +9,7 @@ module;
 
 export module Board0x88:move;
 import :core;
+import :fen;
 
 //------------------------------------------------------------------------------
 
@@ -52,6 +53,9 @@ std::ostream &operator<<(std::ostream &os, const Move &m) {
   }
   print_square(os, m.from_sq);
   print_square(os, m.to_sq);
+  if (m.promotion_piece != null_piece) {
+    os << fen::get_char_code({m.promotion_piece, m.from_piece.color});
+  }
   return os;
 }
 

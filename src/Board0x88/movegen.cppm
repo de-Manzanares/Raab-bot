@@ -157,7 +157,7 @@ export template <class OutputIt>
       }
       int max_i{};
       piece_t == knight || piece_t == king ? max_i = 1 : max_i = 7;
-      for (const auto vec : vectors[piece_t]) {
+      for (const auto vec : move_vectors[piece_t]) {
         for (int i = 1; i <= max_i; ++i) {
           const Square to{from + (vec * i)};
           if (!is_valid_square(to) || b.color_on[to] == b.stm) {
@@ -257,6 +257,7 @@ constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
             .flag = promotion,
             .promotion_piece = p_piece,
             .prev_castling_rights = b.cr,
+            .score = 16 * p_vals[p_piece],
         };
         ++move_count;
       }
@@ -316,7 +317,8 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
                 .flag = prom_capture,
                 .cap_piece = b.piece_on[to],
                 .promotion_piece = p_piece,
-                .score = score + p_vals[p_piece],
+                // todo organize scoring system
+                .score = score + (16 * p_vals[p_piece]),
                 .prev_castling_rights = b.cr,
             };
             ++move_count;
@@ -356,7 +358,7 @@ constexpr std::size_t movegen_not_pawn(const Board &b, OutputIt &out,
                                        const Square from, const Piece piece_t,
                                        const int max_i) {
   std::size_t move_count{};
-  for (const auto vec : vectors[piece_t]) {
+  for (const auto vec : move_vectors[piece_t]) {
     for (int i = 1; i <= max_i; ++i) {
       const Square to{from + (vec * i)};
       if (!is_valid_square(to) || b.color_on[to] == b.stm) {
