@@ -35,6 +35,7 @@ export struct Move {
   int score{};                        ///< for move ordering
   Square ep_target = null_square;
   std::uint8_t prev_castling_rights{};
+  Square prev_ep_target = null_square;
 
   friend std::ostream &operator<<(std::ostream &os, const Move &m);
 };
@@ -244,7 +245,7 @@ void unmove(Board &b, const Move m) {
   b.cr = m.prev_castling_rights;
 
   // en passant
-  b.ep = null_square;
+  b.ep = m.prev_ep_target;
 
   // update side to move
   b.stm = ~b.stm;
