@@ -5,6 +5,9 @@
 
 module;
 
+#include "transposition.hpp"
+
+#include <algorithm>
 #include <array>
 #include <concepts>
 #include <cstdint>
@@ -76,10 +79,11 @@ export constexpr std::size_t cnt_legal_moves(Board &b);
  * find the highest scored move and put it at the front of the range
  * @param first first iterator in range
  * @param sz the number of elements in the range
+ * @param tt_m
  */
 export template <class OutputIt>
   requires std::output_iterator<OutputIt, Move>
-void movegen_sort(OutputIt first, std::size_t sz);
+void movegen_sort(OutputIt first, std::size_t sz, TT_move tt_m = TT_move{});
 
 // clang-format off
 export constexpr std::array<Square, 64> square_sequence{
@@ -423,12 +427,21 @@ export constexpr std::size_t cnt_legal_moves(Board &b) {
 
 export template <class OutputIt>
   requires std::output_iterator<OutputIt, Move>
-void movegen_sort(OutputIt first, std::size_t sz) {
-  auto max = first;
-  for (auto it = std::next(first); it != std::next(first, sz); ++it) {
-    if (it->score > max->score) {
-      max = it;
+void movegen_sort(OutputIt first, std::size_t sz, const TT_move tt_m) {
+  if (tt_m != TT_move{}) {
+    auto is_move = [&tt_m](const Move &m) {
+      return (m.from_sq == tt_m.from && m.to_sq == tt_m.to &&
+              m.prom_p == tt_m.prom_p);
+    };
+    auto it = std::find_if(first, std::next(first, sz), is_move);
+    std::iter_swap(first, it);
+  } else {
+    auto max = first;
+    for (auto it = std::next(first); it != std::next(first, sz); ++it) {
+      if (it->score > max->score) {
+        max = it;
+      }
     }
+    std::iter_swap(first, max);
   }
-  std::iter_swap(first, max);
 }
