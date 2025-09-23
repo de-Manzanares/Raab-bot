@@ -10,7 +10,6 @@ module;
 #include <algorithm>
 #include <array>
 #include <concepts>
-#include <cstdint>
 #include <iostream>
 
 export module Board0x88:movegen;
@@ -37,8 +36,7 @@ constexpr bool all_not_attacked(const Board &b, Color c, Squares... sq) {
   return (... && !is_attacked(b, sq, c));
 }
 
-/// piece values
-constexpr std::uint8_t p_vals[6] = {9, 9, 5, 3, 3, 1};
+constexpr std::uint8_t p_vals[6] = {9, 9, 5, 3, 3, 1}; //
 
 constexpr int mvvlva(const Piece victim, const Piece attacker) {
   return (10 * p_vals[victim]) - p_vals[attacker];
@@ -84,19 +82,6 @@ export constexpr std::size_t cnt_legal_moves(Board &b);
 export template <class OutputIt>
   requires std::output_iterator<OutputIt, Move>
 void movegen_sort(OutputIt first, std::size_t sz, TT_move tt_m = TT_move{});
-
-// clang-format off
-export constexpr std::array<Square, 64> square_sequence{
-      { a1 , b1, c1, d1, e1, f1, g1, h1,
-           a2 , b2, c2, d2, e2, f2, g2, h2,
-           a3 , b3, c3, d3, e3, f3, g3, h3,
-           a4 , b4, c4, d4, e4, f4, g4, h4,
-           a5 , b5, c5, d5, e5, f5, g5, h5,
-           a6 , b6, c6, d6, e6, f6, g6, h6,
-           a7 , b7, c7, d7, e7, f7, g7, h7,
-           a8 , b8, c8, d8, e8, f8, g8, h8,
-      }};
-// clang-format on
 
 //------------------------------------------------------------------------------
 
@@ -186,6 +171,27 @@ export template <class OutputIt>
     }
   }
   return move_count;
+}
+
+export template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+void movegen_sort(OutputIt first, std::size_t sz, const TT_move tt_m) {
+  if (tt_m != TT_move{}) {
+    auto is_move = [&tt_m](const Move &m) {
+      return (m.from_sq == tt_m.from && m.to_sq == tt_m.to &&
+              m.prom_p == tt_m.prom_p);
+    };
+    auto it = std::find_if(first, std::next(first, sz), is_move);
+    std::iter_swap(first, it);
+  } else {
+    auto max = first;
+    for (auto it = std::next(first); it != std::next(first, sz); ++it) {
+      if (it->score > max->score) {
+        max = it;
+      }
+    }
+    std::iter_swap(first, max);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -295,8 +301,6 @@ constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
             .prev_ep = b.ep,
         };
         ++move_count;
-        // todo ep target
-        // b.ep = from + N; (?)
       }
     }
   }
@@ -308,15 +312,14 @@ template <class OutputIt>
 constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
   std::size_t move_count{};
   std::array<Direction, 2> dirs;
-  Square prom_row = b.stm == white ? a7 : a2;
+  const Square prom_row = b.stm == white ? a7 : a2;
   if (b.stm == white) {
     dirs = {NW, NE};
   } else {
     dirs = {SW, SE};
   }
   for (const auto dir : dirs) {
-    const Square to = from + dir;
-    if (is_valid_square(to)) {
+    if (const Square to = from + dir; is_valid_square(to)) {
       if (b.color_on[to] == ~b.stm) {
         const int score = mvvlva(b.piece_on[to], pawn);
         if ((from >> 4) == (prom_row >> 4)) {
@@ -329,7 +332,6 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
                 .flag = prom_capture,
                 .cap_piece = b.piece_on[to],
                 .prom_p = p_piece,
-                // todo organize scoring system
                 .score = score + (16 * p_vals[p_piece]),
                 .prev_cr = b.cr,
                 .prev_ep = b.ep,
@@ -411,37 +413,13 @@ constexpr std::size_t movegen_not_pawn(const Board &b, OutputIt &out,
 export constexpr std::size_t cnt_legal_moves(Board &b) {
   std::array<Move, 256> ml;
   std::size_t cnt_legal_moves{};
-  movegen(b, ml.begin());
-  for (auto it = ml.begin();; ++it) {
-    if (it->from_sq == null_square) {
-      break;
-    }
-    move(b, *it);
+  const auto sz = movegen(b, ml.begin());
+  for (int i = 0; i < sz; ++i) {
+    move(b, ml[i]);
     if (is_legal(b)) {
       ++cnt_legal_moves;
     }
-    unmove(b, *it);
+    unmove(b, ml[i]);
   }
   return cnt_legal_moves;
-}
-
-export template <class OutputIt>
-  requires std::output_iterator<OutputIt, Move>
-void movegen_sort(OutputIt first, std::size_t sz, const TT_move tt_m) {
-  if (tt_m != TT_move{}) {
-    auto is_move = [&tt_m](const Move &m) {
-      return (m.from_sq == tt_m.from && m.to_sq == tt_m.to &&
-              m.prom_p == tt_m.prom_p);
-    };
-    auto it = std::find_if(first, std::next(first, sz), is_move);
-    std::iter_swap(first, it);
-  } else {
-    auto max = first;
-    for (auto it = std::next(first); it != std::next(first, sz); ++it) {
-      if (it->score > max->score) {
-        max = it;
-      }
-    }
-    std::iter_swap(first, max);
-  }
 }

@@ -2,91 +2,106 @@ module;
 
 #include "transposition.hpp"
 
+#include <algorithm>
 #include <array>
-#include <cstdint>
-#include <exception>
 #include <limits>
-#include <vector>
 
 export module Board0x88:search;
 import :eval;
 import :move;
 import :movegen;
 
-struct TimeUp : std::exception {
-  const char *what() const noexcept override { return "time up"; }
-};
+//------------------------------------------------------------------------------
 
-// TODO cpw has a great terminal detection strategy
+export auto alpha_beta_root(Board &b, int alpha, int beta, std::uint8_t depth)
+    -> Move;
 
-export int quiesce(Board &b, int alpha, int beta, std::uint8_t ply) {
-  int best = static_eval(b, alpha, beta, ply);
-  if (best >= beta) {
-    return best;
-  }
-  if (best > alpha) {
-    alpha = best;
-  }
+export auto alpha_beta(Board &b, int alpha, int beta, std::uint8_t depth,
+                       std::uint8_t ply) -> int;
 
-  int score{};
+export auto quiesce(Board &b, int alpha, int beta, std::uint8_t ply) -> int;
+
+//------------------------------------------------------------------------------
+
+Move alpha_beta_root(Board &b, int alpha, const int beta, const std::uint8_t depth) {
+  const auto node_hash = b.hash;
+  const auto orig_alpha = alpha;
   std::array<Move, 256> ml{};
+  Move best_move{};
+  int best = std::numeric_limits<int>::min();
+  int score{};
   int move_n{};
-
-  for (const auto sz = quiescence_movegen(b, ml.begin()); move_n < sz;
-       ++move_n) {
+  int legal_moves{};
+  for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n) {
     movegen_sort(std::next(ml.begin(), move_n), sz - move_n);
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
-      score = -quiesce(b, -beta, -alpha, ply + 1);
+      constexpr std::uint8_t ply{};
+      ++legal_moves;
+      score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1);
       if (score > best) {
         best = score;
-        if (score > alpha) {
-          alpha = score;
-        }
+        best_move = m;
+        alpha = std::max(score, alpha);
       }
       if (score >= beta) {
+        if (auto &e = tt[node_hash & tt_mask];
+            e.hash != node_hash || e.depth < depth) {
+          e = {
+              node_hash, {m.from_sq, m.to_sq, m.prom_p}, score, tt_beta, depth};
+        }
         unmove(b, m);
-        return score;
+        return best_move;
       }
     }
     unmove(b, m);
   }
-
-  return best;
+  if (legal_moves == 0) {
+    return Move{};
+  }
+  const TT_flag flag = (best <= orig_alpha) ? tt_alpha : tt_exact;
+  if (auto &e = tt[node_hash & tt_mask];
+      e.hash != node_hash || e.depth < depth) {
+    e = {node_hash,
+         {best_move.from_sq, best_move.to_sq, best_move.prom_p},
+         best,
+         flag,
+         depth};
+  }
+  return best_move;
 }
 
-export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth,
-                      const std::uint8_t ply) {
+int alpha_beta(Board &b, int alpha, const int beta, const std::uint8_t depth,
+               const std::uint8_t ply) {
   if (depth == 0) {
     return quiesce(b, alpha, beta, ply);
   }
-
   const auto node_hash = b.hash;
   const auto orig_alpha = alpha;
   TT_move tt_move{};
   {
-    const auto &e = tt[node_hash & tt_mask];
-    if (e.hash == node_hash) {
+    if (const auto &e = tt[node_hash & tt_mask]; e.hash == node_hash) {
       tt_move = e.tt_m;
       if (e.depth >= depth) {
-        if (e.flag == tt_exact)
+        if (e.flag == tt_exact) {
           return e.score;
-        if (e.flag == tt_alpha && e.score <= alpha)
+        }
+        if (e.flag == tt_alpha && e.score <= alpha) {
           return alpha;
-        if (e.flag == tt_beta && e.score >= beta)
+        }
+        if (e.flag == tt_beta && e.score >= beta) {
           return beta;
+        }
       }
     }
   }
-
-  int score{};
-  int best = std::numeric_limits<int>::min();
   std::array<Move, 256> ml{};
+  Move best_move{};
+  int best = std::numeric_limits<int>::min();
+  int score{};
   int move_n{};
   int legal_moves{};
-  Move best_move{};
-
   for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n) {
     movegen_sort(std::next(ml.begin(), move_n), sz - move_n, tt_move);
     const Move m = ml[move_n];
@@ -102,8 +117,8 @@ export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth,
         }
       }
       if (score >= beta) {
-        auto &e = tt[node_hash & tt_mask];
-        if (e.hash != node_hash || e.depth < depth) {
+        if (auto &e = tt[node_hash & tt_mask];
+            e.hash != node_hash || e.depth < depth) {
           e = {
               node_hash, {m.from_sq, m.to_sq, m.prom_p}, score, tt_beta, depth};
         }
@@ -113,18 +128,17 @@ export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth,
     }
     unmove(b, m);
   }
-
   if (legal_moves == 0) {
     const int val = in_check(b) ? -(CHECKMATE - ply) : 0;
-    auto &e = tt[node_hash & tt_mask];
-    if (e.hash != node_hash || e.depth < depth) {
+    if (auto &e = tt[node_hash & tt_mask];
+        e.hash != node_hash || e.depth < depth) {
       e = {node_hash, {}, val, tt_exact, depth};
     }
     return val;
   }
   const TT_flag flag = (best <= orig_alpha) ? tt_alpha : tt_exact;
-  auto &e = tt[node_hash & tt_mask];
-  if (e.hash != node_hash || e.depth < depth) {
+  if (auto &e = tt[node_hash & tt_mask];
+      e.hash != node_hash || e.depth < depth) {
     e = {node_hash,
          {best_move.from_sq, best_move.to_sq, best_move.prom_p},
          best,
@@ -134,56 +148,34 @@ export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth,
   return best;
 }
 
-export Move alpha_beta_root(Board &b, int alpha, int beta,
-                            const std::uint8_t depth) {
-  const auto node_hash = b.hash;
-  const auto orig_alpha = alpha;
-
-  const std::uint8_t ply{};
-  Move best_move{};
-  int score{};
-  int best = std::numeric_limits<int>::min();
+int quiesce(Board &b, int alpha, const int beta, const std::uint8_t ply) {
+  int best = static_eval(b, alpha, beta, ply);
+  if (best >= beta) {
+    return best;
+  }
+  if (best > alpha) {
+    alpha = best;
+  }
   std::array<Move, 256> ml{};
+  int score{};
   int move_n{};
-  int legal_moves{};
-
-  for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n) {
+  for (const auto sz = quiescence_movegen(b, ml.begin()); move_n < sz;
+       ++move_n) {
     movegen_sort(std::next(ml.begin(), move_n), sz - move_n);
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
-      ++legal_moves;
-      score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1);
+      score = -quiesce(b, -beta, -alpha, ply + 1);
       if (score > best) {
         best = score;
-        best_move = m; // bestmove here? or below?
-        if (score > alpha) {
-          alpha = score;
-        }
+        alpha = std::max(score, alpha);
       }
       if (score >= beta) {
-        auto &e = tt[node_hash & tt_mask];
-        if (e.hash != node_hash || e.depth < depth) {
-          e = {
-              node_hash, {m.from_sq, m.to_sq, m.prom_p}, score, tt_beta, depth};
-        }
         unmove(b, m);
-        return best_move;
+        return score;
       }
     }
     unmove(b, m);
   }
-  if (legal_moves == 0) {
-    return Move{};
-  }
-  const TT_flag flag = (best <= orig_alpha) ? tt_alpha : tt_exact;
-  auto &e = tt[node_hash & tt_mask];
-  if (e.hash != node_hash || e.depth < depth) {
-    e = {node_hash,
-         {best_move.from_sq, best_move.to_sq, best_move.prom_p},
-         best,
-         flag,
-         depth};
-  }
-  return best_move;
+  return best;
 }

@@ -1,5 +1,5 @@
 /**
- * @file Board0x88.cppm
+ * @file core.cppm
  * interface and implementation of the 0x88 board representation
  */
 
@@ -9,7 +9,6 @@ module;
 
 #include <algorithm>
 #include <array>
-#include <cstdint>
 #include <iostream>
 #include <string_view>
 
