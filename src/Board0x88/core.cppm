@@ -158,7 +158,10 @@ Board::Board(const std::string_view fen) {
 }
 
 PieceInfo Board::piece_info(const Square sq) const {
-  return {.piece_t = piece_on[sq], .color = color_on[sq]};
+  if (is_valid_square(sq)) { // todo when are we passed an invalid square?
+    return {.piece_t = piece_on[sq], .color = color_on[sq]};
+  }
+  return {null_piece, null_color};
 }
 
 void Board::reset() { *this = Board(fen::startpos); }

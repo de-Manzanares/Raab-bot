@@ -5,6 +5,7 @@
 #include <iostream>
 #include <random>
 #include <unordered_map>
+#include <chrono>
 
 class Zobrist {
  public:
@@ -81,5 +82,6 @@ constexpr uint32_t tt_mask = tt_size - 1;
 inline TT_entry tt[tt_size];
 
 inline Zobrist zobrist;
+
 
 #endif // RAAB_BOT_ZOBRIST_HPP
