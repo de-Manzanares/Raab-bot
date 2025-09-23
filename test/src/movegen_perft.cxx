@@ -54,6 +54,7 @@ constexpr std::size_t movegen_perft(Board &b, const int depth,
     if (m.from_sq == null_square) {
       break;
     }
+    auto hasha = b.hash;
     move(b, m);
     if (is_legal(b)) {
       if (pc) {
@@ -62,6 +63,8 @@ constexpr std::size_t movegen_perft(Board &b, const int depth,
       nodes += movegen_perft(b, depth - 1, pc);
     }
     unmove(b, m);
+    auto hashb = b.hash;
+    assert(hasha == hashb);
   }
   return nodes;
 }
