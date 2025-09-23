@@ -171,7 +171,8 @@ export template <class OutputIt>
                 .flag = capture,
                 .cap_piece = b.piece_on[to],
                 .score = mvvlva(b.piece_on[to], b.piece_on[from]),
-                .prev_castling_rights = b.cr,
+                .prev_cr = b.cr,
+                .prev_ep = b.ep,
             };
             ++move_count;
             break;
@@ -197,7 +198,8 @@ constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
           .to_sq = g1,
           .from_piece = {.piece_t = king, .color = white},
           .flag = castle,
-          .prev_castling_rights = b.cr,
+          .prev_cr = b.cr,
+          .prev_ep = b.ep,
       };
       ++move_count;
     }
@@ -208,7 +210,8 @@ constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
           .to_sq = c1,
           .from_piece = {.piece_t = king, .color = white},
           .flag = castle,
-          .prev_castling_rights = b.cr,
+          .prev_cr = b.cr,
+          .prev_ep = b.ep,
       };
       ++move_count;
     }
@@ -220,7 +223,8 @@ constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
           .to_sq = g8,
           .from_piece = {.piece_t = king, .color = black},
           .flag = castle,
-          .prev_castling_rights = b.cr,
+          .prev_cr = b.cr,
+          .prev_ep = b.ep,
       };
       ++move_count;
     }
@@ -231,7 +235,8 @@ constexpr std::size_t movegen_castle(const Board &b, OutputIt &out) {
           .to_sq = c8,
           .from_piece = {.piece_t = king, .color = black},
           .flag = castle,
-          .prev_castling_rights = b.cr,
+          .prev_cr = b.cr,
+          .prev_ep = b.ep,
       };
       ++move_count;
     }
@@ -256,8 +261,9 @@ constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
             .from_piece = {.piece_t = pawn, .color = b.stm},
             .flag = promotion,
             .promotion_piece = p_piece,
-            .prev_castling_rights = b.cr,
+            .prev_cr = b.cr,
             .score = 16 * p_vals[p_piece],
+            .prev_ep = b.ep,
         };
         ++move_count;
       }
@@ -268,7 +274,8 @@ constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
           .to_sq = to,
           .from_piece = {.piece_t = pawn, .color = b.stm},
           .flag = normal,
-          .prev_castling_rights = b.cr,
+          .prev_cr = b.cr,
+          .prev_ep = b.ep,
       };
       ++move_count;
       // double move
@@ -278,9 +285,10 @@ constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
             .from_sq = from,
             .to_sq = to,
             .from_piece = {.piece_t = pawn, .color = b.stm},
-            .flag = en_passant,
+            .flag = double_push,
             .ep_target = from + dir,
-            .prev_castling_rights = b.cr,
+            .prev_cr = b.cr,
+            .prev_ep = b.ep,
         };
         ++move_count;
         // todo ep target
@@ -319,7 +327,8 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
                 .promotion_piece = p_piece,
                 // todo organize scoring system
                 .score = score + (16 * p_vals[p_piece]),
-                .prev_castling_rights = b.cr,
+                .prev_cr = b.cr,
+                .prev_ep = b.ep,
             };
             ++move_count;
           }
@@ -331,7 +340,8 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
               .flag = capture,
               .cap_piece = b.piece_on[to],
               .score = score,
-              .prev_castling_rights = b.cr,
+              .prev_cr = b.cr,
+              .prev_ep = b.ep,
           };
           ++move_count;
         }
@@ -343,7 +353,8 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
             .flag = en_passant_capture,
             .cap_piece = pawn,
             .score = mvvlva(pawn, pawn),
-            .prev_castling_rights = b.cr,
+            .prev_cr = b.cr,
+            .prev_ep = b.ep,
         };
         ++move_count;
       }
@@ -370,7 +381,8 @@ constexpr std::size_t movegen_not_pawn(const Board &b, OutputIt &out,
             .to_sq = to,
             .from_piece = {.piece_t = piece_t, .color = b.stm},
             .flag = normal,
-            .prev_castling_rights = b.cr,
+            .prev_cr = b.cr,
+            .prev_ep = b.ep,
         };
         ++move_count;
       } else if (all_capturable(b, to)) {
@@ -381,7 +393,8 @@ constexpr std::size_t movegen_not_pawn(const Board &b, OutputIt &out,
             .flag = capture,
             .cap_piece = b.piece_on[to],
             .score = mvvlva(b.piece_on[to], b.piece_on[from]),
-            .prev_castling_rights = b.cr,
+            .prev_cr = b.cr,
+            .prev_ep = b.ep,
         };
         ++move_count;
         break;
