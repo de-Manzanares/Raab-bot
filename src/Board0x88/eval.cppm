@@ -58,6 +58,7 @@ constexpr score_t material(const Board &b) {
   return mat;
 }
 
+// todo remove uses of cnt_legal_moves();
 score_t mobility(const Board &b) {
   Board tmp = b;
   score_t w_mob{};

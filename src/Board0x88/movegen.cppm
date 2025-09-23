@@ -260,7 +260,7 @@ constexpr std::size_t nc_pm(const Board &b, OutputIt &out, const Square from) {
             .to_sq = to,
             .from_piece = {.piece_t = pawn, .color = b.stm},
             .flag = promotion,
-            .promotion_piece = p_piece,
+            .prom_p = p_piece,
             .prev_cr = b.cr,
             .score = 16 * p_vals[p_piece],
             .prev_ep = b.ep,
@@ -324,7 +324,7 @@ constexpr std::size_t c_pm(const Board &b, OutputIt &out, const Square from) {
                 .from_piece = {.piece_t = pawn, .color = b.stm},
                 .flag = prom_capture,
                 .cap_piece = b.piece_on[to],
-                .promotion_piece = p_piece,
+                .prom_p = p_piece,
                 // todo organize scoring system
                 .score = score + (16 * p_vals[p_piece]),
                 .prev_cr = b.cr,
