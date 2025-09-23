@@ -19,8 +19,10 @@ struct TimeUp : std::exception {
 
 // TODO cpw has a great terminal detection strategy
 
-export int quiesce(Board &b, int alpha, int beta, std::uint8_t ply) {
-  int best = static_eval(b, ply);
+export template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+int quiesce(Board &b, int alpha, int beta, std::uint8_t ply, OutputIt out) {
+  int best = static_eval(b, alpha, beta, ply);
   if (best >= beta) {
     return best;
   }
@@ -29,16 +31,14 @@ export int quiesce(Board &b, int alpha, int beta, std::uint8_t ply) {
   }
 
   int score{};
-  std::array<Move, 256> ml{};
   int move_n{};
 
-  for (const auto sz = quiescence_movegen(b, ml.begin()); move_n < sz;
-       ++move_n) {
-    movegen_sort(std::next(ml.begin(), move_n), sz - move_n);
-    const Move m = ml[move_n];
+  for (const auto sz = quiescence_movegen(b, out); move_n < sz; ++move_n) {
+    movegen_sort(std::next(out, move_n), sz - move_n);
+    const Move m = *std::next(out, move_n);
     move(b, m);
     if (is_legal(b)) {
-      score = -quiesce(b, -beta, -alpha, ply + 1);
+      score = -quiesce(b, -beta, -alpha, ply + 1, std::next(out, sz));
       if (score > best) {
         best = score;
         if (score > alpha) {
@@ -56,10 +56,12 @@ export int quiesce(Board &b, int alpha, int beta, std::uint8_t ply) {
   return best;
 }
 
-export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth,
-                      const std::uint8_t ply) {
+export template <class OutputIt>
+  requires std::output_iterator<OutputIt, Move>
+int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth,
+               const std::uint8_t ply, OutputIt out) {
   if (depth == 0) {
-    return quiesce(b, alpha, beta, ply);
+    return quiesce(b, alpha, beta, ply, out);
   }
 
   const auto node_hash = b.hash;
@@ -82,18 +84,18 @@ export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth,
 
   int score{};
   int best = std::numeric_limits<int>::min();
-  std::array<Move, 256> ml{};
   int move_n{};
   int legal_moves{};
   Move best_move{};
 
-  for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n) {
-    movegen_sort(std::next(ml.begin(), move_n), sz - move_n, tt_move);
-    const Move m = ml[move_n];
+  for (const auto sz = movegen(b, out); move_n < sz; ++move_n) {
+    movegen_sort(std::next(out, move_n), sz - move_n, tt_move);
+    const Move m = *std::next(out, move_n);
     move(b, m);
     if (is_legal(b)) {
       ++legal_moves;
-      score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1);
+      score =
+          -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, std::next(out, sz));
       if (score > best) {
         best = score;
         if (score > alpha) {
@@ -136,6 +138,8 @@ export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth,
 
 export Move alpha_beta_root(Board &b, int alpha, int beta,
                             const std::uint8_t depth) {
+  std::array<Move, 2048> ml;
+
   const auto node_hash = b.hash;
   const auto orig_alpha = alpha;
 
@@ -143,7 +147,6 @@ export Move alpha_beta_root(Board &b, int alpha, int beta,
   Move best_move{};
   int score{};
   int best = std::numeric_limits<int>::min();
-  std::array<Move, 256> ml{};
   int move_n{};
   int legal_moves{};
 
@@ -153,7 +156,8 @@ export Move alpha_beta_root(Board &b, int alpha, int beta,
     move(b, m);
     if (is_legal(b)) {
       ++legal_moves;
-      score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1);
+      score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1,
+                          std::next(ml.begin(), sz));
       if (score > best) {
         best = score;
         best_move = m; // bestmove here? or below?
