@@ -58,7 +58,7 @@ void startpos_moves(Board &b, const std::string *in) {
 }
 
 export void uci_loop() {
-  std::ofstream ofile("Raab-bot-log.txt");
+  std::ofstream ofile("Raab-bot-v2-dev1-log.txt");
   std::string in; // the command from the GUI
   Board b;
   while (std::getline(std::cin, in)) {

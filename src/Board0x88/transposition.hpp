@@ -36,10 +36,20 @@ inline Zobrist::Zobrist() {
 
 enum TT_flag : std::uint8_t { tt_exact, tt_alpha, tt_beta };
 struct TT_move {
-  std::int8_t from;
-  std::int8_t to;
-  std::uint8_t promotion;
+  std::int8_t from = -1;
+  std::int8_t to = -1;
+  std::uint8_t prom_p = '.';
+  bool operator==(const TT_move &rhs) const;
+  bool operator!=(const TT_move &rhs) const;
 };
+
+inline bool TT_move::operator==(const TT_move &rhs) const {
+  return from == rhs.from && to == rhs.to && prom_p == rhs.prom_p;
+}
+
+inline bool TT_move::operator!=(const TT_move &rhs) const {
+  return !(*this == rhs);
+}
 
 struct TT_entry {
   std::uint64_t hash;

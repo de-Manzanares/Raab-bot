@@ -59,15 +59,19 @@ export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth,
 
   const auto node_hash = b.hash;
   const auto orig_alpha = alpha;
+  TT_move tt_move{};
   {
     const auto &e = tt[node_hash & tt_mask];
-    if (e.hash == node_hash && e.depth >= depth) {
-      if (e.flag == tt_exact)
-        return e.score;
-      if (e.flag == tt_alpha && e.score <= alpha)
-        return alpha;
-      if (e.flag == tt_beta && e.score >= beta)
-        return beta;
+    if (e.hash == node_hash) {
+      tt_move = e.tt_m;
+      if (e.depth >= depth) {
+        if (e.flag == tt_exact)
+          return e.score;
+        if (e.flag == tt_alpha && e.score <= alpha)
+          return alpha;
+        if (e.flag == tt_beta && e.score >= beta)
+          return beta;
+      }
     }
   }
 
@@ -79,7 +83,7 @@ export int alpha_beta(Board &b, int alpha, int beta, const std::uint8_t depth,
   Move best_move{};
 
   for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n) {
-    movegen_sort(std::next(ml.begin(), move_n), sz - move_n);
+    movegen_sort(std::next(ml.begin(), move_n), sz - move_n, tt_move);
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
