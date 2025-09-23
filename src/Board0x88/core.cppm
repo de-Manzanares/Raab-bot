@@ -156,7 +156,7 @@ Board::Board(const std::string_view fen) {
   hmc = *ch - '0';
   fmc = *std::next(ch, 2) - '0';
 
-  tt[hash] = {};
+  tt[hash & tt_size] = {};
 }
 
 PieceInfo Board::piece_info(const Square sq) const {
