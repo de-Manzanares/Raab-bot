@@ -1,5 +1,7 @@
 module;
 
+#include "transposition.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
@@ -102,8 +104,20 @@ score_t attack_enemy_king(Board &b) {
 
 // kinda sorta static, we still use movegen to count legal moves for
 // terminal detection
-export constexpr score_t static_eval(Board &b, std::uint8_t ply) {
-  // doesn't find checkmate or stalemate
+export constexpr score_t static_eval(Board &b, int alpha, int beta,
+                                     std::uint8_t ply) {
+  const auto node_hash = b.hash;
+
+  const auto &e = tt[node_hash & tt_mask];
+  if (e.hash == node_hash) {
+    if (e.flag == tt_exact)
+      return e.score;
+    if (e.flag == tt_alpha && e.score <= alpha)
+      return alpha;
+    if (e.flag == tt_beta && e.score >= beta)
+      return beta;
+  }
+
   switch (auto [term_t, term_v] = terminus_check(b, ply); term_t) {
   case checkmate:
     return -term_v;
@@ -111,7 +125,9 @@ export constexpr score_t static_eval(Board &b, std::uint8_t ply) {
     return term_v;
   default:;
   }
-  const auto score = material(b) * 128 + mobility(b) / 8 + check_bonus(b) +
-                     attack_enemy_king(b) * 16;
-  return score * (b.stm == white ? 1 : -1);
+  auto score = material(b) * 128 + mobility(b) / 8 + check_bonus(b) +
+               attack_enemy_king(b) * 16;
+  score *= (b.stm == white ? 1 : -1);
+  tt[b.hash & tt_mask] = {b.hash, {}, score, tt_exact};
+  return score;
 }
