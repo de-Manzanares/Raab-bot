@@ -26,28 +26,6 @@ bool in_check(const Board &b) {
   return is_attacked(b, sq, ~b.stm);
 }
 
-enum terminus_t { stalemate, checkmate, null_terminus };
-
-struct Terminus {
-  terminus_t term_t;
-  int val{};
-};
-
-// todo calling movegen twice per search depth seems less than optimal
-
-Terminus terminus_check(Board &b, std::uint8_t ply) {
-  Board tmp = b;
-  if (cnt_legal_moves(tmp) != 0) {
-    return {null_terminus, 0};
-  }
-  if (in_check(tmp)) {
-    return {checkmate, CHECKMATE - ply};
-  }
-  if (!in_check(tmp)) {
-    return {stalemate, 0};
-  }
-}
-
 constexpr score_t material(const Board &b) {
   int mat{};
   for (const auto sq : square_sequence) {
@@ -102,29 +80,21 @@ score_t attack_enemy_king(Board &b) {
   return b.stm == white ? -attack_bonus : attack_bonus;
 }
 
-// kinda sorta static, we still use movegen to count legal moves for
-// terminal detection
 export constexpr score_t static_eval(Board &b, int alpha, int beta,
                                      std::uint8_t ply) {
-  const auto node_hash = b.hash;
-
-  const auto &e = tt[node_hash & tt_mask];
-  if (e.hash == node_hash) {
-    if (e.flag == tt_exact)
-      return e.score;
-    if (e.flag == tt_alpha && e.score <= alpha)
-      return alpha;
-    if (e.flag == tt_beta && e.score >= beta)
-      return beta;
+  {
+    const auto node_hash = b.hash;
+    const auto &e = tt[node_hash & tt_mask];
+    if (e.hash == node_hash) {
+      if (e.flag == tt_exact)
+        return e.score;
+      if (e.flag == tt_alpha && e.score <= alpha)
+        return alpha;
+      if (e.flag == tt_beta && e.score >= beta)
+        return beta;
+    }
   }
 
-  switch (auto [term_t, term_v] = terminus_check(b, ply); term_t) {
-  case checkmate:
-    return -term_v;
-  case stalemate:
-    return term_v;
-  default:;
-  }
   auto score = material(b) * 128 + mobility(b) / 8 + check_bonus(b) +
                attack_enemy_king(b) * 16;
   score *= (b.stm == white ? 1 : -1);

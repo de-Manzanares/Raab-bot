@@ -67,7 +67,7 @@ export void uci_loop() {
   constexpr int alpha = std::numeric_limits<int>::min() / 2;
   constexpr int beta = std::numeric_limits<int>::max() / 2;
 
-  std::ofstream ofile("Raab-bot-v2-dev1-log.txt");
+  std::ofstream ofile("Raab-bot-v2-dev2-log.txt");
   std::string in; // the command from the GUI
   Board b;
 
