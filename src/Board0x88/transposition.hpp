@@ -2,6 +2,7 @@
 #define RAAB_BOT_ZOBRIST_HPP
 
 #include <cstdint>
+#include <iostream>
 #include <random>
 #include <unordered_map>
 
@@ -33,12 +34,41 @@ inline Zobrist::Zobrist() {
   }
 }
 
-struct TT_entry {
-  int score;
+enum TT_flag : std::uint8_t { tt_exact, tt_alpha, tt_beta };
+struct TT_move {
+  std::int8_t from;
+  std::int8_t to;
+  std::uint8_t promotion;
 };
 
-/// transposition table
-inline std::unordered_map<std::uint64_t, TT_entry> tt;
+struct TT_entry {
+  std::uint64_t hash;
+  TT_move tt_m;
+  int score;
+  TT_flag flag;
+  std::uint8_t depth;
+};
+
+struct TT_probe_ret {
+  int score;
+  TT_move tt_m;
+};
+
+inline void print_tt_size_info() {
+  constexpr auto sz = static_cast<double>(sizeof(TT_entry));
+  constexpr auto mb = static_cast<double>(1024 * 1024);
+  for (std::uint32_t i = 1; i < 33; ++i) {
+    const auto n_entries = 1ULL << i;
+    std::cout << 2 << " ^ " << i << " = " << n_entries << " entries "
+              << static_cast<double>(n_entries) * sz / mb << " MB "
+              << std::endl;
+  }
+}
+
+constexpr std::uint32_t tt_size = (1ULL << 21);
+constexpr uint32_t tt_mask = tt_size - 1;
+
+inline TT_entry tt[tt_size];
 
 inline Zobrist zobrist;
 
