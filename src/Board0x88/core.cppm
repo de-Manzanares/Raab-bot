@@ -155,8 +155,6 @@ Board::Board(const std::string_view fen) {
   // half-move clock, full-move clock
   hmc = *ch - '0';
   fmc = *std::next(ch, 2) - '0';
-
-  tt[hash & tt_size] = {};
 }
 
 PieceInfo Board::piece_info(const Square sq) const {

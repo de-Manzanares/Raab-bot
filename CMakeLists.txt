@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.0)
 
 project(Raab-bot LANGUAGES CXX)
-set(VERSION v2-dev)
+set(VERSION v2-dev.1)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -53,8 +53,8 @@ target_sources(
         src/Board0x88/fen.cppm
         src/Board0x88/move.cppm
         src/Board0x88/movegen.cppm
-        src/Board0x88/types.cppm
         src/Board0x88/search.cppm
+        src/Board0x88/types.cppm
         src/uci.cpp
 )
 target_link_libraries(

@@ -65,7 +65,8 @@ inline void print_tt_size_info() {
   }
 }
 
-constexpr std::uint32_t tt_size = 1ULL << 21;
+constexpr std::uint32_t tt_size = (1ULL << 21);
+constexpr uint32_t tt_mask = tt_size - 1;
 
 inline TT_entry tt[tt_size];
 

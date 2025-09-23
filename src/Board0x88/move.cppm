@@ -31,10 +31,10 @@ export struct Move {
   Square to_sq = null_square;
   PieceInfo from_piece = {.piece_t = null_piece, .color = null_color};
   Flag flag = null_flag;
-  Piece cap_piece = null_piece;       ///< captured piece
-  Piece promotion_piece = null_piece; ///< promotion piece
-  uint8_t ply{};                      ///< ply from root node
-  int score{};                        ///< for move ordering
+  Piece cap_piece = null_piece; ///< captured piece
+  Piece prom_p = null_piece;    ///< promotion piece
+  uint8_t ply{};                ///< ply from root node
+  int score{};                  ///< for move ordering
   Square ep_target = null_square;
   std::uint8_t prev_cr{};
   Square prev_ep = null_square;
@@ -56,8 +56,8 @@ std::ostream &operator<<(std::ostream &os, const Move &m) {
   }
   print_square(os, m.from_sq);
   print_square(os, m.to_sq);
-  if (m.promotion_piece != null_piece) {
-    os << fen::get_char_code({m.promotion_piece, m.from_piece.color});
+  if (m.prom_p != null_piece) {
+    os << fen::get_char_code({m.prom_p, m.from_piece.color});
   }
   return os;
 }
@@ -96,7 +96,7 @@ void set_sq(Board &b, const Square sq, const PieceInfo pi) {
 }
 
 PieceInfo prom_piece(const Move &m) {
-  return PieceInfo{m.promotion_piece, m.from_piece.color};
+  return PieceInfo{m.prom_p, m.from_piece.color};
 }
 
 PieceInfo from_piece(const Move &m) {

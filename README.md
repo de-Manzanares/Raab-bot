@@ -1,5 +1,21 @@
 Rewriting my first and very terrible chess engine to be my second and hopefully not so terrible chess engine.
 
+Current Engine Features
+
+- 0x88 board
+- search
+    - alpha-beta
+    - quiescence search
+    - transposition table
+- move ordering
+    - MVV/LVA
+    - promotion
+- evaluation
+    - material
+    - mobility
+    - king safety
+- minimal UCI capabilities
+
 Principles of Development:
 
     Modularity
