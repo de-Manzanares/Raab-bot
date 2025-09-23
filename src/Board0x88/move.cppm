@@ -89,10 +89,12 @@ void clear_sq(Board &b, const Square sq) {
  * @note calls clear square to maintain Zobrist hash
  */
 void set_sq(Board &b, const Square sq, const PieceInfo pi) {
-  clear_sq(b, sq);
-  b.piece_on[sq] = pi.piece_t;
-  b.color_on[sq] = pi.color;
-  b.hash ^= zobrist.piece_square[pi.piece_t][pi.color][sq];
+  if (is_valid_square(sq)) { // todo when are we passed an invalid square?
+    clear_sq(b, sq);
+    b.piece_on[sq] = pi.piece_t;
+    b.color_on[sq] = pi.color;
+    b.hash ^= zobrist.piece_square[pi.piece_t][pi.color][sq];
+  }
 }
 
 PieceInfo prom_piece(const Move &m) {

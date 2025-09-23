@@ -1,5 +1,6 @@
 module;
 
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -9,6 +10,8 @@ module;
 
 import Board0x88;
 export module uci;
+
+constexpr std::uint8_t max_depth = 32;
 
 bool simon_says(const std::string *s, const std::string &has) {
   return s->find(has) != std::string::npos;
@@ -56,14 +59,22 @@ void startpos_moves(Board &b, const std::string *in) {
     std::ranges::fill(ml, Move{});
   }
 }
+double time_elapsed{};
+
+bool time_up() {}
 
 export void uci_loop() {
+  constexpr int alpha = std::numeric_limits<int>::min() / 2;
+  constexpr int beta = std::numeric_limits<int>::max() / 2;
+
   std::ofstream ofile("Raab-bot-v2-dev1-log.txt");
   std::string in; // the command from the GUI
   Board b;
+
   while (std::getline(std::cin, in)) {
     ofile << in << std::endl;
     preamble(&in);
+
     if (simon_says(&in, "position")) {
       if (simon_says(&in, "fen")) {
         b = Board{in.substr(13)};
@@ -75,9 +86,48 @@ export void uci_loop() {
       }
     }
     if (simon_says(&in, "go")) {
-      constexpr int alpha = std::numeric_limits<int>::min() / 2;
-      constexpr int beta = std::numeric_limits<int>::max() / 2;
-      auto m = alpha_beta_root(b, alpha, beta, 4);
+      long wtime{};
+      long btime{};
+      long winc{};
+      long binc{};
+      long time{};
+      long time_elapsed{};
+
+      std::string s;
+      s = "wtime";
+      if (simon_says(&in, s)) {
+        auto it = in.find(s);
+        wtime = std::stoi(in.substr(it + 6));
+      }
+      s = "btime";
+      if (simon_says(&in, s)) {
+        auto it = in.find(s);
+        btime = std::stoi(in.substr(it + 6));
+      }
+      s = "winc";
+      if (simon_says(&in, s)) {
+        auto it = in.find(s);
+        winc = std::stoi(in.substr(it + 5));
+      }
+      s = "binc";
+      if (simon_says(&in, s)) {
+        auto it = in.find(s);
+        binc = std::stoi(in.substr(it + 5));
+      }
+
+      if (b.stm == white && wtime != 0) {
+        time = double(wtime) / 60.0 + winc / 2.0;
+      } else if (b.stm == black && btime != 0) {
+        time = double(btime) / 60.0 + binc / 2.0;
+      }
+
+      Move m;
+      auto start = std::chrono::steady_clock::now();
+      m = alpha_beta_root(b, alpha, beta, 4);
+      time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                         std::chrono::steady_clock::now() - start)
+                         .count();
+
       std::cout << "bestmove " << m << std::endl;
       ofile << "bestmove " << m << std::endl;
     } else if (in.find("stop") != std::string::npos) {

@@ -4,6 +4,7 @@ module;
 
 #include <array>
 #include <cstdint>
+#include <exception>
 #include <limits>
 #include <vector>
 
@@ -11,6 +12,10 @@ export module Board0x88:search;
 import :eval;
 import :move;
 import :movegen;
+
+struct TimeUp : std::exception {
+  const char *what() const noexcept override { return "time up"; }
+};
 
 // TODO cpw has a great terminal detection strategy
 
