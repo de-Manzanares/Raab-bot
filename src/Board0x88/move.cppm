@@ -4,6 +4,8 @@
 
 module;
 
+#include "transposition.hpp"
+
 #include <cstdint>
 #include <iostream>
 
@@ -16,7 +18,7 @@ import :fen;
 export enum Flag : std::uint8_t {
   normal,
   capture,
-  en_passant,
+  double_push,
   en_passant_capture,
   castle,
   promotion,
@@ -34,8 +36,8 @@ export struct Move {
   uint8_t ply{};                      ///< ply from root node
   int score{};                        ///< for move ordering
   Square ep_target = null_square;
-  std::uint8_t prev_castling_rights{};
-  Square prev_ep_target = null_square;
+  std::uint8_t prev_cr{};
+  Square prev_ep = null_square;
 
   friend std::ostream &operator<<(std::ostream &os, const Move &m);
 };
@@ -73,13 +75,25 @@ bool operator==(const Move lhs, const Move rhs) {
          lhs.flag == rhs.flag;
 }
 
-void set_sq(Board &b, const Square sq,
-            const PieceInfo pi = {null_piece, null_color}) {
-  b.piece_on[sq] = pi.piece_t;
-  b.color_on[sq] = pi.color;
+void clear_sq(Board &b, const Square sq) {
+  if (auto [piece_t, color] = b.piece_info(sq); piece_t != null_piece) {
+    b.piece_on[sq] = null_piece;                        // clear
+    b.color_on[sq] = null_color;                        // clear
+    b.hash ^= zobrist.piece_square[piece_t][color][sq]; // update hash
+  } else {
+    // no action needed
+  }
 }
 
-void clear_sq(Board &b, const Square sq) { set_sq(b, sq); }
+/**
+ * @note calls clear square to maintain Zobrist hash
+ */
+void set_sq(Board &b, const Square sq, const PieceInfo pi) {
+  clear_sq(b, sq);
+  b.piece_on[sq] = pi.piece_t;
+  b.color_on[sq] = pi.color;
+  b.hash ^= zobrist.piece_square[pi.piece_t][pi.color][sq];
+}
 
 PieceInfo prom_piece(const Move &m) {
   return PieceInfo{m.promotion_piece, m.from_piece.color};
@@ -185,13 +199,14 @@ void move(Board &b, const Move m) {
   }
 
   // update king position
-  if (m.from_piece.piece_t == king) {
+  // second condition is to prevent reversal of hash
+  if (m.from_piece.piece_t == king && m.flag != castle) {
     if (b.stm == white) {
-      rm_castle_rights(b, white);
       b.wks = m.to_sq;
+      rm_castle_rights(b, white);
     } else {
-      rm_castle_rights(b, black);
       b.bks = m.to_sq;
+      rm_castle_rights(b, black);
     }
   }
 
@@ -205,15 +220,24 @@ void move(Board &b, const Move m) {
     }
   }
 
+  b.hash ^= zobrist.castling[m.prev_cr];
+  b.hash ^= zobrist.castling[b.cr];
+
+  if (b.ep != null_square) {
+    b.hash ^= zobrist.ep[b.ep]; // undo the previous
+  }
+
   // update en_passant target
-  if (m.flag == en_passant) {
+  if (m.flag == double_push) {
     b.ep = m.ep_target;
+    b.hash ^= zobrist.ep[b.ep];
   } else {
     b.ep = null_square;
   }
 
   // update side to move
   b.stm = ~b.stm;
+  b.hash ^= zobrist.stm;
 }
 
 void unmove(Board &b, const Move m) {
@@ -242,11 +266,20 @@ void unmove(Board &b, const Move m) {
   }
 
   // update castling rights
-  b.cr = m.prev_castling_rights;
+  b.hash ^= zobrist.castling[m.prev_cr];
+  b.hash ^= zobrist.castling[b.cr];
+  b.cr = m.prev_cr;
 
   // en passant
-  b.ep = m.prev_ep_target;
+  if (b.ep != null_square) {
+    b.hash ^= zobrist.ep[b.ep];
+  }
+  if (m.prev_ep != null_square) {
+    b.hash ^= zobrist.ep[m.prev_ep];
+  }
+  b.ep = m.prev_ep;
 
   // update side to move
   b.stm = ~b.stm;
+  b.hash ^= zobrist.stm;
 }

@@ -115,7 +115,7 @@ TEST_CASE("pawn") {
       Board b0("8/p7/1p6/8/8/1P6/P7/8 w - - 0 1");
       (void)movegen(b0, ml.begin());
       CHECK(has(ml, Move{a2, a3, .flag = normal}));
-      CHECK(has(ml, Move{a2, a4, .flag = en_passant}));
+      CHECK(has(ml, Move{a2, a4, .flag = double_push}));
       CHECK(has(ml, Move{b3, b4, .flag = normal}));
     }
     SECTION("black") {
@@ -123,7 +123,7 @@ TEST_CASE("pawn") {
       Board b0("8/p7/1p6/8/8/1P6/P7/8 b - - 0 1");
       (void)movegen(b0, ml.begin());
       CHECK(has(ml, Move{a7, a6, .flag = normal}));
-      CHECK(has(ml, Move{a7, a5, .flag = en_passant}));
+      CHECK(has(ml, Move{a7, a5, .flag = double_push}));
       CHECK(has(ml, Move{b6, b5, .flag = normal}));
     }
   }
