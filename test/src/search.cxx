@@ -13,17 +13,17 @@ constexpr int beta = std::numeric_limits<int>::max() / 2;
 
 TEST_CASE("trial") {
   Board b("8/1bprrpkp/1p3RpN/p1p3P1/P3P2P/1PqP1Q2/2P5/5R1K w - - 7 35");
-  std::cout << alpha_beta_root(b, alpha, beta, 3) << '\n';
+  std::cout << alpha_beta_root(b, alpha, beta, 3, time) << '\n';
 }
 
 TEST_CASE("startpos") {
   Board b;
-  std::cout << alpha_beta_root(b, alpha, beta, 3) << '\n';
+  std::cout << alpha_beta_root(b, alpha, beta, 3, time) << '\n';
 }
 
 TEST_CASE("questionable capture") {
   Board b("rnbqkbnr/1p1ppppp/2p5/8/2B1P3/N5Q1/PPPP1PPP/R1B1K1NR b KQkq - 0 6");
-  std::cout << alpha_beta_root(b, alpha, beta, 5) << '\n';
+  std::cout << alpha_beta_root(b, alpha, beta, 5, time) << '\n';
 }
 
 TEST_CASE("mate in 1") {
@@ -37,17 +37,17 @@ TEST_CASE("mate in 1") {
 
 TEST_CASE("avoid mate in 1") {
   Board b("rnb1k1nr/pppp1ppp/8/2b1p3/7q/N7/PPPPPPPP/R1BQKBNR w Kkq - 4 4");
-  std::cout << alpha_beta_root(b, alpha, beta, 5) << '\n';
+  std::cout << alpha_beta_root(b, alpha, beta, 5, time) << '\n';
 }
 
 TEST_CASE("restrict the king") {
   Board b("8/p4kp1/6p1/2R5/8/PP3P2/5KPP/8 w - - 7 39");
-  std::cout << alpha_beta_root(b, alpha, beta, 5) << '\n';
+  std::cout << alpha_beta_root(b, alpha, beta, 5, time) << '\n';
 }
 
 TEST_CASE("mate in 1 as white") {
   Board b("2r2k2/6RR/4p2B/1r2P2P/8/3P3P/4KP2/8 w - - 6 39");
-  std::cout << alpha_beta_root(b, alpha, beta, 5) << '\n';
+  std::cout << alpha_beta_root(b, alpha, beta, 5, time) << '\n';
 }
 
 // clang-format off
@@ -67,5 +67,5 @@ TEST_CASE("mate in 1 as white") {
 // clang-format on
 TEST_CASE("underpromotion") {
   Board b("4k3/2pn4/4p3/p3P3/5K2/6r1/p6b/8 b - - 1 49");
-  std::cout << alpha_beta_root(b, alpha, beta, 4) << '\n';
+  std::cout << alpha_beta_root(b, alpha, beta, 4, time) << '\n';
 }

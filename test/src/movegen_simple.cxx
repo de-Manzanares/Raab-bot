@@ -132,23 +132,19 @@ TEST_CASE("pawn") {
       fill_default_init(ml);
       Board b0("8/3P4/8/8/8/8/8/8 w - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{d7, d8, .flag = promotion, .promotion_piece = queen}));
-      CHECK(has(ml, Move{d7, d8, .flag = promotion, .promotion_piece = rook}));
-      CHECK(
-          has(ml, Move{d7, d8, .flag = promotion, .promotion_piece = bishop}));
-      CHECK(
-          has(ml, Move{d7, d8, .flag = promotion, .promotion_piece = knight}));
+      CHECK(has(ml, Move{d7, d8, .flag = promotion, .prom_p = queen}));
+      CHECK(has(ml, Move{d7, d8, .flag = promotion, .prom_p = rook}));
+      CHECK(has(ml, Move{d7, d8, .flag = promotion, .prom_p = bishop}));
+      CHECK(has(ml, Move{d7, d8, .flag = promotion, .prom_p = knight}));
     }
     SECTION("black") {
       fill_default_init(ml);
       Board b0("8/8/8/8/8/8/3p4/8 b - - 0 1");
       (void)movegen(b0, ml.begin());
-      CHECK(has(ml, Move{d2, d1, .flag = promotion, .promotion_piece = queen}));
-      CHECK(has(ml, Move{d2, d1, .flag = promotion, .promotion_piece = rook}));
-      CHECK(
-          has(ml, Move{d2, d1, .flag = promotion, .promotion_piece = bishop}));
-      CHECK(
-          has(ml, Move{d2, d1, .flag = promotion, .promotion_piece = knight}));
+      CHECK(has(ml, Move{d2, d1, .flag = promotion, .prom_p = queen}));
+      CHECK(has(ml, Move{d2, d1, .flag = promotion, .prom_p = rook}));
+      CHECK(has(ml, Move{d2, d1, .flag = promotion, .prom_p = bishop}));
+      CHECK(has(ml, Move{d2, d1, .flag = promotion, .prom_p = knight}));
     }
   }
   SECTION("non-promotion catpure moves") {
@@ -177,9 +173,9 @@ TEST_CASE("pawn") {
       Board b0("1q1q4/2P5/8/8/8/8/8/8 w - - 0 1");
       (void)movegen(b0, ml.begin());
       CHECK(has(ml, Move{c7, b8, .flag = prom_capture, .cap_piece = queen,
-                         .promotion_piece = queen}));
+                         .prom_p = queen}));
       CHECK(has(ml, Move{c7, d8, .flag = prom_capture, .cap_piece = queen,
-                         .promotion_piece = queen}));
+                         .prom_p = queen}));
     }
   }
 }
