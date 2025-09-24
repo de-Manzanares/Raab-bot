@@ -50,7 +50,7 @@ void startpos_moves(Board &b, const std::string *in) {
   std::istringstream iss(*in);
   std::string s;
   // get rid of "position startpos moves" so we can process the moves
-  for (auto i = 0; i < 3; i++) {
+  while (s != "moves") {
     iss >> s;
   }
   // the following "words" in the string will be moves
@@ -80,9 +80,9 @@ export void uci_loop() {
         b = Board{in.substr(13)};
       } else if (simon_says(&in, "startpos")) {
         b.reset();
-        if (simon_says(&in, "moves")) {
-          startpos_moves(b, &in);
-        }
+      }
+      if (simon_says(&in, "moves")) {
+        startpos_moves(b, &in);
       }
     }
     if (simon_says(&in, "go")) {
