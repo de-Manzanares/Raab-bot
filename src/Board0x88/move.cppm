@@ -67,12 +67,24 @@ export bool operator==(Move lhs, Move rhs);
 export void move(Board &b, Move m);
 export void unmove(Board &b, Move m);
 
+export std::vector<std::uint64_t> history;
+
+export bool is_repetition(const std::uint64_t hash) {
+  auto const last = history.end() - 1;
+  if (const auto first = std::find(history.begin(), last, hash);
+      first != last) {
+    if (const auto second = std::find(first, last, hash); second != last) {
+      return true;
+    }
+  }
+  return false;
+}
+
 //------------------------------------------------------------------------------
 
-/// for tests only, doesn't do full comparison
+/// for quick is_repetition() execution. doesn't compare full struct
 bool operator==(const Move lhs, const Move rhs) {
-  return lhs.from_sq == rhs.from_sq && lhs.to_sq == rhs.to_sq &&
-         lhs.flag == rhs.flag;
+  return lhs.from_sq == rhs.from_sq && lhs.to_sq == rhs.to_sq;
 }
 
 void clear_sq(Board &b, const Square sq) {
@@ -240,6 +252,9 @@ void move(Board &b, const Move m) {
   // update side to move
   b.stm = ~b.stm;
   b.hash ^= zobrist.stm;
+
+  // update history
+  history.push_back(b.hash);
 }
 
 void unmove(Board &b, const Move m) {
@@ -284,4 +299,7 @@ void unmove(Board &b, const Move m) {
   // update side to move
   b.stm = ~b.stm;
   b.hash ^= zobrist.stm;
+
+  // update history
+  history.pop_back();
 }
