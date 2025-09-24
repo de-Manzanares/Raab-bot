@@ -170,13 +170,17 @@ int quiesce(Board &b, int alpha, const int beta, const std::uint8_t ply) {
   if (is_repetition(b.hash)) {
     return contempt(b);
   }
-  int best = static_eval(b, alpha, beta, ply);
+  int best{};
+  if (in_check(b)) {
+    best = alpha_beta(b, alpha, beta, 1, ply);
+  } else {
+    best = static_eval(b, alpha, beta, ply);
+  }
   if (best >= beta) {
     return best;
   }
-  if (best > alpha) {
-    alpha = best;
-  }
+  alpha = std::max(best, alpha);
+
   std::array<Move, 256> ml{};
   int score{};
   int move_n{};
