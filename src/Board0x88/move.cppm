@@ -254,6 +254,13 @@ void move(Board &b, const Move m) {
     b.ep = null_square;
   }
 
+  // todo hmc
+
+  // update fmc
+  if (b.stm == black) {
+    ++b.fmc;
+  }
+
   // update side to move
   b.stm = ~b.stm;
   b.hash ^= zobrist.stm;
@@ -300,6 +307,11 @@ void unmove(Board &b, const Move m) {
     b.hash ^= zobrist.ep[m.prev_ep];
   }
   b.ep = m.prev_ep;
+
+  // todo update hmc
+  if (b.stm == white) {
+    --b.fmc;
+  }
 
   // update side to move
   b.stm = ~b.stm;
