@@ -89,3 +89,7 @@ export constexpr score_t static_eval(Board &b, int alpha, int beta,
   score *= (b.stm == white ? 1 : -1);
   return score;
 }
+
+export score_t contempt(const Board &b) {
+  return (material(b) * (b.stm == white ? -1 : 1) * 128);
+}

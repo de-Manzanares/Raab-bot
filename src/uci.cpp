@@ -64,8 +64,6 @@ double time_elapsed{};
 bool time_up() {}
 
 export void uci_loop() {
-  constexpr int alpha = std::numeric_limits<int>::min() / 2;
-  constexpr int beta = std::numeric_limits<int>::max() / 2;
 
   std::ofstream ofile("Raab-bot-v2-dev2-log.txt");
   std::string in; // the command from the GUI
@@ -86,6 +84,8 @@ export void uci_loop() {
       }
     }
     if (simon_says(&in, "go")) {
+      int alpha = std::numeric_limits<int>::min() / 2;
+      int beta = std::numeric_limits<int>::max() / 2;
       long wtime{};
       long btime{};
       long winc{};
@@ -123,7 +123,7 @@ export void uci_loop() {
 
       Move m;
       auto start = std::chrono::steady_clock::now();
-      m = alpha_beta_root(b, alpha, beta, 4);
+      m = alpha_beta_root(b, alpha, beta, 4, start, time, time_elapsed);
       time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
                          std::chrono::steady_clock::now() - start)
                          .count();

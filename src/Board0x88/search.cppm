@@ -13,8 +13,10 @@ import :movegen;
 
 //------------------------------------------------------------------------------
 
-export auto alpha_beta_root(Board &b, int alpha, int beta, std::uint8_t depth)
-    -> Move;
+export auto
+alpha_beta_root(Board &b, int &alpha, int &beta, std::uint8_t depth,
+                std::chrono::time_point<std::chrono::steady_clock> start,
+                long time, long &time_elapsed) -> Move;
 
 export auto alpha_beta(Board &b, int alpha, int beta, std::uint8_t depth,
                        std::uint8_t ply) -> int;
@@ -23,7 +25,9 @@ export auto quiesce(Board &b, int alpha, int beta, std::uint8_t ply) -> int;
 
 //------------------------------------------------------------------------------
 
-Move alpha_beta_root(Board &b, int alpha, const int beta, const std::uint8_t depth) {
+Move alpha_beta_root(Board &b, int &alpha, int &beta, const std::uint8_t depth,
+                     std::chrono::time_point<std::chrono::steady_clock> start,
+                     long time, long &time_elapsed) {
   const auto node_hash = b.hash;
   const auto orig_alpha = alpha;
   std::array<Move, 256> ml{};
@@ -38,8 +42,8 @@ Move alpha_beta_root(Board &b, int alpha, const int beta, const std::uint8_t dep
     move(b, m);
     if (is_legal(b)) {
       constexpr std::uint8_t ply{};
-      ++legal_moves;
       score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1);
+      ++legal_moves;
       if (score > best) {
         best = score;
         best_move = m;
@@ -56,6 +60,12 @@ Move alpha_beta_root(Board &b, int alpha, const int beta, const std::uint8_t dep
       }
     }
     unmove(b, m);
+    time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                       std::chrono::steady_clock::now() - start)
+                       .count();
+    // if (time_elapsed > time) {
+    //   break;
+    // }
   }
   if (legal_moves == 0) {
     return Move{};
@@ -79,6 +89,13 @@ int alpha_beta(Board &b, int alpha, const int beta, const std::uint8_t depth,
   }
   const auto node_hash = b.hash;
   const auto orig_alpha = alpha;
+  if (is_repetition(node_hash)) {
+    if (auto &e = tt[node_hash & tt_mask];
+        e.hash != node_hash || e.depth < depth) {
+      e = {node_hash, {}, contempt(b), tt_exact, depth};
+    }
+    return contempt(b);
+  }
   TT_move tt_move{};
   {
     if (const auto &e = tt[node_hash & tt_mask]; e.hash == node_hash) {
@@ -96,6 +113,7 @@ int alpha_beta(Board &b, int alpha, const int beta, const std::uint8_t depth,
       }
     }
   }
+
   std::array<Move, 256> ml{};
   Move best_move{};
   int best = std::numeric_limits<int>::min();
@@ -107,8 +125,8 @@ int alpha_beta(Board &b, int alpha, const int beta, const std::uint8_t depth,
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
-      ++legal_moves;
       score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1);
+      ++legal_moves;
       if (score > best) {
         best = score;
         if (score > alpha) {
@@ -149,6 +167,9 @@ int alpha_beta(Board &b, int alpha, const int beta, const std::uint8_t depth,
 }
 
 int quiesce(Board &b, int alpha, const int beta, const std::uint8_t ply) {
+  if (is_repetition(b.hash)) {
+    return contempt(b);
+  }
   int best = static_eval(b, alpha, beta, ply);
   if (best >= beta) {
     return best;
