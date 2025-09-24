@@ -209,6 +209,11 @@ void move(Board &b, const Move m) {
     const auto sq = m.to_sq + (b.stm == white ? S : N);
     clear_sq(b, sq);
   } else if (m.flag == castle) {
+    if (b.stm == white) {
+      b.wks = m.to_sq;
+    } else {
+      b.bks = m.to_sq;
+    }
     finish_castle(b, m.to_sq);
   }
 
