@@ -2,6 +2,7 @@ module;
 
 #include "transposition.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
@@ -64,28 +65,34 @@ score_t check_bonus(Board &b) {
   return check_bonus;
 }
 
-score_t attack_enemy_king(Board &b) {
+score_t king_restriction(Board &b) {
   // get all the squares around the king
   // count the number of them that are under attack
-  score_t attack_bonus{};
-  Square ksq =
-      b.stm == white ? static_cast<Square>(b.wks) : static_cast<Square>(b.bks);
-  Color atk_c = b.stm == white ? black : white;
-  for (const auto dir : move_vectors[king]) {
-    if (const Square to = ksq + dir;
-        is_valid_square(to) && is_attacked(b, to, atk_c)) {
-      attack_bonus += 1;
+  // ratio of attacked to valid squares
+  auto ratio = [&b](const Square ksq, const Color c) {
+    double att{};
+    score_t valid{};
+    for (const auto dir : move_vectors[king]) {
+      if (is_valid_square(ksq + dir)) {
+        ++valid;
+      }
+      if (is_attacked(b, ksq + dir, c)) {
+        ++att;
+      }
     }
-  }
-  return b.stm == white ? -attack_bonus : attack_bonus;
+    return att / valid;
+  };
+  const auto w = ratio(static_cast<Square>(b.wks), black);
+  const auto bl = ratio(static_cast<Square>(b.bks), white);
+  return w - bl;
 }
 
 export constexpr score_t static_eval(Board &b, int alpha, int beta,
                                      std::uint8_t ply) {
   // todo dedicated eval cache
 
-  auto score = (material(b) * 128) + (mobility(b) >> 3) + check_bonus(b) +
-               (attack_enemy_king(b) * 16);
+  auto score = (material(b) * 128) + (mobility(b) >> 3) + check_bonus(b) -
+               (king_restriction(b) << 3);
   score *= (b.stm == white ? 1 : -1);
   return score;
 }
