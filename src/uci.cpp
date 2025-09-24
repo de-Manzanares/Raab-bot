@@ -65,7 +65,7 @@ bool time_up() {}
 
 export void uci_loop() {
 
-  std::ofstream ofile("Raab-bot-v2-dev2-log.txt");
+  std::ofstream ofile("Raab-bot-v2-dev3-log.txt");
   std::string in; // the command from the GUI
   Board b;
 
@@ -122,8 +122,18 @@ export void uci_loop() {
       }
 
       Move m;
+      std::uint8_t depth;
       auto start = std::chrono::steady_clock::now();
-      m = alpha_beta_root(b, alpha, beta, 4, start, time, time_elapsed);
+
+      if (b.fmc < 30) {
+        depth = 4U;
+      } else if (b.fmc < 50) {
+        depth = 5U;
+      } else {
+        depth = 6U;
+      }
+
+      m = alpha_beta_root(b, alpha, beta, depth, start, time, time_elapsed);
       time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
                          std::chrono::steady_clock::now() - start)
                          .count();
