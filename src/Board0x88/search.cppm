@@ -11,25 +11,37 @@ import :eval;
 import :move;
 import :movegen;
 
+export using PVLine = std::array<Move, 32>;
+export PVLine g_pv;
+
 //------------------------------------------------------------------------------
 
-export auto
+export void
 alpha_beta_root(Board &b, int &alpha, int &beta, std::uint8_t depth,
                 std::chrono::time_point<std::chrono::steady_clock> start,
-                long time, long &time_elapsed) -> Move;
+                long time, long &time_elapsed);
 
 export auto alpha_beta(Board &b, int alpha, int beta, std::uint8_t depth,
-                       std::uint8_t ply) -> int;
+                       std::uint8_t ply, PVLine *pline) -> int;
 
-export auto quiesce(Board &b, int alpha, int beta, std::uint8_t ply) -> int;
+export auto quiesce(Board &b, int alpha, int beta, std::uint8_t ply,
+                    PVLine *pline) -> int;
 
 //------------------------------------------------------------------------------
 
-Move alpha_beta_root(Board &b, int &alpha, int &beta, const std::uint8_t depth,
+void alpha_beta_root(Board &b, int &alpha, int &beta, const std::uint8_t depth,
                      std::chrono::time_point<std::chrono::steady_clock> start,
                      long time, long &time_elapsed) {
+  std::fill(g_pv.begin(), std::ranges::find(g_pv, Move{}), Move{});
+  PVLine line;
   const auto node_hash = b.hash;
   const auto orig_alpha = alpha;
+  TT_move tt_move{};
+  {
+    if (const auto &e = tt[node_hash & tt_mask]; e.hash == node_hash) {
+      tt_move = e.tt_m;
+    }
+  }
   std::array<Move, 256> ml{};
   Move best_move{};
   int best = std::numeric_limits<int>::min();
@@ -37,17 +49,22 @@ Move alpha_beta_root(Board &b, int &alpha, int &beta, const std::uint8_t depth,
   int move_n{};
   int legal_moves{};
   for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n) {
-    movegen_sort(std::next(ml.begin(), move_n), sz - move_n);
+    movegen_sort(std::next(ml.begin(), move_n), sz - move_n, tt_move);
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
       constexpr std::uint8_t ply{};
-      score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1);
+      score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line);
       ++legal_moves;
       if (score > best) {
         best = score;
         best_move = m;
-        alpha = std::max(score, alpha);
+        if (score > alpha) {
+          alpha = score;
+          g_pv[0] = m;
+          auto it = std::ranges::find(line, Move{});
+          std::copy(line.begin(), it, std::next(g_pv.begin()));
+        }
       }
       if (score >= beta) {
         if (auto &e = tt[node_hash & tt_mask];
@@ -56,7 +73,7 @@ Move alpha_beta_root(Board &b, int &alpha, int &beta, const std::uint8_t depth,
               node_hash, {m.from_sq, m.to_sq, m.prom_p}, score, tt_beta, depth};
         }
         unmove(b, m);
-        return best_move;
+        return;
       }
     }
     unmove(b, m);
@@ -68,7 +85,7 @@ Move alpha_beta_root(Board &b, int &alpha, int &beta, const std::uint8_t depth,
     // }
   }
   if (legal_moves == 0) {
-    return Move{};
+    return;
   }
   const TT_flag flag = (best <= orig_alpha) ? tt_alpha : tt_exact;
   if (auto &e = tt[node_hash & tt_mask];
@@ -79,13 +96,15 @@ Move alpha_beta_root(Board &b, int &alpha, int &beta, const std::uint8_t depth,
          flag,
          depth};
   }
-  return best_move;
+  return;
 }
 
 int alpha_beta(Board &b, int alpha, const int beta, const std::uint8_t depth,
-               const std::uint8_t ply) {
+               const std::uint8_t ply, PVLine *pline) {
+  PVLine line{};
   if (depth == 0) {
-    return quiesce(b, alpha, beta, ply);
+    // pline->count = 0; ?
+    return quiesce(b, alpha, beta, ply, &line);
   }
   const auto node_hash = b.hash;
   const auto orig_alpha = alpha;
@@ -125,13 +144,16 @@ int alpha_beta(Board &b, int alpha, const int beta, const std::uint8_t depth,
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
-      score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1);
+      score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line);
       ++legal_moves;
       if (score > best) {
         best = score;
         if (score > alpha) {
           alpha = score;
           best_move = m;
+          (*pline)[0] = m;
+          auto it = std::ranges::find(line, Move{});
+          std::copy(line.begin(), it, std::next(pline->begin()));
         }
       }
       if (score >= beta) {
@@ -166,13 +188,15 @@ int alpha_beta(Board &b, int alpha, const int beta, const std::uint8_t depth,
   return best;
 }
 
-int quiesce(Board &b, int alpha, const int beta, const std::uint8_t ply) {
+int quiesce(Board &b, int alpha, const int beta, const std::uint8_t ply,
+            PVLine *pline) {
+  PVLine line{};
   if (is_repetition(b.hash)) {
     return contempt(b);
   }
   int best{};
   if (in_check(b)) {
-    best = alpha_beta(b, alpha, beta, 1, ply);
+    best = alpha_beta(b, alpha, beta, 1, ply, &line);
   } else {
     best = static_eval(b, alpha, beta, ply);
   }
@@ -190,10 +214,12 @@ int quiesce(Board &b, int alpha, const int beta, const std::uint8_t ply) {
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
-      score = -quiesce(b, -beta, -alpha, ply + 1);
+      score = -quiesce(b, -beta, -alpha, ply + 1, pline);
       if (score > best) {
         best = score;
-        alpha = std::max(score, alpha);
+        if (score > alpha) {
+          alpha = score;
+        }
       }
       if (score >= beta) {
         unmove(b, m);
