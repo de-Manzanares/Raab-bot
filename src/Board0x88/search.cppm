@@ -4,6 +4,7 @@ module;
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <limits>
 
 export module Board0x88:search;
@@ -11,15 +12,27 @@ import :eval;
 import :move;
 import :movegen;
 
-export using PVLine = std::array<Move, 32>;
+export constexpr std::uint8_t max_depth = 32;
+export using PVLine = std::array<Move, max_depth>;
 export PVLine g_pv;
+export PVLine prev_g_pv;
+
+/// not really searched, more like looked at
+export std::size_t root_trees_searched{};
+
+export bool root_beta_cutoff = false;
+
+export std::size_t root_trees{};
+export long allowed_time;
+export std::chrono::time_point<std::chrono::steady_clock> start;
+export long time_elapsed;
+
+// todo check elapsed time on node count instead of next move on alpha beta
+// maybe that will be less expensive
 
 //------------------------------------------------------------------------------
 
-export void
-alpha_beta_root(Board &b, int &alpha, int &beta, std::uint8_t depth,
-                std::chrono::time_point<std::chrono::steady_clock> start,
-                long time, long &time_elapsed);
+export void alpha_beta_root(Board &b, int alpha, int beta, std::uint8_t depth);
 
 export auto alpha_beta(Board &b, int alpha, int beta, std::uint8_t depth,
                        std::uint8_t ply, PVLine *pline) -> int;
@@ -29,10 +42,13 @@ export auto quiesce(Board &b, int alpha, int beta, std::uint8_t ply,
 
 //------------------------------------------------------------------------------
 
-void alpha_beta_root(Board &b, int &alpha, int &beta, const std::uint8_t depth,
-                     std::chrono::time_point<std::chrono::steady_clock> start,
-                     long time, long &time_elapsed) {
-  std::fill(g_pv.begin(), std::ranges::find(g_pv, Move{}), Move{});
+void alpha_beta_root(Board &b, int alpha, int beta, const std::uint8_t depth) {
+  std::ranges::fill(g_pv, Move{});
+  root_trees_searched = 0;
+  root_beta_cutoff = false;
+  // todo small optimization don't need to call movegen twice here
+  root_trees = cnt_legal_moves(b);
+
   PVLine line;
   const auto node_hash = b.hash;
   const auto orig_alpha = alpha;
@@ -48,7 +64,9 @@ void alpha_beta_root(Board &b, int &alpha, int &beta, const std::uint8_t depth,
   int score{};
   int move_n{};
   int legal_moves{};
-  for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n) {
+
+  for (const auto sz = movegen(b, ml.begin()); move_n < sz;
+       ++move_n, ++root_trees_searched) {
     movegen_sort(std::next(ml.begin(), move_n), sz - move_n, tt_move);
     const Move m = ml[move_n];
     move(b, m);
@@ -73,6 +91,7 @@ void alpha_beta_root(Board &b, int &alpha, int &beta, const std::uint8_t depth,
               node_hash, {m.from_sq, m.to_sq, m.prom_p}, score, tt_beta, depth};
         }
         unmove(b, m);
+        root_beta_cutoff = true;
         return;
       }
     }
@@ -80,9 +99,9 @@ void alpha_beta_root(Board &b, int &alpha, int &beta, const std::uint8_t depth,
     time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
                        std::chrono::steady_clock::now() - start)
                        .count();
-    // if (time_elapsed > time) {
-    //   break;
-    // }
+    if (time_elapsed > allowed_time) {
+      break;
+    }
   }
   if (legal_moves == 0) {
     return;
@@ -163,10 +182,16 @@ int alpha_beta(Board &b, int alpha, const int beta, const std::uint8_t depth,
               node_hash, {m.from_sq, m.to_sq, m.prom_p}, score, tt_beta, depth};
         }
         unmove(b, m);
-        return best;
+        return score;
       }
     }
     unmove(b, m);
+    time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                       std::chrono::steady_clock::now() - start)
+                       .count();
+    if (time_elapsed > allowed_time) {
+      break;
+    }
   }
   if (legal_moves == 0) {
     const int val = in_check(b) ? -(CHECKMATE - ply) : 0;
