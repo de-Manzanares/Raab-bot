@@ -121,7 +121,6 @@ export void uci_loop() {
         time = double(btime) / 60.0 + binc / 2.0;
       }
 
-      Move m;
       std::uint8_t depth;
       auto start = std::chrono::steady_clock::now();
 
@@ -133,13 +132,29 @@ export void uci_loop() {
         depth = 6U;
       }
 
-      m = alpha_beta_root(b, alpha, beta, depth, start, time, time_elapsed);
+      alpha_beta_root(b, alpha, beta, depth, start, time, time_elapsed);
       time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
                          std::chrono::steady_clock::now() - start)
                          .count();
 
-      std::cout << "bestmove " << m << std::endl;
-      ofile << "bestmove " << m << std::endl;
+      std::cout << "info ";
+      std::cout << "depth " << static_cast<int>(depth) << ' ';
+      std::cout << "pv ";
+      ofile << "info ";
+      ofile << "depth " << static_cast<int>(depth) << ' ';
+      ofile << "pv ";
+      for (int i = 0;; ++i) {
+        if (g_pv[i].from_sq == null_square) {
+          break;
+        }
+        std::cout << g_pv[i] << ' ';
+        ofile << g_pv[i] << ' ';
+      }
+      std::cout << std::endl;
+      ofile << std::endl;
+
+      std::cout << "bestmove " << g_pv[0] << std::endl;
+      ofile << "bestmove " << g_pv[0] << std::endl;
     } else if (in.find("stop") != std::string::npos) {
     } else if (in == "quit") {
       break;
