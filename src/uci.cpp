@@ -29,9 +29,15 @@ Move to_move(Board &b, std::string_view s, OutputIt out) {
   }
   auto to_sq =
       static_cast<Square>((16 * (*std::next(ch) - '0' - 1)) + *ch - 'a');
+
+  std::advance(ch, 2);
+  auto prom_p = null_piece;
+  if (ch != s.end()) {
+    prom_p = fen::get_piece_info(*ch).piece_t;
+  }
   auto count = movegen(b, out);
   for (auto m = out; m->from_sq != null_square; ++m) {
-    if (m->from_sq == from_sq && m->to_sq == to_sq) {
+    if (m->from_sq == from_sq && m->to_sq == to_sq && m->prom_p == prom_p) {
       return *m;
     }
   }
