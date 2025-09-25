@@ -8,9 +8,10 @@ Current Engine Features
     - quiescence search
     - transposition table
     - repetition detection
+    - iterative deepening
 - move ordering
-    - MVV/LVA
     - transposition table
+    - MVV/LVA
     - promotion material
 - evaluation
     - material

@@ -11,7 +11,8 @@ module;
 import Board0x88;
 export module uci;
 
-constexpr std::uint8_t max_depth = 32;
+constexpr int alpha = std::numeric_limits<int>::min() / 2;
+constexpr int beta = std::numeric_limits<int>::max() / 2;
 
 bool simon_says(const std::string *s, const std::string &has) {
   return s->find(has) != std::string::npos;
@@ -65,9 +66,6 @@ void startpos_moves(Board &b, const std::string *in) {
     std::ranges::fill(ml, Move{});
   }
 }
-double time_elapsed{};
-
-bool time_up() {}
 
 export void uci_loop() {
 
@@ -90,14 +88,10 @@ export void uci_loop() {
       }
     }
     if (simon_says(&in, "go")) {
-      int alpha = std::numeric_limits<int>::min() / 2;
-      int beta = std::numeric_limits<int>::max() / 2;
       long wtime{};
       long btime{};
       long winc{};
       long binc{};
-      long time{};
-      long time_elapsed{};
 
       std::string s;
       s = "wtime";
@@ -122,46 +116,59 @@ export void uci_loop() {
       }
 
       if (b.stm == white && wtime != 0) {
-        time = double(wtime) / 60.0 + winc / 2.0;
+        allowed_time = double(wtime) / 60.0 + winc;
       } else if (b.stm == black && btime != 0) {
-        time = double(btime) / 60.0 + binc / 2.0;
-      }
-
-      std::uint8_t depth;
-      auto start = std::chrono::steady_clock::now();
-
-      if (b.fmc < 30) {
-        depth = 4U;
-      } else if (b.fmc < 50) {
-        depth = 5U;
+        allowed_time = double(btime) / 60.0 + binc;
       } else {
-        depth = 6U;
+        allowed_time = 1000;
       }
 
-      alpha_beta_root(b, alpha, beta, depth, start, time, time_elapsed);
-      time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-                         std::chrono::steady_clock::now() - start)
-                         .count();
+      start = std::chrono::steady_clock::now();
 
-      std::cout << "info ";
-      std::cout << "depth " << static_cast<int>(depth) << ' ';
-      std::cout << "pv ";
-      ofile << "info ";
-      ofile << "depth " << static_cast<int>(depth) << ' ';
-      ofile << "pv ";
-      for (int i = 0;; ++i) {
-        if (g_pv[i].from_sq == null_square) {
+      for (uint depth = 1; depth <= max_depth; ++depth) {
+        try {
+          alpha_beta_root(b, alpha, beta, depth);
+        } catch (const std::exception &e) {
+        }
+        time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                           std::chrono::steady_clock::now() - start)
+                           .count();
+
+        // std::cout << "root trees searched: " << root_trees_searched
+        //           << std::endl;
+        // if we finished the layer or got a root beta cutoff
+        if (root_trees <= root_trees_searched || root_beta_cutoff) {
+          std::cout << "info ";
+          std::cout << "depth " << static_cast<int>(depth) << ' ';
+          std::cout << "pv ";
+          ofile << "info ";
+          ofile << "depth " << static_cast<int>(depth) << ' ';
+          ofile << "pv ";
+          for (int i = 0;; ++i) {
+            if (g_pv[i].from_sq == null_square) {
+              break;
+            }
+            std::cout << g_pv[i] << ' ';
+            ofile << g_pv[i] << ' ';
+          }
+          std::cout << std::endl;
+          ofile << std::endl;
+        } else {
           break;
         }
-        std::cout << g_pv[i] << ' ';
-        ofile << g_pv[i] << ' ';
+        if (g_pv[0] != Move{}) {
+          prev_g_pv = g_pv;
+        }
       }
-      std::cout << std::endl;
-      ofile << std::endl;
+      std::cout << "bestmove " << prev_g_pv[0] << std::endl;
+      ofile << "bestmove " << prev_g_pv[0] << std::endl;
+      // std::cout << "elapsed time "
+      //           << std::chrono::duration_cast<std::chrono::milliseconds>(
+      //                  std::chrono::steady_clock::now() - start);
 
-      std::cout << "bestmove " << g_pv[0] << std::endl;
-      ofile << "bestmove " << g_pv[0] << std::endl;
     } else if (in.find("stop") != std::string::npos) {
+    } else if (in == "d") {
+      b.display();
     } else if (in == "quit") {
       break;
     } // quit the loop, ends the program
