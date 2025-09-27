@@ -6,6 +6,7 @@ module;
 import fen;
 import transposition;
 import types;
+import eval;
 
 module board;
 
@@ -31,7 +32,8 @@ Board::Board(const std::string_view fenstr) {
         }
       }
       idx++;
-      hash ^= zobrist.piece_square[piece_t][color][sq];
+      t_hash ^= zobrist.pcs[piece_t][color][sq];
+      m_hash += zobrist.mat[piece_t][color];
     } else if (*it >= '1' && *it <= '8') { // empty squares
       idx += *it - '0';
     } else if (*it == ' ') {
@@ -49,7 +51,7 @@ Board::Board(const std::string_view fenstr) {
     stm = white;
   } else {
     stm = black;
-    hash ^= stm;
+    t_hash ^= stm;
   }
   std::advance(it, 2);
 
@@ -75,7 +77,7 @@ Board::Board(const std::string_view fenstr) {
       }
     }
   }
-  hash ^= zobrist.castling[cr];
+  t_hash ^= zobrist.cr[cr];
 
   ++it;
   if (*it == '-') {
@@ -84,7 +86,7 @@ Board::Board(const std::string_view fenstr) {
   } else {
     ep = static_cast<Square>((16 * (*std::next(it) - '0' - 1)) + *it - 'a');
     std::advance(it, 3);
-    hash ^= zobrist.ep[ep];
+    t_hash ^= zobrist.ep[ep];
   }
 
   if (it == fenstr.end() || std::next(it) == fenstr.end()) {
@@ -94,7 +96,8 @@ Board::Board(const std::string_view fenstr) {
   hmc = *it - '0';
   fmc = *std::next(it, 2) - '0';
 
-  tt[hash & tt_mask] = {hash, {}, {}, {}, {}};
+  tt[t_hash & tt_mask] = {t_hash, {}, {}, {}, {}};
+  mt[m_hash & mt_mask] = {m_hash, 0};
 }
 
 PieceInfo Board::piece_info(const Square sq) const {

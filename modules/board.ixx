@@ -47,7 +47,8 @@ export class Board {
   Square wks{}; ///< white king square
   Square bks{}; ///< black king square
 
-  U64 hash{}; ///< hash for transposition table
+  U64 t_hash{}; ///< hash for transposition table
+  U64 m_hash{}; ///< hash for material table
 };
 
 //------------------------------------------------------------------------------

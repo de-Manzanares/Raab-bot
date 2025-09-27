@@ -56,7 +56,8 @@ constexpr sz_t movegen_perft(Board &b, const int depth,
     if (m.from_sq == null_square) {
       break;
     }
-    auto hasha = b.hash;
+    auto hasha    = b.t_hash;
+    auto m_hash_a = b.m_hash;
     move(b, m);
     if (is_legal(b)) {
       if (pc) {
@@ -65,8 +66,10 @@ constexpr sz_t movegen_perft(Board &b, const int depth,
       nodes += movegen_perft(b, depth - 1, pc);
     }
     unmove(b, m);
-    auto hashb = b.hash;
+    auto hashb    = b.t_hash;
+    auto m_hash_b = b.m_hash;
     assert(hasha == hashb);
+    assert(m_hash_a == m_hash_b);
   }
   return nodes;
 }

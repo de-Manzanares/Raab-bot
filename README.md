@@ -13,6 +13,7 @@ Current Engine Features
     - MVV/LVA
 - evaluation
     - material
+        - material hash table
     - mobility
     - king safety
 - minimal UCI capabilities

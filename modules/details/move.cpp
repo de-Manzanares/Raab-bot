@@ -96,17 +96,17 @@ void move(Board &b, const Move m) {
     }
   }
 
-  b.hash ^= zobrist.castling[m.prev_cr];
-  b.hash ^= zobrist.castling[b.cr];
+  b.t_hash ^= zobrist.cr[m.prev_cr];
+  b.t_hash ^= zobrist.cr[b.cr];
 
   if (b.ep != null_square) {
-    b.hash ^= zobrist.ep[b.ep]; // undo the previous
+    b.t_hash ^= zobrist.ep[b.ep]; // undo the previous
   }
 
   // update en_passant target
   if (m.flag == double_push) {
     b.ep = m.ep_target;
-    b.hash ^= zobrist.ep[b.ep];
+    b.t_hash ^= zobrist.ep[b.ep];
   } else {
     b.ep = null_square;
   }
@@ -120,10 +120,10 @@ void move(Board &b, const Move m) {
 
   // update side to move
   b.stm = ~b.stm;
-  b.hash ^= zobrist.stm;
+  b.t_hash ^= zobrist.stm;
 
   // update history
-  history.push_back(b.hash);
+  history.push_back(b.t_hash);
 }
 
 void unmove(Board &b, const Move m) {
@@ -152,16 +152,16 @@ void unmove(Board &b, const Move m) {
   }
 
   // update castling rights
-  b.hash ^= zobrist.castling[m.prev_cr];
-  b.hash ^= zobrist.castling[b.cr];
+  b.t_hash ^= zobrist.cr[m.prev_cr];
+  b.t_hash ^= zobrist.cr[b.cr];
   b.cr = m.prev_cr;
 
   // en passant
   if (b.ep != null_square) {
-    b.hash ^= zobrist.ep[b.ep];
+    b.t_hash ^= zobrist.ep[b.ep];
   }
   if (m.prev_ep != null_square) {
-    b.hash ^= zobrist.ep[m.prev_ep];
+    b.t_hash ^= zobrist.ep[m.prev_ep];
   }
   b.ep = m.prev_ep;
 
@@ -172,7 +172,7 @@ void unmove(Board &b, const Move m) {
 
   // update side to move
   b.stm = ~b.stm;
-  b.hash ^= zobrist.stm;
+  b.t_hash ^= zobrist.stm;
 
   // update history
   history.pop_back();
@@ -194,9 +194,10 @@ PieceInfo prom_piece(const Move &m) {
 
 void clear_sq(Board &b, const Square sq) {
   if (auto [piece_t, color] = b.piece_info(sq); piece_t != null_piece) {
-    b.piece_on[sq] = null_piece;                        // clear
-    b.color_on[sq] = null_color;                        // clear
-    b.hash ^= zobrist.piece_square[piece_t][color][sq]; // update hash
+    b.piece_on[sq] = null_piece;                 // clear
+    b.color_on[sq] = null_color;                 // clear
+    b.t_hash ^= zobrist.pcs[piece_t][color][sq]; // update hash
+    b.m_hash -= zobrist.mat[piece_t][color];     // update m_hash
   } else {
     // no action needed
   }
@@ -209,7 +210,8 @@ void set_sq(Board &b, const Square sq, const PieceInfo pi) {
     b.piece_on[sq] = pi.piece_t;
     b.color_on[sq] = pi.color;
     assert(pi.piece_t != null_piece);
-    b.hash ^= zobrist.piece_square[pi.piece_t][pi.color][sq];
+    b.t_hash ^= zobrist.pcs[pi.piece_t][pi.color][sq];
+    b.m_hash += zobrist.mat[pi.piece_t][pi.color];
   }
 }
 

@@ -28,7 +28,7 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth) {
   node_count = 0;
 
   PVLine     line;
-  const auto node_hash  = b.hash;
+  const auto node_hash  = b.t_hash;
   const auto orig_alpha = alpha;
   TT_move    tt_move{};
   {
@@ -105,7 +105,7 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
     // pline->count = 0; ?
     return quiesce(b, alpha, beta, ply, &line);
   }
-  const auto node_hash  = b.hash;
+  const auto node_hash  = b.t_hash;
   const auto orig_alpha = alpha;
   if (is_repetition(node_hash)) {
     if (auto &e = tt[node_hash & tt_mask];
@@ -197,7 +197,7 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
 score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
                 PVLine *pline) {
   PVLine line{};
-  if (is_repetition(b.hash)) {
+  if (is_repetition(b.t_hash)) {
     return contempt(b);
   }
   score_t best{};
