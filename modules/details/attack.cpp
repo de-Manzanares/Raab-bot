@@ -38,8 +38,12 @@ bool in_check(const Board &b)
 /// attacked by a pawn ?
 bool ia_pawn(const Board &b, const Square sq, const Color by_color)
 {
-  for (constexpr Direction pawn_atk_vec[2][2] = {{SW, SE}, {NW, NE}};
-       const auto          dir : pawn_atk_vec[by_color]) {
+  for (constexpr Direction pawn_atk_vec[2][2] =
+           {
+               {SW, SE},
+               {NW, NE}
+  };
+       const auto dir : pawn_atk_vec[by_color]) {
     if (const Square vec{sq + dir};
         is_on_board(vec) && b.piece_info(vec) == PieceInfo{pawn, by_color}) {
       return true;

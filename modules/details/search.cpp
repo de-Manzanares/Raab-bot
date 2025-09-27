@@ -65,11 +65,13 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
       if (g_eval >= beta) {
         if (auto &e = tt[node_hash & tt_mask];
             e.hash != node_hash || e.depth < depth) {
-          e = {node_hash,
-               {m.from_sq, m.to_sq, m.prom_p},
-               g_eval,
-               tt_beta,
-               depth};
+          e = {
+              node_hash,
+              {m.from_sq, m.to_sq, m.prom_p},
+              g_eval,
+              tt_beta,
+              depth
+          };
         }
         unmove(b, m);
         root_beta_cutoff = true;
@@ -90,11 +92,13 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
   const TT_flag flag = (best <= orig_alpha) ? tt_alpha : tt_exact;
   if (auto &e = tt[node_hash & tt_mask];
       e.hash != node_hash || e.depth < depth) {
-    e = {node_hash,
-         {best_move.from_sq, best_move.to_sq, best_move.prom_p},
-         best,
-         flag,
-         depth};
+    e = {
+        node_hash,
+        {best_move.from_sq, best_move.to_sq, best_move.prom_p},
+        best,
+        flag,
+        depth
+    };
   }
   return;
 }
@@ -162,7 +166,9 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
         if (auto &e = tt[node_hash & tt_mask];
             e.hash != node_hash || e.depth < depth) {
           e = {
-              node_hash, {m.from_sq, m.to_sq, m.prom_p}, score, tt_beta, depth};
+              node_hash, {m.from_sq, m.to_sq, m.prom_p},
+               score, tt_beta, depth
+          };
         }
         unmove(b, m);
         return score;
@@ -187,11 +193,13 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
   const TT_flag flag = (best <= orig_alpha) ? tt_alpha : tt_exact;
   if (auto &e = tt[node_hash & tt_mask];
       e.hash != node_hash || e.depth < depth) {
-    e = {node_hash,
-         {best_move.from_sq, best_move.to_sq, best_move.prom_p},
-         best,
-         flag,
-         depth};
+    e = {
+        node_hash,
+        {best_move.from_sq, best_move.to_sq, best_move.prom_p},
+        best,
+        flag,
+        depth
+    };
   }
   return best;
 }
