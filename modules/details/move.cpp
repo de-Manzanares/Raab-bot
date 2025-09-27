@@ -5,6 +5,7 @@ module;
 #include <iostream>
 
 import board;
+import eval;
 import fen;
 import transposition;
 import types;
@@ -133,6 +134,9 @@ void move(Board &b, const Move m)
 
   // update history
   history.push_back(b.t_hash);
+
+  // update phase
+  b.phase = set_phase(b);
 }
 
 void unmove(Board &b, const Move m)
@@ -189,6 +193,9 @@ void unmove(Board &b, const Move m)
 
   // update history
   history.pop_back();
+
+  // update phase
+  b.phase = set_phase(b);
 }
 
 //------------------------------------------------------------------------------
@@ -215,7 +222,9 @@ void clear_sq(Board &b, const Square sq)
     b.color_on[sq] = null_color;                 // clear
     b.t_hash ^= zobrist.pcs[piece_t][color][sq]; // update hash
     // b.m_hash-= zobrist.mat[piece_t][color];     // update m_hash
-    b.mat_bal -= piece_val[color][piece_t];
+    b.mat_bal[color] -= piece_val[piece_t];
+    --b.mat_cnt[color][piece_t];
+    b.pos_bal[color] -= psqt_val[color][piece_t][sq];
   }
   else {
     // no action needed
@@ -232,7 +241,9 @@ void set_sq(Board &b, const Square sq, const PieceInfo pi)
     assert(pi.piece_t != null_piece);
     b.t_hash ^= zobrist.pcs[pi.piece_t][pi.color][sq];
     // b.m_hash+= zobrist.mat[pi.piece_t][pi.color];
-    b.mat_bal += piece_val[pi.color][pi.piece_t];
+    b.mat_bal[pi.color] += piece_val[pi.piece_t];
+    ++b.mat_cnt[pi.color][pi.piece_t];
+    b.pos_bal[pi.color] += psqt_val[pi.color][pi.piece_t][sq];
   }
 }
 

@@ -47,9 +47,13 @@ export class Board {
   Square wks{}; ///< white king square
   Square bks{}; ///< black king square
 
-  U64     t_hash{};  ///< hash for transposition table
-  U64     m_hash{};  ///< hash for material table
-  score_t mat_bal{}; ///< incrementally updated material balance
+  Phase phase{};
+
+  U64     t_hash{};        ///< hash for transposition table
+  U64     m_hash{};        ///< hash for material table
+  score_t mat_bal[2]{};    ///< incrementally updated material balance
+  score_t mat_cnt[2][6]{}; ///< piece counts
+  score_t pos_bal[2]{};    ///< incrementally updated psqt balance
 };
 
 //------------------------------------------------------------------------------
