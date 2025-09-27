@@ -21,7 +21,8 @@ void log_flush();
 //------------------------------------------------------------------------------
 
 void log_search() {
-  log("info", "depth", static_cast<int>(depth), "nodes", node_count);
+  log("info", "depth", static_cast<int>(depth), "score cp", g_eval, "nodes",
+      node_count);
   if (time_elapsed != 0) {
     log("nps", node_count / time_elapsed * 1000);
   }
