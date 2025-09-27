@@ -14,25 +14,29 @@ module movegen;
 
 template <class... Squares>
   requires(std::same_as<Square, Squares> && ...)
-bool all_empty(const Board &b, Squares... sq) {
+bool all_empty(const Board &b, Squares... sq)
+{
   return (... && (b.piece_on[sq] == null_piece));
 }
 
 template <class... Squares>
   requires(std::same_as<Square, Squares> && ...)
-bool all_capturable(const Board &b, Squares... sq) {
+bool all_capturable(const Board &b, Squares... sq)
+{
   return (... && (b.color_on[sq] == ~b.stm));
 }
 
 template <class... Squares>
   requires(std::same_as<Square, Squares> && ...)
-bool all_not_attacked(const Board &b, Color c, Squares... sq) {
+bool all_not_attacked(const Board &b, Color c, Squares... sq)
+{
   return (... && !is_attacked(b, sq, c));
 }
 
 constexpr U8 p_vals[6] = {9, 9, 5, 3, 3, 1}; //
 
-score_t mvvlva(const Piece victim, const Piece attacker) {
+score_t mvvlva(const Piece victim, const Piece attacker)
+{
   return (10 * p_vals[victim]) - p_vals[attacker];
 }
 
@@ -44,7 +48,8 @@ sz_t c_pm(const Board &b, MlIt &out, Square from);
 /// non-capture pawn moves
 sz_t nc_pm(const Board &b, MlIt &out, Square from);
 
-sz_t movegen_pawn(const Board &b, MlIt &out, const Square from) {
+sz_t movegen_pawn(const Board &b, MlIt &out, const Square from)
+{
   return c_pm(b, out, from) + nc_pm(b, out, from);
 }
 
@@ -52,7 +57,8 @@ sz_t movegen_not_pawn(const Board &b, MlIt &out, Square from, Piece piece_t,
                       int max_i);
 
 //------------------------------------------------------------------------------
-sz_t movegen(const Board &b, MlIt out) {
+sz_t movegen(const Board &b, MlIt out)
+{
   sz_t move_count = 0;
   move_count += movegen_castle(b, out);
   for (const auto from : square_sequence) {
@@ -70,7 +76,8 @@ sz_t movegen(const Board &b, MlIt out) {
   return move_count;
 }
 
-sz_t quiescence_movegen(const Board &b, MlIt out) {
+sz_t quiescence_movegen(const Board &b, MlIt out)
+{
   sz_t move_count = 0;
   for (const auto from : square_sequence) {
     if (b.color_on[from] == b.stm) {
@@ -108,11 +115,13 @@ sz_t quiescence_movegen(const Board &b, MlIt out) {
   return move_count;
 }
 
-bool is_legal(const Board &b) {
+bool is_legal(const Board &b)
+{
   return !is_attacked(b, b.stm == white ? b.bks : b.wks, b.stm);
 }
 
-sz_t cnt_legal_moves(Board &b) {
+sz_t cnt_legal_moves(Board &b)
+{
   MoveList   ml;
   sz_t       cnt_legal_moves{};
   const auto sz = movegen(b, ml.begin());
@@ -126,7 +135,8 @@ sz_t cnt_legal_moves(Board &b) {
   return cnt_legal_moves;
 }
 
-void movegen_sort(MlIt first, sz_t sz, const TT_move tt_m) {
+void movegen_sort(MlIt first, sz_t sz, const TT_move tt_m)
+{
   if (tt_m != TT_move{}) {
     auto is_move = [&tt_m](const Move &m) {
       return (m.from_sq == tt_m.from && m.to_sq == tt_m.to &&
@@ -134,7 +144,8 @@ void movegen_sort(MlIt first, sz_t sz, const TT_move tt_m) {
     };
     auto it = std::find_if(first, std::next(first, sz), is_move);
     std::iter_swap(first, it);
-  } else {
+  }
+  else {
     auto max = first;
     for (auto it = std::next(first); it != std::next(first, sz); ++it) {
       if (it->score > max->score) {
@@ -147,7 +158,8 @@ void movegen_sort(MlIt first, sz_t sz, const TT_move tt_m) {
 
 //------------------------------------------------------------------------------
 
-sz_t movegen_castle(const Board &b, MlIt &out) {
+sz_t movegen_castle(const Board &b, MlIt &out)
+{
   sz_t move_count{};
   if (b.stm == white) {
     if ((b.cr & 1) && all_empty(b, f1, g1) &&
@@ -174,7 +186,8 @@ sz_t movegen_castle(const Board &b, MlIt &out) {
       };
       ++move_count;
     }
-  } else {
+  }
+  else {
     if ((b.cr & 4) && all_empty(b, f8, g8) &&
         all_not_attacked(b, white, e8, f8, g8)) {
       *out++ = Move{
@@ -203,13 +216,15 @@ sz_t movegen_castle(const Board &b, MlIt &out) {
   return move_count;
 }
 
-sz_t c_pm(const Board &b, MlIt &out, const Square from) {
+sz_t c_pm(const Board &b, MlIt &out, const Square from)
+{
   sz_t                     move_count{};
   std::array<Direction, 2> dirs;
   const Square             prom_row = b.stm == white ? a7 : a2;
   if (b.stm == white) {
     dirs = {NW, NE};
-  } else {
+  }
+  else {
     dirs = {SW, SE};
   }
   for (const auto dir : dirs) {
@@ -232,7 +247,8 @@ sz_t c_pm(const Board &b, MlIt &out, const Square from) {
             };
             ++move_count;
           }
-        } else {
+        }
+        else {
           *out++ = Move{
               .from_sq    = from,
               .to_sq      = to,
@@ -245,7 +261,8 @@ sz_t c_pm(const Board &b, MlIt &out, const Square from) {
           };
           ++move_count;
         }
-      } else if (to == b.ep) {
+      }
+      else if (to == b.ep) {
         *out++ = Move{
             .from_sq    = from,
             .to_sq      = to,
@@ -263,7 +280,8 @@ sz_t c_pm(const Board &b, MlIt &out, const Square from) {
   return move_count;
 }
 
-sz_t nc_pm(const Board &b, MlIt &out, const Square from) {
+sz_t nc_pm(const Board &b, MlIt &out, const Square from)
+{
   sz_t            move_count{};
   const Direction dir        = b.stm == white ? N : S;
   const Square    prom_row   = b.stm == white ? a7 : a2;
@@ -284,7 +302,8 @@ sz_t nc_pm(const Board &b, MlIt &out, const Square from) {
         };
         ++move_count;
       }
-    } else {
+    }
+    else {
       // single move
       *out++ = Move{
           .from_sq    = from,
@@ -315,7 +334,8 @@ sz_t nc_pm(const Board &b, MlIt &out, const Square from) {
 }
 
 sz_t movegen_not_pawn(const Board &b, MlIt &out, const Square from,
-                      const Piece piece_t, const int max_i) {
+                      const Piece piece_t, const int max_i)
+{
   sz_t move_count{};
   for (const auto vec : unit_vectors[piece_t]) {
     for (int i = 1; i <= max_i; ++i) {
@@ -333,7 +353,8 @@ sz_t movegen_not_pawn(const Board &b, MlIt &out, const Square from,
             .prev_ep    = b.ep,
         };
         ++move_count;
-      } else if (all_capturable(b, to)) {
+      }
+      else if (all_capturable(b, to)) {
         *out++ = Move{
             .from_sq    = from,
             .to_sq      = to,

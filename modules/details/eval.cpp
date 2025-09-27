@@ -15,7 +15,8 @@ score_t mobility(const Board &b);
 
 //------------------------------------------------------------------------------
 
-score_t static_eval(Board &b) {
+score_t static_eval(Board &b)
+{
   // todo dedicated eval cache
   const auto cb  = check_bonus(b);
   const auto kr  = king_restriction(b) * 8;
@@ -25,19 +26,22 @@ score_t static_eval(Board &b) {
   return b.stm == white ? sum : -sum;
 }
 
-score_t contempt(const Board &b) {
+score_t contempt(const Board &b)
+{
   return (material(b) * (b.stm == white ? -1 : 1) * 128);
 }
 
 //------------------------------------------------------------------------------
 
-score_t check_bonus(const Board &b) {
+score_t check_bonus(const Board &b)
+{
   score_t score{};
   if (b.stm == white) {
     if (is_attacked(b, b.wks, black)) {
       score = -16;
     }
-  } else {
+  }
+  else {
     if (is_attacked(b, b.bks, white)) {
       score = 16;
     }
@@ -46,7 +50,8 @@ score_t check_bonus(const Board &b) {
 }
 
 // the lower, the better, so we return the negated value
-score_t king_restriction(Board &b) {
+score_t king_restriction(Board &b)
+{
   auto ratio = [&b](const Square ksq, const Color c) {
     double  att{};
     score_t valid{};
@@ -67,7 +72,8 @@ score_t king_restriction(Board &b) {
 
 constexpr score_t piece_vals[6] = {0, 9, 5, 3, 3, 1};
 
-score_t material(const Board &b) {
+score_t material(const Board &b)
+{
   if (const auto &e = mt[b.m_hash & mt_mask]; e.m_hash == b.m_hash) {
     return e.mat;
   }
@@ -84,7 +90,8 @@ score_t material(const Board &b) {
 }
 
 // todo remove uses of cnt_legal_moves();
-score_t mobility(const Board &b) {
+score_t mobility(const Board &b)
+{
   Board   tmp = b;
   score_t w_mob{};
   score_t b_mob{};

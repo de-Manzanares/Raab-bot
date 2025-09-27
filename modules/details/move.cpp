@@ -26,11 +26,13 @@ std::ostream &print_square(std::ostream &os, Square sq);
 
 //------------------------------------------------------------------------------
 
-bool operator==(const Move lhs, const Move rhs) {
+bool operator==(const Move lhs, const Move rhs)
+{
   return lhs.from_sq == rhs.from_sq && lhs.to_sq == rhs.to_sq;
 }
 
-std::ostream &operator<<(std::ostream &os, const Move &m) {
+std::ostream &operator<<(std::ostream &os, const Move &m)
+{
   if (m.from_sq == null_square) {
     os << "0000";
     return os;
@@ -43,7 +45,8 @@ std::ostream &operator<<(std::ostream &os, const Move &m) {
   return os;
 }
 
-bool is_repetition(const U64 hash) {
+bool is_repetition(const U64 hash)
+{
   auto const last = history.end() - 1;
   if (const auto first = std::find(history.begin(), last, hash);
       first != last) {
@@ -54,21 +57,25 @@ bool is_repetition(const U64 hash) {
   return false;
 }
 
-void move(Board &b, const Move m) {
+void move(Board &b, const Move m)
+{
   // move pieces
   clear_sq(b, m.from_sq);
   if (m.flag == promotion || m.flag == prom_capture) {
     set_sq(b, m.to_sq, prom_piece(m));
-  } else {
+  }
+  else {
     set_sq(b, m.to_sq, from_piece(m));
   }
   if (m.flag == en_passant_capture) {
     const auto sq = m.to_sq + (b.stm == white ? S : N);
     clear_sq(b, sq);
-  } else if (m.flag == castle) {
+  }
+  else if (m.flag == castle) {
     if (b.stm == white) {
       b.wks = m.to_sq;
-    } else {
+    }
+    else {
       b.bks = m.to_sq;
     }
     finish_castle(b, m.to_sq);
@@ -80,7 +87,8 @@ void move(Board &b, const Move m) {
     if (b.stm == white) {
       b.wks = m.to_sq;
       rm_castle_rights(b, white);
-    } else {
+    }
+    else {
       b.bks = m.to_sq;
       rm_castle_rights(b, black);
     }
@@ -107,7 +115,8 @@ void move(Board &b, const Move m) {
   if (m.flag == double_push) {
     b.ep = m.ep_target;
     b.t_hash ^= zobrist.ep[b.ep];
-  } else {
+  }
+  else {
     b.ep = null_square;
   }
 
@@ -126,16 +135,19 @@ void move(Board &b, const Move m) {
   history.push_back(b.t_hash);
 }
 
-void unmove(Board &b, const Move m) {
+void unmove(Board &b, const Move m)
+{
   // move pieces
   set_sq(b, m.from_sq, from_piece(m));
   if (m.flag == en_passant_capture) {
     const auto sq = m.to_sq + (b.stm == black ? S : N);
     clear_sq(b, m.to_sq);
     set_sq(b, sq, {pawn, b.stm});
-  } else if (m.cap_piece != null_piece) { // cannot be m.flag == capture (?)
+  }
+  else if (m.cap_piece != null_piece) { // cannot be m.flag == capture (?)
     set_sq(b, m.to_sq, captured_piece(m));
-  } else {
+  }
+  else {
     clear_sq(b, m.to_sq);
   }
   if (m.flag == castle) {
@@ -146,7 +158,8 @@ void unmove(Board &b, const Move m) {
   if (m.from_piece.piece_t == king) {
     if (~b.stm == white) {
       b.wks = m.from_sq;
-    } else {
+    }
+    else {
       b.bks = m.from_sq;
     }
   }
@@ -180,31 +193,37 @@ void unmove(Board &b, const Move m) {
 
 //------------------------------------------------------------------------------
 
-PieceInfo captured_piece(const Move &m) {
+PieceInfo captured_piece(const Move &m)
+{
   return PieceInfo{m.cap_piece, ~m.from_piece.color};
 }
 
-PieceInfo from_piece(const Move &m) {
+PieceInfo from_piece(const Move &m)
+{
   return PieceInfo{m.from_piece.piece_t, m.from_piece.color};
 }
 
-PieceInfo prom_piece(const Move &m) {
+PieceInfo prom_piece(const Move &m)
+{
   return PieceInfo{m.prom_p, m.from_piece.color};
 }
 
-void clear_sq(Board &b, const Square sq) {
+void clear_sq(Board &b, const Square sq)
+{
   if (auto [piece_t, color] = b.piece_info(sq); piece_t != null_piece) {
     b.piece_on[sq] = null_piece;                 // clear
     b.color_on[sq] = null_color;                 // clear
     b.t_hash ^= zobrist.pcs[piece_t][color][sq]; // update hash
     b.m_hash -= zobrist.mat[piece_t][color];     // update m_hash
-  } else {
+  }
+  else {
     // no action needed
   }
 }
 
 /// @note calls clear square to maintain Zobrist hash
-void set_sq(Board &b, const Square sq, const PieceInfo pi) {
+void set_sq(Board &b, const Square sq, const PieceInfo pi)
+{
   if (is_on_board(sq)) { // todo when are we passed an invalid square?
     clear_sq(b, sq);
     b.piece_on[sq] = pi.piece_t;
@@ -215,7 +234,8 @@ void set_sq(Board &b, const Square sq, const PieceInfo pi) {
   }
 }
 
-void finish_castle(Board &b, const Square to) {
+void finish_castle(Board &b, const Square to)
+{
   switch (to) {
   case c1:
     clear_sq(b, a1);
@@ -241,7 +261,8 @@ void finish_castle(Board &b, const Square to) {
   }
 }
 
-void unfinish_castle(Board &b, const Square to) {
+void unfinish_castle(Board &b, const Square to)
+{
   switch (to) {
   case c1:
     clear_sq(b, d1);
@@ -263,15 +284,18 @@ void unfinish_castle(Board &b, const Square to) {
   }
 }
 
-void rm_castle_rights(Board &b, const Color c) {
+void rm_castle_rights(Board &b, const Color c)
+{
   if (c == white) {
     b.cr &= 0b1100;
-  } else if (c == black) {
+  }
+  else if (c == black) {
     b.cr &= 0b0011;
   }
 }
 
-void rook_mv_castle_rights(Board &b, const Square sq) {
+void rook_mv_castle_rights(Board &b, const Square sq)
+{
   switch (sq) {
   case a1:
     b.cr &= 0b1101;
@@ -288,7 +312,8 @@ void rook_mv_castle_rights(Board &b, const Square sq) {
   }
 }
 
-std::ostream &print_square(std::ostream &os, const Square sq) {
+std::ostream &print_square(std::ostream &os, const Square sq)
+{
   const char file = static_cast<char>('a' + (sq & 0x7));
   const char rank = static_cast<char>('1' + ((sq >> 4) & 0x7));
   os.put(file).put(rank);

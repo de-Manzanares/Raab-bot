@@ -30,7 +30,8 @@ Move to_move(const Board &b, std::string_view s, MlIt out);
 
 //------------------------------------------------------------------------------
 
-void uci_loop() {
+void uci_loop()
+{
   std::string gui_cmd; // the command from the GUI
   Board       b;
   while (std::getline(std::cin, gui_cmd)) {
@@ -39,7 +40,8 @@ void uci_loop() {
     if (simon_says(&gui_cmd, "position")) {
       if (simon_says(&gui_cmd, "fen")) {
         b = Board{gui_cmd.substr(13)};
-      } else if (simon_says(&gui_cmd, "startpos")) {
+      }
+      else if (simon_says(&gui_cmd, "startpos")) {
         b.reset();
       }
       if (simon_says(&gui_cmd, "moves")) {
@@ -60,9 +62,11 @@ void uci_loop() {
       // my little time per move function
       if (b.stm == white && wtime != 0) {
         allowed_time = double(wtime) / 60.0 + winc;
-      } else if (b.stm == black && btime != 0) {
+      }
+      else if (b.stm == black && btime != 0) {
         allowed_time = double(btime) / 60.0 + binc;
-      } else {
+      }
+      else {
         allowed_time = 1000;
       }
 
@@ -70,9 +74,11 @@ void uci_loop() {
 
       if (accept_value(gui_cmd, "go movetime", allowed_time)) {
         ;
-      } else if (accept_value(gui_cmd, "go depth", target_depth)) {
+      }
+      else if (accept_value(gui_cmd, "go depth", target_depth)) {
         allowed_time = std::numeric_limits<decltype(allowed_time)>::max();
-      } else if (gui_cmd.find("go infinite") != std::string::npos) {
+      }
+      else if (gui_cmd.find("go infinite") != std::string::npos) {
         target_depth = std::numeric_limits<decltype(target_depth)>::max();
         allowed_time = std::numeric_limits<decltype(allowed_time)>::max();
       }
@@ -82,7 +88,8 @@ void uci_loop() {
         alpha_beta_root(b, alpha, beta, depth);
         if (root_trees <= rte || root_beta_cutoff) {
           log_search();
-        } else {
+        }
+        else {
           break;
         }
         if (g_pv[0] != Move{}) {
@@ -92,10 +99,13 @@ void uci_loop() {
       }
 
       logln("bestmove", prev_g_pv[0]);
-    } else if (gui_cmd.find("stop") != std::string::npos) {
-    } else if (gui_cmd == "d") {
+    }
+    else if (gui_cmd.find("stop") != std::string::npos) {
+    }
+    else if (gui_cmd == "d") {
       b.display();
-    } else if (gui_cmd == "quit") {
+    }
+    else if (gui_cmd == "quit") {
       break;
     } // quit the loop, ends the program
   }
@@ -104,7 +114,8 @@ void uci_loop() {
 //------------------------------------------------------------------------------
 
 template <typename T>
-bool accept_value(const std::string &sup_s, std::string_view sub_s, T &var) {
+bool accept_value(const std::string &sup_s, std::string_view sub_s, T &var)
+{
   if constexpr (std::is_integral_v<T>) {
     if (const auto it = sup_s.find(sub_s); it != std::string::npos) {
       var = std::stoi(sup_s.substr(it + sub_s.size() + 1));
@@ -115,10 +126,12 @@ bool accept_value(const std::string &sup_s, std::string_view sub_s, T &var) {
 }
 
 // for some reason, Scid vs PC is very sensitive to the format of the preamble
-void preamble(const std::string *in) {
+void preamble(const std::string *in)
+{
   if (*in == "uci") {
     std::cout << "id name Raab-bot\nid author Schauss\nuciok\n";
-  } else if (*in == "isready") {
+  }
+  else if (*in == "isready") {
     std::cout << "readyok\n";
   }
 }
@@ -134,11 +147,13 @@ void preamble(const std::string *in) {
 // }
 //
 
-bool simon_says(const std::string *s, const std::string &has) {
+bool simon_says(const std::string *s, const std::string &has)
+{
   return s->find(has) != std::string::npos;
 }
 
-void startpos_moves(Board &b, const std::string *in) {
+void startpos_moves(Board &b, const std::string *in)
+{
   MoveList           ml;
   std::istringstream iss(*in);
   std::string        s;
@@ -153,7 +168,8 @@ void startpos_moves(Board &b, const std::string *in) {
   }
 }
 
-Move to_move(const Board &b, const std::string_view s, const MlIt out) {
+Move to_move(const Board &b, const std::string_view s, const MlIt out)
+{
   auto       ch = s.begin();
   const auto from_sq =
       static_cast<Square>((16 * (*std::next(ch) - '0' - 1)) + *ch - 'a');

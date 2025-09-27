@@ -9,7 +9,7 @@ export module log;
 std::string log_name();
 
 /// log file - records all gui input and engine output
-std::ofstream ofile("rbv2dev3log.txt");
+std::ofstream ofile("rbv2dev4log.txt");
 
 //------------------------------------------------------------------------------
 

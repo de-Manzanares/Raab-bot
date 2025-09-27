@@ -18,7 +18,8 @@ module search;
 
 //------------------------------------------------------------------------------
 
-void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth) {
+void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
+{
   std::ranges::fill(g_pv, Move{});
   g_eval           = 0;
   rte              = 0;
@@ -99,7 +100,8 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth) {
 }
 
 score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
-                   const U8 ply, PVLine *pline) {
+                   const U8 ply, PVLine *pline)
+{
   PVLine line{};
   if (depth == 0) {
     // pline->count = 0; ?
@@ -195,7 +197,8 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
 }
 
 score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
-                PVLine *pline) {
+                PVLine *pline)
+{
   PVLine line{};
   if (is_repetition(b.t_hash)) {
     return contempt(b);
@@ -203,7 +206,8 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
   score_t best{};
   if (in_check(b)) {
     best = alpha_beta(b, alpha, beta, 1, ply, &line);
-  } else {
+  }
+  else {
     best = static_eval(b);
   }
   if (best >= beta) {

@@ -9,7 +9,8 @@ module transposition;
 
 //------------------------------------------------------------------------------
 
-Zobrist::Zobrist() {
+Zobrist::Zobrist()
+{
   std::mt19937_64 gen;
   for (long piece_t = 0; piece_t < 6; ++piece_t) {
     for (long color = 0; color < 2; ++color) {
@@ -32,7 +33,8 @@ Zobrist::Zobrist() {
   }
 }
 
-bool TT_move::operator==(const TT_move &rhs) const {
+bool TT_move::operator==(const TT_move &rhs) const
+{
   return from == rhs.from && to == rhs.to && prom_p == rhs.prom_p;
 }
 

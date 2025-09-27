@@ -96,19 +96,23 @@ export constexpr std::array<Square, 64> square_sequence{
 
 //------------------------------------------------------------------------------
 
-bool operator==(const PieceInfo lhs, const PieceInfo rhs) {
+bool operator==(const PieceInfo lhs, const PieceInfo rhs)
+{
   return lhs.piece_t == rhs.piece_t && lhs.color == rhs.color;
 }
 
-Square operator+(const Square lhs, const Direction rhs) {
+Square operator+(const Square lhs, const Direction rhs)
+{
   return static_cast<Square>(static_cast<int>(lhs) + static_cast<int>(rhs));
 }
 
-Square operator+(const Square lhs, const int rhs) {
+Square operator+(const Square lhs, const int rhs)
+{
   return static_cast<Square>(static_cast<int>(lhs) + rhs);
 }
 
-Color operator~(const Color color) {
+Color operator~(const Color color)
+{
   if (color == white) {
     return black;
   }
