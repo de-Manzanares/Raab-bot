@@ -1,84 +1,61 @@
 module;
 
-#include "transposition.hpp"
-
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <chrono>
 #include <limits>
 
-export module Board0x88:search;
-import :eval;
-import :move;
-import :movegen;
+import attack;
+import board;
+import eval;
+import move;
+import movegen;
+import transposition;
+import types;
 
-export constexpr std::uint8_t max_depth = 32;
-export using PVLine = std::array<Move, max_depth>;
-export PVLine g_pv;
-export PVLine prev_g_pv;
-
-/// not really searched, more like looked at
-export std::size_t root_trees_searched{};
-
-export bool root_beta_cutoff = false;
-
-export std::size_t root_trees{};
-export long allowed_time;
-export std::chrono::time_point<std::chrono::steady_clock> start;
-export long time_elapsed;
-
-// todo check elapsed time on node count instead of next move on alpha beta
-// maybe that will be less expensive
+module search;
 
 //------------------------------------------------------------------------------
 
-export void alpha_beta_root(Board &b, int alpha, int beta, std::uint8_t depth);
-
-export auto alpha_beta(Board &b, int alpha, int beta, std::uint8_t depth,
-                       std::uint8_t ply, PVLine *pline) -> int;
-
-export auto quiesce(Board &b, int alpha, int beta, std::uint8_t ply,
-                    PVLine *pline) -> int;
-
-//------------------------------------------------------------------------------
-
-void alpha_beta_root(Board &b, int alpha, int beta, const std::uint8_t depth) {
+void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth) {
   std::ranges::fill(g_pv, Move{});
-  root_trees_searched = 0;
+  rte              = 0;
   root_beta_cutoff = false;
   // todo small optimization don't need to call movegen twice here
   root_trees = cnt_legal_moves(b);
+  node_count = 0;
 
-  PVLine line;
-  const auto node_hash = b.hash;
+  PVLine     line;
+  const auto node_hash  = b.hash;
   const auto orig_alpha = alpha;
-  TT_move tt_move{};
+  TT_move    tt_move{};
   {
     if (const auto &e = tt[node_hash & tt_mask]; e.hash == node_hash) {
       tt_move = e.tt_m;
     }
   }
-  std::array<Move, 256> ml{};
-  Move best_move{};
-  int best = std::numeric_limits<int>::min();
-  int score{};
-  int move_n{};
-  int legal_moves{};
+  MoveList ml{};
+  Move     best_move{};
+  score_t  best = std::numeric_limits<score_t>::min();
+  score_t  score{};
+  sz_t     move_n{};
+  sz_t     legal_moves{};
 
-  for (const auto sz = movegen(b, ml.begin()); move_n < sz;
-       ++move_n, ++root_trees_searched) {
+  for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n, ++rte) {
     movegen_sort(std::next(ml.begin(), move_n), sz - move_n, tt_move);
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
-      constexpr std::uint8_t ply{};
+      ++node_count;
+      constexpr U8 ply{};
       score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line);
       ++legal_moves;
       if (score > best) {
-        best = score;
+        best      = score;
         best_move = m;
         if (score > alpha) {
-          alpha = score;
+          alpha   = score;
           g_pv[0] = m;
           auto it = std::ranges::find(line, Move{});
           std::copy(line.begin(), it, std::next(g_pv.begin()));
@@ -118,14 +95,14 @@ void alpha_beta_root(Board &b, int alpha, int beta, const std::uint8_t depth) {
   return;
 }
 
-int alpha_beta(Board &b, int alpha, const int beta, const std::uint8_t depth,
-               const std::uint8_t ply, PVLine *pline) {
+score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
+                   const U8 ply, PVLine *pline) {
   PVLine line{};
   if (depth == 0) {
     // pline->count = 0; ?
     return quiesce(b, alpha, beta, ply, &line);
   }
-  const auto node_hash = b.hash;
+  const auto node_hash  = b.hash;
   const auto orig_alpha = alpha;
   if (is_repetition(node_hash)) {
     if (auto &e = tt[node_hash & tt_mask];
@@ -152,26 +129,27 @@ int alpha_beta(Board &b, int alpha, const int beta, const std::uint8_t depth,
     }
   }
 
-  std::array<Move, 256> ml{};
-  Move best_move{};
-  int best = std::numeric_limits<int>::min();
-  int score{};
-  int move_n{};
-  int legal_moves{};
+  MoveList ml{};
+  Move     best_move{};
+  score_t  best = std::numeric_limits<score_t>::min();
+  score_t  score{};
+  sz_t     move_n{};
+  sz_t     legal_moves{};
   for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n) {
     movegen_sort(std::next(ml.begin(), move_n), sz - move_n, tt_move);
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
+      ++node_count;
       score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line);
       ++legal_moves;
       if (score > best) {
         best = score;
         if (score > alpha) {
-          alpha = score;
-          best_move = m;
+          alpha       = score;
+          best_move   = m;
           (*pline)[0] = m;
-          auto it = std::ranges::find(line, Move{});
+          auto it     = std::ranges::find(line, Move{});
           std::copy(line.begin(), it, std::next(pline->begin()));
         }
       }
@@ -194,7 +172,7 @@ int alpha_beta(Board &b, int alpha, const int beta, const std::uint8_t depth,
     }
   }
   if (legal_moves == 0) {
-    const int val = in_check(b) ? -(CHECKMATE - ply) : 0;
+    const score_t val = in_check(b) ? -(CHECKMATE - ply) : 0;
     if (auto &e = tt[node_hash & tt_mask];
         e.hash != node_hash || e.depth < depth) {
       e = {node_hash, {}, val, tt_exact, depth};
@@ -213,32 +191,33 @@ int alpha_beta(Board &b, int alpha, const int beta, const std::uint8_t depth,
   return best;
 }
 
-int quiesce(Board &b, int alpha, const int beta, const std::uint8_t ply,
-            PVLine *pline) {
+score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
+                PVLine *pline) {
   PVLine line{};
   if (is_repetition(b.hash)) {
     return contempt(b);
   }
-  int best{};
+  score_t best{};
   if (in_check(b)) {
     best = alpha_beta(b, alpha, beta, 1, ply, &line);
   } else {
-    best = static_eval(b, alpha, beta, ply);
+    best = static_eval(b);
   }
   if (best >= beta) {
     return best;
   }
   alpha = std::max(best, alpha);
 
-  std::array<Move, 256> ml{};
-  int score{};
-  int move_n{};
+  MoveList ml{};
+  score_t  score{};
+  sz_t     move_n{};
   for (const auto sz = quiescence_movegen(b, ml.begin()); move_n < sz;
        ++move_n) {
     movegen_sort(std::next(ml.begin(), move_n), sz - move_n);
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
+      ++node_count;
       score = -quiesce(b, -beta, -alpha, ply + 1, pline);
       if (score > best) {
         best = score;
@@ -255,3 +234,5 @@ int quiesce(Board &b, int alpha, const int beta, const std::uint8_t ply,
   }
   return best;
 }
+
+//------------------------------------------------------------------------------

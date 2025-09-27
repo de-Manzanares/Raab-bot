@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 set(CompilerOptions -Wall -Wextra -Wpedantic
         # -Werror
@@ -17,62 +18,59 @@ set(SANCompilerOptions -fsanitize=address,undefined ${CompilerOptions})
 set(SANLinkerOptions -fsanitize=address,undefined)
 set(ReleaseCompilerOptions -O3 -ffast-math -march=native)
 
-add_library(
-        common_options
-        INTERFACE
-)
-target_compile_options(
-        common_options
+add_library(build_flags INTERFACE)
+target_compile_options(build_flags
         INTERFACE
         $<$<CONFIG:Debug>:$<$<CXX_COMPILER_ID:GNU,Clang>:${DEBUGCompilerOptions}>>
         $<$<CONFIG:Coverage>:$<$<CXX_COMPILER_ID:GNU,Clang>:${COVCompilerOptions}>>
         $<$<CONFIG:Sanitizer>:$<$<CXX_COMPILER_ID:GNU,Clang>:${SANCompilerOptions}>>
         $<$<CONFIG:Release>:$<$<CXX_COMPILER_ID:GNU,Clang>:${ReleaseCompilerOptions}>>
 )
-target_link_options(
-        common_options
+target_link_options(build_flags
         INTERFACE
         $<$<CONFIG:Coverage>:$<$<CXX_COMPILER_ID:GNU,Clang>:${COVLinkerOptions}>>
         $<$<CONFIG:Sanitizer>:$<$<CXX_COMPILER_ID:GNU,Clang>:${SANLinkerOptions}>>
 )
 
-add_library(
-        chess_modules
-        OBJECT
-)
-target_sources(
-        chess_modules
+add_library(chess_modules OBJECT)
+target_sources(chess_modules
         PUBLIC
         FILE_SET cxx_modules
         TYPE CXX_MODULES
         FILES
-        src/Board0x88.ixx
-        src/Board0x88/attack.cppm
-        src/Board0x88/core.cppm
-        src/Board0x88/eval.cppm
-        src/Board0x88/fen.cppm
-        src/Board0x88/move.cppm
-        src/Board0x88/movegen.cppm
-        src/Board0x88/search.cppm
-        src/Board0x88/types.cppm
-        src/uci.cpp
+        modules/attack.ixx
+        modules/board.ixx
+        modules/eval.ixx
+        modules/fen.ixx
+        modules/move.ixx
+        modules/movegen.ixx
+        modules/search.ixx
+        modules/transposition.ixx
+        modules/types.ixx
+        modules/uci.ixx
+        modules/auxiliary/log.ixx
 )
-target_link_libraries(
-        chess_modules
-        PRIVATE
-        common_options
-)
+target_link_libraries(chess_modules PUBLIC build_flags)
 
-add_executable(
-        Raab-bot-${VERSION}
-        src/main.cpp
-)
-target_link_libraries(
-        Raab-bot-${VERSION}
+add_library(chess STATIC)
+target_sources(chess
         PRIVATE
-        common_options
-        chess_modules
+        modules/details/attack.cpp
+        modules/details/board.cpp
+        modules/details/board.cpp
+        modules/details/eval.cpp
+        modules/details/fen.cpp
+        modules/details/move.cpp
+        modules/details/movegen.cpp
+        modules/details/search.cpp
+        modules/details/transposition.cpp
+        modules/details/uci.cpp
+        modules/auxiliary/log.cpp
 )
+target_link_libraries(chess PUBLIC chess_modules build_flags)
+
+add_executable(Raab-bot-${VERSION} src/raab-bot.cpp)
+target_link_libraries(Raab-bot-${VERSION} PRIVATE chess)
 
 include(CTest)
 enable_testing()
