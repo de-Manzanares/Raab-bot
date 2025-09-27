@@ -35,7 +35,8 @@ Board::Board(const std::string_view fenstr)
       }
       idx++;
       t_hash ^= zobrist.pcs[piece_t][color][sq];
-      m_hash += zobrist.mat[piece_t][color];
+      // m_hash+= zobrist.mat[piece_t][color];
+      mat_bal += piece_val[color][piece_t];
     }
     else if (*it >= '1' && *it <= '8') { // empty squares
       idx += *it - '0';
@@ -104,7 +105,7 @@ Board::Board(const std::string_view fenstr)
   fmc = *std::next(it, 2) - '0';
 
   tt[t_hash & tt_mask] = {t_hash, {}, {}, {}, {}};
-  mt[m_hash & mt_mask] = {m_hash, 0};
+  mt[m_hash & mt_mask] = {m_hash, mat_bal};
 }
 
 PieceInfo Board::piece_info(const Square sq) const
