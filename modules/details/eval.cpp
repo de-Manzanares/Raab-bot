@@ -8,96 +8,59 @@ import transposition;
 
 module eval;
 
-score_t check_bonus(const Board &b);
-score_t king_restriction(Board &b);
-score_t material(const Board &b);
-score_t mobility(const Board &b);
-
 //------------------------------------------------------------------------------
 
-score_t static_eval(Board &b)
+Phase set_phase(const Board &b)
 {
-  // todo dedicated eval cache
-  const auto cb  = check_bonus(b);
-  const auto kr  = king_restriction(b) * 8;
-  const auto mat = b.mat_bal * 128;
-  const auto mob = mobility(b) >> 3;
-  const auto sum = cb + kr + mat + mob;
-  return b.stm == white ? sum : -sum;
+  auto lte_one_minor_piece = [&](Color c) {
+    int sum{};
+    for (int p = bishop; p <= knight; ++p) {
+      sum += b.mat_cnt[c][p];
+      if (sum > 1) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  Phase phase{};
+  if (bool no_queens =
+          b.mat_cnt[white][queen] == 0 && b.mat_cnt[black][queen] == 0) {
+    phase = end_game;
+  }
+  else {
+    bool cnd = true;
+    for (int color = white; color <= black; ++color) {
+      if (b.mat_cnt[color][queen] > 0) {
+        if (!lte_one_minor_piece(static_cast<Color>(color))) {
+          cnd = false;
+        }
+      }
+    }
+    if (cnd) {
+      phase = end_game;
+    }
+  }
+  return phase;
+}
+
+score_t tmsef(const Board &b)
+{
+  score_t score = (b.mat_bal[white] - b.mat_bal[black]) +
+                  (b.pos_bal[white] - b.pos_bal[black]);
+  if (b.phase == end_game) {
+    score -= psqt_val[white][king][b.wks];
+    score -= psqt_val[black][king][b.bks];
+    score += eg_psqt[white][b.wks];
+    score += eg_psqt[black][b.bks];
+  }
+  return b.stm == white ? score : -score;
 }
 
 score_t contempt(const Board &b)
 {
-  return (b.mat_bal * (b.stm == white ? -1 : 1) * 128);
+  return (b.mat_bal[white] - b.mat_bal[black]) * (b.stm == white ? -1 : 1);
 }
 
 //------------------------------------------------------------------------------
 
-score_t check_bonus(const Board &b)
-{
-  score_t score{};
-  if (b.stm == white) {
-    if (is_attacked(b, b.wks, black)) {
-      score = -16;
-    }
-  }
-  else {
-    if (is_attacked(b, b.bks, white)) {
-      score = 16;
-    }
-  }
-  return score;
-}
-
-// the lower, the better, so we return the negated value
-score_t king_restriction(Board &b)
-{
-  auto ratio = [&b](const Square ksq, const Color c) {
-    double  att{};
-    score_t valid{};
-    for (const auto dir : unit_vectors[king]) {
-      if (is_on_board(ksq + dir)) {
-        ++valid;
-      }
-      if (is_attacked(b, ksq + dir, c)) {
-        ++att;
-      }
-    }
-    return att / valid;
-  };
-  const auto w  = ratio(b.wks, black);
-  const auto bl = ratio(b.bks, white);
-  return -(w - bl);
-}
-
-constexpr score_t piece_vals[6] = {0, 9, 5, 3, 3, 1};
-
-score_t material(const Board &b)
-{
-  if (const auto &e = mt[b.m_hash & mt_mask]; e.m_hash == b.m_hash) {
-    return e.mat;
-  }
-  const score_t mat = b.mat_bal;
-  // for (const auto sq : square_sequence) {
-  //   if (b.piece_on[sq] != null_piece) {
-  //     auto [piece_t, color] = b.piece_info(sq);
-  //     const score_t mult    = color == white ? 1 : -1;
-  //     mat += piece_vals[piece_t] * mult;
-  //   }
-  // }
-  mt[b.m_hash & mt_mask] = {b.m_hash, mat};
-  return mat;
-}
-
-// todo remove uses of cnt_legal_moves();
-score_t mobility(const Board &b)
-{
-  Board   tmp = b;
-  score_t w_mob{};
-  score_t b_mob{};
-  tmp.stm = white;
-  w_mob   = cnt_legal_moves(tmp);
-  tmp.stm = black;
-  b_mob   = cnt_legal_moves(tmp);
-  return w_mob - b_mob;
-}

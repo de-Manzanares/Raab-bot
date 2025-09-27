@@ -216,7 +216,7 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
     best = alpha_beta(b, alpha, beta, 1, ply, &line);
   }
   else {
-    best = static_eval(b);
+    best = tmsef(b);
   }
   if (best >= beta) {
     return best;

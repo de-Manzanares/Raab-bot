@@ -12,10 +12,8 @@ Current Engine Features
 - move ordering
     - MVV/LVA
 - evaluation
-    - material
-        - material hash table
-    - mobility
-    - king safety
+    - Tomasz Michniewski's simplified evaluation function
+        - (a stand-in while other engine features are being developed)
 - minimal UCI capabilities
 
 Principles of Development:

@@ -47,10 +47,8 @@ export enum Piece : U8 {
   null_piece = '.'
 };
 
-export constexpr score_t piece_val[2][6] = {
-    {0,  9,  5,  3,  3,  1},
-    {0, -9, -5, -3, -3, -1}
-};
+/// tmsef
+export constexpr score_t piece_val[6] = {20000, 900, 500, 330, 320, 100};
 
 export struct PieceInfo {
   Piece piece_t{null_piece};
@@ -100,6 +98,8 @@ export constexpr std::array<Square, 64> square_sequence{
              a8 , b8, c8, d8, e8, f8, g8, h8,
         }};
 // clang-format on
+
+export enum Phase : U8 { middle_game, end_game };
 
 //------------------------------------------------------------------------------
 
