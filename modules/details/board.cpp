@@ -12,7 +12,8 @@ module board;
 
 using svci = std::string_view::const_iterator;
 
-Board::Board(const std::string_view fenstr) {
+Board::Board(const std::string_view fenstr)
+{
   using namespace fen;
   piece_on.fill(null_piece);
   color_on.fill(null_color);
@@ -27,16 +28,19 @@ Board::Board(const std::string_view fenstr) {
       if (piece_t == king) {
         if (color == white) {
           wks = Square{sq};
-        } else if (color == black) {
+        }
+        else if (color == black) {
           bks = Square{sq};
         }
       }
       idx++;
       t_hash ^= zobrist.pcs[piece_t][color][sq];
       m_hash += zobrist.mat[piece_t][color];
-    } else if (*it >= '1' && *it <= '8') { // empty squares
+    }
+    else if (*it >= '1' && *it <= '8') { // empty squares
       idx += *it - '0';
-    } else if (*it == ' ') {
+    }
+    else if (*it == ' ') {
       break;
     }
   }
@@ -49,7 +53,8 @@ Board::Board(const std::string_view fenstr) {
   ++it;
   if (*it == 'w') {
     stm = white;
-  } else {
+  }
+  else {
     stm = black;
     t_hash ^= stm;
   }
@@ -58,7 +63,8 @@ Board::Board(const std::string_view fenstr) {
   if (*it == '-') {
     cr = 0;
     ++it;
-  } else {
+  }
+  else {
     for (; it != fenstr.end() && *it != ' '; ++it) {
       switch (*it) {
       case 'K':
@@ -83,7 +89,8 @@ Board::Board(const std::string_view fenstr) {
   if (*it == '-') {
     ep = null_square;
     std::advance(it, 2);
-  } else {
+  }
+  else {
     ep = static_cast<Square>((16 * (*std::next(it) - '0' - 1)) + *it - 'a');
     std::advance(it, 3);
     t_hash ^= zobrist.ep[ep];
@@ -100,7 +107,8 @@ Board::Board(const std::string_view fenstr) {
   mt[m_hash & mt_mask] = {m_hash, 0};
 }
 
-PieceInfo Board::piece_info(const Square sq) const {
+PieceInfo Board::piece_info(const Square sq) const
+{
   if (is_on_board(sq)) { // todo when are we passed an invalid square?
     return {.piece_t = piece_on[sq], .color = color_on[sq]};
   }
@@ -109,7 +117,8 @@ PieceInfo Board::piece_info(const Square sq) const {
 
 void Board::reset() { *this = Board(fen::startpos); }
 
-void Board::display() const {
+void Board::display() const
+{
   for (int idx = 0; idx < 64; ++idx) {
     const auto      sq = fen::to_0x88_idx(idx);
     const PieceInfo pi{.piece_t = piece_on[sq], .color = color_on[sq]};
@@ -123,7 +132,8 @@ void Board::display() const {
   std::cout << "stm: ";
   if (stm == white) {
     std::cout << "white ";
-  } else {
+  }
+  else {
     std::cout << "black ";
   }
   std::cout << "cr: ";
@@ -145,7 +155,8 @@ void Board::display() const {
   std::cout << " ep: ";
   if (ep != null_square) {
     std::cout << ep;
-  } else {
+  }
+  else {
     std::cout << "- ";
   }
   std::cout << "fmc: " << fmc;

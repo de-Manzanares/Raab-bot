@@ -60,7 +60,8 @@ export constexpr U32 mt_mask = mt_size - 1;   ///< for quick indexing
 
 export MT_entry mt[mt_size];
 
-export template <class Class> void print_tt_size_info() {
+export template <class Class> void print_tt_size_info()
+{
   constexpr auto sz = static_cast<double>(sizeof(Class));
   constexpr auto mb = static_cast<double>(1024 * 1024);
   for (U32 i = 1; i < 33; ++i) {

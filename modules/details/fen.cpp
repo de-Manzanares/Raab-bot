@@ -7,7 +7,8 @@ import types;
 
 module fen;
 
-bool fen::is_piece(const char ch) {
+bool fen::is_piece(const char ch)
+{
   switch (std::tolower(ch)) {
   case 'p':
     return true;
@@ -43,11 +44,13 @@ constexpr std::array<I8, 64> fen_0x88_idx_sequence = {
   }};
 // clang-format on
 
-I8 fen::to_0x88_idx(const unsigned long int n) {
+I8 fen::to_0x88_idx(const unsigned long int n)
+{
   return fen_0x88_idx_sequence[n];
 }
 
-PieceInfo fen::get_piece_info(char ch) {
+PieceInfo fen::get_piece_info(char ch)
+{
   PieceInfo piece_info;
 
   switch (std::tolower(ch)) {
@@ -74,14 +77,16 @@ PieceInfo fen::get_piece_info(char ch) {
 
   if (std::islower(ch) != 0) {
     piece_info.color = black;
-  } else {
+  }
+  else {
     piece_info.color = white;
   }
 
   return piece_info;
 }
 
-char fen::get_char_code(const PieceInfo piece_info) {
+char fen::get_char_code(const PieceInfo piece_info)
+{
   char ch = '.';
 
   switch (piece_info.piece_t) {

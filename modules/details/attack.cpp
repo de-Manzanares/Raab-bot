@@ -11,7 +11,8 @@ bool ia_sliding(const Board &b, Square sq, Color by_color, Piece piece);
 
 //------------------------------------------------------------------------------
 
-bool is_attacked(const Board &b, const Square sq, const Color by_color) {
+bool is_attacked(const Board &b, const Square sq, const Color by_color)
+{
   if (ia_pawn(b, sq, by_color)) {
     return true;
   }
@@ -26,7 +27,8 @@ bool is_attacked(const Board &b, const Square sq, const Color by_color) {
   return false;
 }
 
-bool in_check(const Board &b) {
+bool in_check(const Board &b)
+{
   const Square sq = b.stm == white ? b.wks : b.bks;
   return is_attacked(b, sq, ~b.stm);
 }
@@ -34,7 +36,8 @@ bool in_check(const Board &b) {
 //------------------------------------------------------------------------------
 
 /// attacked by a pawn ?
-bool ia_pawn(const Board &b, const Square sq, const Color by_color) {
+bool ia_pawn(const Board &b, const Square sq, const Color by_color)
+{
   for (constexpr Direction pawn_atk_vec[2][2] = {{SW, SE}, {NW, NE}};
        const auto          dir : pawn_atk_vec[by_color]) {
     if (const Square vec{sq + dir};
@@ -47,7 +50,8 @@ bool ia_pawn(const Board &b, const Square sq, const Color by_color) {
 
 /// attacked by a knight || king ?
 bool ia_non_sliding(const Board &b, const Square sq, const Color by_color,
-                    const Piece piece) {
+                    const Piece piece)
+{
   for (const auto dir : unit_vectors[piece]) {
     if (const Square vec{sq + dir};
         is_on_board(vec) && b.piece_info(vec) == PieceInfo{piece, by_color}) {
@@ -60,7 +64,8 @@ bool ia_non_sliding(const Board &b, const Square sq, const Color by_color,
 /// attacked by a <bishop || rook> || queen ?
 /// @warning needs to be called twice - once for bishop and rook each
 bool ia_sliding(const Board &b, const Square sq, const Color by_color,
-                const Piece piece) {
+                const Piece piece)
+{
   sz_t directions = 4;
   for (const auto dir : unit_vectors[piece]) {
     for (int magnitude = 1;; ++magnitude) {

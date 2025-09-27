@@ -6,3 +6,4 @@ AccessModifierOffset: -1
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
 InsertNewlineAtEOF: true
+BreakBeforeBraces: Stroustrup
