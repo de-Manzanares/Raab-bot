@@ -83,8 +83,22 @@ void uci_loop() {
         allowed_time = std::stoi(in.substr(it + 9));
       }
 
+      U8 target_depth = max_depth;
+
+      s = "infinite";
+      if (simon_says(&in, s)) {
+        auto it      = in.find(s);
+        allowed_time = beta * 2;
+      }
+      s = "depth";
+      if (simon_says(&in, s)) {
+        auto it      = in.find(s);
+        allowed_time = beta * 2;
+        target_depth = std::stoi(in.substr(it + 5));
+      }
+
       start = std::chrono::steady_clock::now();
-      for (depth = 1; depth <= max_depth; ++depth) {
+      for (depth = 1; depth <= target_depth; ++depth) {
         alpha_beta_root(b, alpha, beta, depth);
         if (root_trees <= rte || root_beta_cutoff) {
           log_search();
