@@ -24,6 +24,9 @@ export using PVLine = std::array<Move, max_depth>;
 export PVLine g_pv;      ///< populated by alpha_beta_root
 export PVLine prev_g_pv; ///< copies g_pv each time a full layer is searched
 
+export score_t g_eval; ///< populated by alpha_beta_root
+export score_t prev_g_eval;
+
 export sz_t root_trees{};             ///< legal moves at root node
 export sz_t rte{};                    ///< root trees "examined"
 export bool root_beta_cutoff = false; ///< exit alpha_beta_root with beta cutoff

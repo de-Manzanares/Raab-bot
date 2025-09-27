@@ -92,7 +92,8 @@ void uci_loop() {
           break;
         }
         if (g_pv[0] != Move{}) {
-          prev_g_pv = g_pv;
+          prev_g_pv   = g_pv;
+          prev_g_eval = g_eval;
         }
       }
 

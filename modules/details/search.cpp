@@ -20,6 +20,7 @@ module search;
 
 void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth) {
   std::ranges::fill(g_pv, Move{});
+  g_eval           = 0;
   rte              = 0;
   root_beta_cutoff = false;
   // todo small optimization don't need to call movegen twice here
@@ -38,7 +39,6 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth) {
   MoveList ml{};
   Move     best_move{};
   score_t  best = std::numeric_limits<score_t>::min();
-  score_t  score{};
   sz_t     move_n{};
   sz_t     legal_moves{};
 
@@ -49,23 +49,26 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth) {
     if (is_legal(b)) {
       ++node_count;
       constexpr U8 ply{};
-      score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line);
+      g_eval = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line);
       ++legal_moves;
-      if (score > best) {
-        best      = score;
+      if (g_eval > best) {
+        best      = g_eval;
         best_move = m;
-        if (score > alpha) {
-          alpha   = score;
+        if (g_eval > alpha) {
+          alpha   = g_eval;
           g_pv[0] = m;
           auto it = std::ranges::find(line, Move{});
           std::copy(line.begin(), it, std::next(g_pv.begin()));
         }
       }
-      if (score >= beta) {
+      if (g_eval >= beta) {
         if (auto &e = tt[node_hash & tt_mask];
             e.hash != node_hash || e.depth < depth) {
-          e = {
-              node_hash, {m.from_sq, m.to_sq, m.prom_p}, score, tt_beta, depth};
+          e = {node_hash,
+               {m.from_sq, m.to_sq, m.prom_p},
+               g_eval,
+               tt_beta,
+               depth};
         }
         unmove(b, m);
         root_beta_cutoff = true;
