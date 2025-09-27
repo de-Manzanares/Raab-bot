@@ -1,6 +1,6 @@
 #include <catch2/catch_all.hpp>
 
-import Board0x88;
+import all_modules;
 
 TEST_CASE("pawn") {
   SECTION("white") {

@@ -1,6 +1,6 @@
 /**
- * @file chess_types.cppm
- * misc types and constants for expressive code
+ * @file types.ixx
+ * enums, aliases, structs, and operators for more expressive code
  */
 
 module;
@@ -8,29 +8,36 @@ module;
 #include <array>
 #include <cstdint>
 
-export module Board0x88:types;
+export module types;
 
 //------------------------------------------------------------------------------
 
-export enum Color : uint8_t { white, black, null_color = '.' };
+export using I8  = std::int8_t;
+export using I16 = std::int16_t;
+export using I32 = std::int32_t;
+export using I64 = std::int64_t;
+
+export using U8  = std::uint8_t;
+export using U16 = std::uint16_t;
+export using U32 = std::uint32_t;
+export using U64 = std::uint64_t;
+
+export using score_t = int;
+
+export using sz_t = std::size_t;
+
+//------------------------------------------------------------------------------
+
+export enum Color : U8 { white, black, null_color = '.' };
 
 export Color operator~(Color color);
 
 ///  0x88 specific movement values
-export enum Direction : int8_t {
-  NW = 15,
-  N,
-  NE,
-  E = 1,
-  W = -1,
-  SW = -17,
-  S,
-  SE
-};
+export enum Direction : I8 { NW = 15, N, NE, E = 1, W = -1, SW = -17, S, SE };
 
 /// piece codes to easily access movement types by piece type
 /// see the vectors[5][8] array below
-export enum Piece : uint8_t {
+export enum Piece : U8 {
   king,
   queen,
   rook,
@@ -48,18 +55,17 @@ export struct PieceInfo {
 export bool operator==(PieceInfo lhs, PieceInfo rhs);
 
 /// the movement directions of each piece, excluding pawns
-export constexpr std::int8_t move_vectors[5][8] = {
-    {SW, S, SE, E, W, NW, N, NE},
-    {SW, S, SE, E, W, NW, N, NE},
-    {S, E, W, N},
-    {SW, SE, NW, NE},
-    {-33, -31, -18, -14, 14, 18, 31, 33}};
+export constexpr I8 unit_vectors[5][8] = {{SW, S, SE, E, W, NW, N, NE},
+                                          {SW, S, SE, E, W, NW, N, NE},
+                                          {S, E, W, N},
+                                          {SW, SE, NW, NE},
+                                          {-33, -31, -18, -14, 14, 18, 31, 33}};
 
 // clang-format off
 /**
  * 0x88 specific square indices
  */
-export enum Square : int8_t {
+export enum Square : I8 {
   null_square = -1,
   a1 = 0x00U, b1, c1, d1, e1, f1, g1, h1,
   a2 = 0x10U, b2, c2, d2, e2, f2, g2, h2,

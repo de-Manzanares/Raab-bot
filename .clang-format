@@ -3,3 +3,6 @@ IndentWidth: 2
 ColumnLimit: 80
 IndentAccessModifiers: false
 AccessModifierOffset: -1
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+InsertNewlineAtEOF: true
