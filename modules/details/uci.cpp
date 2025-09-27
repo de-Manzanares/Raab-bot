@@ -20,6 +20,9 @@ module uci;
 constexpr score_t alpha = std::numeric_limits<score_t>::min() / 2; ///< lb
 constexpr score_t beta  = std::numeric_limits<score_t>::max() / 2; ///< ub
 
+template <typename T>
+bool accept_value(const std::string &sup_s, std::string_view sub_s, T &var);
+
 void preamble(const std::string *in);
 bool simon_says(const std::string *s, const std::string &has);
 void startpos_moves(Board &b, const std::string *in);
@@ -28,48 +31,33 @@ Move to_move(const Board &b, std::string_view s, MlIt out);
 //------------------------------------------------------------------------------
 
 void uci_loop() {
-  std::string in; // the command from the GUI
+  std::string gui_cmd; // the command from the GUI
   Board       b;
-  while (std::getline(std::cin, in)) {
-    record(in);
-    preamble(&in);
-    if (simon_says(&in, "position")) {
-      if (simon_says(&in, "fen")) {
-        b = Board{in.substr(13)};
-      } else if (simon_says(&in, "startpos")) {
+  while (std::getline(std::cin, gui_cmd)) {
+    record(gui_cmd);
+    preamble(&gui_cmd);
+    if (simon_says(&gui_cmd, "position")) {
+      if (simon_says(&gui_cmd, "fen")) {
+        b = Board{gui_cmd.substr(13)};
+      } else if (simon_says(&gui_cmd, "startpos")) {
         b.reset();
       }
-      if (simon_says(&in, "moves")) {
-        startpos_moves(b, &in);
+      if (simon_says(&gui_cmd, "moves")) {
+        startpos_moves(b, &gui_cmd);
       }
     }
-    if (simon_says(&in, "go")) {
+    if (simon_says(&gui_cmd, "go")) {
       long wtime{};
-      long btime{};
       long winc{};
+      long btime{};
       long binc{};
 
-      std::string s;
-      s = "wtime";
-      if (simon_says(&in, s)) {
-        auto it = in.find(s);
-        wtime   = std::stoi(in.substr(it + 6));
-      }
-      s = "btime";
-      if (simon_says(&in, s)) {
-        auto it = in.find(s);
-        btime   = std::stoi(in.substr(it + 6));
-      }
-      s = "winc";
-      if (simon_says(&in, s)) {
-        auto it = in.find(s);
-        winc    = std::stoi(in.substr(it + 5));
-      }
-      s = "binc";
-      if (simon_says(&in, s)) {
-        auto it = in.find(s);
-        binc    = std::stoi(in.substr(it + 5));
-      }
+      accept_value(gui_cmd, "wtime", wtime);
+      accept_value(gui_cmd, "btime", btime);
+      accept_value(gui_cmd, "winc", winc);
+      accept_value(gui_cmd, "binc", binc);
+
+      // my little time per move function
       if (b.stm == white && wtime != 0) {
         allowed_time = double(wtime) / 60.0 + winc;
       } else if (b.stm == black && btime != 0) {
@@ -77,24 +65,16 @@ void uci_loop() {
       } else {
         allowed_time = 1000;
       }
-      s = "movetime";
-      if (simon_says(&in, s)) {
-        auto it      = in.find(s);
-        allowed_time = std::stoi(in.substr(it + 9));
-      }
 
       U8 target_depth = max_depth;
 
-      s = "infinite";
-      if (simon_says(&in, s)) {
-        auto it      = in.find(s);
-        allowed_time = beta * 2;
-      }
-      s = "depth";
-      if (simon_says(&in, s)) {
-        auto it      = in.find(s);
-        allowed_time = beta * 2;
-        target_depth = std::stoi(in.substr(it + 5));
+      if (accept_value(gui_cmd, "go movetime", allowed_time)) {
+        ;
+      } else if (accept_value(gui_cmd, "go depth", target_depth)) {
+        allowed_time = std::numeric_limits<decltype(allowed_time)>::max();
+      } else if (gui_cmd.find("go infinite") != std::string::npos) {
+        target_depth = std::numeric_limits<decltype(target_depth)>::max();
+        allowed_time = std::numeric_limits<decltype(allowed_time)>::max();
       }
 
       start = std::chrono::steady_clock::now();
@@ -112,17 +92,27 @@ void uci_loop() {
       }
 
       logln("bestmove", prev_g_pv[0]);
-
-    } else if (in.find("stop") != std::string::npos) {
-    } else if (in == "d") {
+    } else if (gui_cmd.find("stop") != std::string::npos) {
+    } else if (gui_cmd == "d") {
       b.display();
-    } else if (in == "quit") {
+    } else if (gui_cmd == "quit") {
       break;
     } // quit the loop, ends the program
   }
 }
 
 //------------------------------------------------------------------------------
+
+template <typename T>
+bool accept_value(const std::string &sup_s, std::string_view sub_s, T &var) {
+  if constexpr (std::is_integral_v<T>) {
+    if (const auto it = sup_s.find(sub_s); it != std::string::npos) {
+      var = std::stoi(sup_s.substr(it + sub_s.size() + 1));
+      return true;
+    }
+  }
+  return false;
+}
 
 // for some reason, Scid vs PC is very sensitive to the format of the preamble
 void preamble(const std::string *in) {
