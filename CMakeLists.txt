@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.0)
 
 project(Raab-bot LANGUAGES CXX)
-set(VERSION v2-dev.3)
+set(VERSION v2-dev.4)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -76,3 +76,5 @@ include(CTest)
 enable_testing()
 
 add_subdirectory(test)
+
+add_subdirectory(tools)
