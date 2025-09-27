@@ -58,6 +58,10 @@ export struct MT_entry {
 export constexpr U32 mt_size = (1ULL << 18U); ///< entries in the table
 export constexpr U32 mt_mask = mt_size - 1;   ///< for quick indexing
 
+/**
+ * @warning only valuable for caching results of values that aren't
+ *          incrementally updated with move and unmove
+ */
 export MT_entry mt[mt_size];
 
 export template <class Class> void print_tt_size_info()

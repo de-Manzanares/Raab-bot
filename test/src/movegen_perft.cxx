@@ -8,13 +8,14 @@
 import all_modules;
 
 sz_t perft_results[7][7] = {
-    {0, 0, 0, 0, 0, 0, 0},
-    {0, 20, 400, 8902, 197281, 4865609, 119060324},
+    {0,  0,    0,     0,       0,         0,          0},
+    {0, 20,  400,  8902,  197281,   4865609,  119060324},
     {0, 48, 2039, 97862, 4085603, 193690690, 8031647685},
-    {0, 14, 191, 2812, 43238, 674624, 11030083},
-    {0, 6, 264, 9467, 422333, 15833292, 706045033},
-    {0, 44, 1486, 62379, 2103487, 89941194, 0},
-    {0, 46, 2079, 89890, 3894594, 164075551, 6923051137}};
+    {0, 14,  191,  2812,   43238,    674624,   11030083},
+    {0,  6,  264,  9467,  422333,  15833292,  706045033},
+    {0, 44, 1486, 62379, 2103487,  89941194,          0},
+    {0, 46, 2079, 89890, 3894594, 164075551, 6923051137}
+};
 
 struct PerftCounts {
   sz_t captures{};
@@ -58,8 +59,9 @@ constexpr sz_t movegen_perft(Board &b, const int depth,
     if (m.from_sq == null_square) {
       break;
     }
-    auto hasha    = b.t_hash;
-    auto m_hash_a = b.m_hash;
+    auto hasha     = b.t_hash;
+    auto m_hash_a  = b.m_hash;
+    auto mat_bal_a = b.mat_bal;
     move(b, m);
     if (is_legal(b)) {
       if (pc) {
@@ -68,10 +70,12 @@ constexpr sz_t movegen_perft(Board &b, const int depth,
       nodes += movegen_perft(b, depth - 1, pc);
     }
     unmove(b, m);
-    auto hashb    = b.t_hash;
-    auto m_hash_b = b.m_hash;
-    assert(hasha == hashb);
-    assert(m_hash_a == m_hash_b);
+    auto hashb     = b.t_hash;
+    auto m_hash_b  = b.m_hash;
+    auto mat_bal_b = b.mat_bal;
+    assert(hasha == hashb);         // verify move unmove position hash
+    assert(m_hash_a == m_hash_b);   // verify move unmove material hash
+    assert(mat_bal_a == mat_bal_b); // verify move unmove material balance
   }
   return nodes;
 }

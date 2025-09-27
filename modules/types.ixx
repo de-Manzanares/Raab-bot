@@ -47,6 +47,11 @@ export enum Piece : U8 {
   null_piece = '.'
 };
 
+export constexpr score_t piece_val[2][6] = {
+    {0,  9,  5,  3,  3,  1},
+    {0, -9, -5, -3, -3, -1}
+};
+
 export struct PieceInfo {
   Piece piece_t{null_piece};
   Color color{null_color};
@@ -55,11 +60,13 @@ export struct PieceInfo {
 export bool operator==(PieceInfo lhs, PieceInfo rhs);
 
 /// the movement directions of each piece, excluding pawns
-export constexpr I8 unit_vectors[5][8] = {{SW, S, SE, E, W, NW, N, NE},
-                                          {SW, S, SE, E, W, NW, N, NE},
-                                          {S, E, W, N},
-                                          {SW, SE, NW, NE},
-                                          {-33, -31, -18, -14, 14, 18, 31, 33}};
+export constexpr I8 unit_vectors[5][8] = {
+    {SW, S, SE, E, W, NW, N, NE},
+    {SW, S, SE, E, W, NW, N, NE},
+    {S, E, W, N},
+    {SW, SE, NW, NE},
+    {-33, -31, -18, -14, 14, 18, 31, 33}
+};
 
 // clang-format off
 /**

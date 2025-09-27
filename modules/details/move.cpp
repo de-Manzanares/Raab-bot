@@ -214,7 +214,8 @@ void clear_sq(Board &b, const Square sq)
     b.piece_on[sq] = null_piece;                 // clear
     b.color_on[sq] = null_color;                 // clear
     b.t_hash ^= zobrist.pcs[piece_t][color][sq]; // update hash
-    b.m_hash -= zobrist.mat[piece_t][color];     // update m_hash
+    // b.m_hash-= zobrist.mat[piece_t][color];     // update m_hash
+    b.mat_bal -= piece_val[color][piece_t];
   }
   else {
     // no action needed
@@ -230,7 +231,8 @@ void set_sq(Board &b, const Square sq, const PieceInfo pi)
     b.color_on[sq] = pi.color;
     assert(pi.piece_t != null_piece);
     b.t_hash ^= zobrist.pcs[pi.piece_t][pi.color][sq];
-    b.m_hash += zobrist.mat[pi.piece_t][pi.color];
+    // b.m_hash+= zobrist.mat[pi.piece_t][pi.color];
+    b.mat_bal += piece_val[pi.color][pi.piece_t];
   }
 }
 

@@ -7,3 +7,4 @@ AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
 InsertNewlineAtEOF: true
 BreakBeforeBraces: Stroustrup
+AlignArrayOfStructures: Right
