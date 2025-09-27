@@ -4,6 +4,7 @@ import attack;
 import board;
 import movegen;
 import types;
+import transposition;
 
 module eval;
 
@@ -67,6 +68,9 @@ score_t king_restriction(Board &b) {
 constexpr score_t piece_vals[6] = {0, 9, 5, 3, 3, 1};
 
 score_t material(const Board &b) {
+  if (const auto &e = mt[b.m_hash & mt_mask]; e.m_hash == b.m_hash) {
+    return e.mat;
+  }
   score_t mat{};
   for (const auto sq : square_sequence) {
     if (b.piece_on[sq] != null_piece) {
@@ -75,6 +79,7 @@ score_t material(const Board &b) {
       mat += piece_vals[piece_t] * mult;
     }
   }
+  mt[b.m_hash & mt_mask] = {b.m_hash, mat};
   return mat;
 }
 
