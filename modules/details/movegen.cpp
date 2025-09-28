@@ -135,7 +135,7 @@ sz_t cnt_legal_moves(Board &b)
   return cnt_legal_moves;
 }
 
-void movegen_sort(MlIt first, sz_t sz, const TT_move tt_m)
+void movegen_sort(const Color stm, MlIt first, sz_t sz, const TT_move tt_m)
 {
   if (tt_m != TT_move{}) {
     auto is_move = [&tt_m](const Move &m) {
@@ -148,7 +148,18 @@ void movegen_sort(MlIt first, sz_t sz, const TT_move tt_m)
   else {
     auto max = first;
     for (auto it = std::next(first); it != std::next(first, sz); ++it) {
-      if (it->score > max->score) {
+      if (it->flag == capture || it->flag == prom_capture) {
+        if (it->score > max->score) {
+          max = it;
+        }
+      }
+    }
+    if (max == first && (max->flag == capture || max->flag == prom_capture)) {
+      return;
+    }
+    for (auto it = std::next(first); it != std::next(first, sz); ++it) {
+      if (history[stm][it->from_sq][it->to_sq] >
+          history[stm][max->from_sq][max->to_sq]) {
         max = it;
       }
     }

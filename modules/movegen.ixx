@@ -58,6 +58,6 @@ export sz_t cnt_legal_moves(Board &b);
  * @param sz the number of elements in the range
  * @param tt_m
  */
-export void movegen_sort(MlIt first, sz_t sz, TT_move tt_m = TT_move{});
+export void movegen_sort(Color stm, MlIt first, sz_t sz, TT_move tt_m = TT_move{});
 
 //------------------------------------------------------------------------------
