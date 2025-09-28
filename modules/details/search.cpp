@@ -230,6 +230,10 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
        ++move_n) {
     movegen_sort(std::next(ml.begin(), move_n), sz - move_n);
     const Move m = ml[move_n];
+    if (b.phase != end_game && m.flag != promotion && m.flag != prom_capture &&
+        best + piece_val[m.cap_piece] + 200 < alpha) {
+      continue;
+    }
     move(b, m);
     if (is_legal(b)) {
       ++node_count;

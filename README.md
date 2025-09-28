@@ -1,20 +1,17 @@
 Rewriting my first and very terrible chess engine to be my second and hopefully not so terrible chess engine.
 
-Current Engine Features
+Engine Features
 
 - 0x88 board
 - search
     - alpha-beta
-    - quiescence search
-    - transposition table
-    - repetition detection
     - iterative deepening
-- move ordering
-    - MVV/LVA
+    - quiescence search with delta pruning
+    - transposition table
 - evaluation
     - Tomasz Michniewski's simplified evaluation function
         - (a stand-in while other engine features are being developed)
-- minimal UCI capabilities
+- UCI
 
 Principles of Development:
 
