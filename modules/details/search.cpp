@@ -16,6 +16,9 @@ import types;
 
 module search;
 
+bool pv_found();
+bool time_up();
+
 //------------------------------------------------------------------------------
 
 void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
@@ -79,10 +82,7 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
       }
     }
     unmove(b, m);
-    time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-                       std::chrono::steady_clock::now() - start)
-                       .count();
-    if (time_elapsed > allowed_time) {
+    if (pv_found() && time_up()) {
       break;
     }
   }
@@ -175,10 +175,7 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
       }
     }
     unmove(b, m);
-    time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-                       std::chrono::steady_clock::now() - start)
-                       .count();
-    if (time_elapsed > allowed_time) {
+    if (pv_found() && time_up()) {
       break;
     }
   }
@@ -255,3 +252,13 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
 }
 
 //------------------------------------------------------------------------------
+
+bool pv_found() { return prev_layer_g_pv[0] != Move{}; }
+
+bool time_up()
+{
+  time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                     std::chrono::steady_clock::now() - start)
+                     .count();
+  return time_elapsed > allowed_time;
+}

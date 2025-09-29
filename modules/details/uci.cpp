@@ -12,6 +12,7 @@ import types;
 import fen;
 import search;
 import movegen;
+import transposition;
 
 import log;
 
@@ -84,6 +85,10 @@ void uci_loop()
       }
 
       start = std::chrono::steady_clock::now();
+
+      // so that we don't timeout before recreating the pv
+      prev_layer_g_pv[0] = Move{};
+
       for (depth = 1; depth <= target_depth; ++depth) {
         alpha_beta_root(b, alpha, beta, depth);
         if (root_trees <= rte || root_beta_cutoff) {
@@ -93,17 +98,24 @@ void uci_loop()
           break;
         }
         if (g_pv[0] != Move{}) {
-          prev_g_pv   = g_pv;
-          prev_g_eval = g_eval;
+          prev_layer_g_pv   = g_pv;
+          prev_layer_g_eval = g_eval;
         }
       }
 
-      logln("bestmove", prev_g_pv[0]);
+      logln("bestmove", prev_layer_g_pv[0]);
     }
     else if (gui_cmd.find("stop") != std::string::npos) {
     }
     else if (gui_cmd == "d") {
       b.display();
+    }
+    else if (simon_says(&gui_cmd, "ucinewgame")) {
+      for (int i = 0; i < tt_size; ++i) {
+        tt[i] = TT_entry{};
+      }
+      std::ranges::fill(g_pv, Move{});
+      std::ranges::fill(prev_layer_g_pv, Move{});
     }
     else if (gui_cmd == "quit") {
       break;
