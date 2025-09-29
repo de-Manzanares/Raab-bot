@@ -44,7 +44,7 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
   sz_t     legal_moves{};
 
   for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n, ++rte) {
-    movegen_sort(b.stm, std::next(ml.begin(), move_n), sz - move_n, tt_move);
+    movegen_sort(std::next(ml.begin(), move_n), sz - move_n, tt_move);
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
@@ -72,9 +72,6 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
               tt_beta,
               depth
           };
-        }
-        if (m.flag != capture && m.flag != prom_capture) {
-          history[b.stm][m.from_sq][m.to_sq] += depth * depth;
         }
         unmove(b, m);
         root_beta_cutoff = true;
@@ -148,7 +145,7 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
   sz_t     move_n{};
   sz_t     legal_moves{};
   for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n) {
-    movegen_sort(b.stm,std::next(ml.begin(), move_n), sz - move_n, tt_move);
+    movegen_sort(std::next(ml.begin(), move_n), sz - move_n, tt_move);
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
@@ -172,9 +169,6 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
               node_hash, {m.from_sq, m.to_sq, m.prom_p},
                score, tt_beta, depth
           };
-        }
-        if (m.flag != capture && m.flag != prom_capture) {
-          history[b.stm][m.from_sq][m.to_sq] += depth * depth;
         }
         unmove(b, m);
         return score;
@@ -234,7 +228,7 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
   sz_t     move_n{};
   for (const auto sz = quiescence_movegen(b, ml.begin()); move_n < sz;
        ++move_n) {
-    movegen_sort(b.stm,std::next(ml.begin(), move_n), sz - move_n);
+    movegen_sort(std::next(ml.begin(), move_n), sz - move_n);
     const Move m = ml[move_n];
     if (b.phase != end_game && m.flag != promotion && m.flag != prom_capture &&
         best + piece_val[m.cap_piece] + 200 < alpha) {

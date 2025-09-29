@@ -16,10 +16,7 @@ export module move;
 //------------------------------------------------------------------------------
 
 /// position stack for three-fold repetition detection
-std::vector<U64> pos_stack;
-
-/// array for history heuristic
-export double history[2][64][64]{};
+std::vector<U64> history;
 
 /// categorize moves
 export enum Flag : U8 {
