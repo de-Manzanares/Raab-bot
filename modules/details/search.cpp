@@ -118,7 +118,7 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
   }
   const auto node_hash  = b.t_hash;
   const auto orig_alpha = alpha;
-  if (is_repetition(node_hash)) {
+  if (is_repetition(node_hash) || b.hmc == 50) {
     if (auto &e = tt[node_hash & tt_mask];
         e.hash != node_hash || e.depth < depth) {
       e = {node_hash, {}, contempt(b), tt_exact, depth};
@@ -163,14 +163,15 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
         if (score > alpha) {
           alpha     = score;
           best_move = m;
-          assert(!(m == Move{.from_sq = b5, .to_sq = a3}));
-          (*pline)[0] = m;
-          auto it     = std::ranges::find(line, Move{});
-          std::copy(line.begin(), it, std::next(pline->begin()));
-          if (const auto pit = std::next(pline->begin(),
-                                         std::distance(line.begin(), it) + 1);
-              pit != pline->end()) {
-            *pit = Move{};
+          if (b.hmc < 51) {
+            (*pline)[0] = m;
+            auto it     = std::ranges::find(line, Move{});
+            std::copy(line.begin(), it, std::next(pline->begin()));
+            if (const auto pit = std::next(pline->begin(),
+                                           std::distance(line.begin(), it) + 1);
+                pit != pline->end()) {
+              *pit = Move{};
+            }
           }
         }
       }
@@ -217,7 +218,7 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
                 PVLine *pline)
 {
   PVLine line{};
-  if (is_repetition(b.t_hash)) {
+  if (is_repetition(b.t_hash) || b.hmc == 50) {
     return contempt(b);
   }
   score_t best{};

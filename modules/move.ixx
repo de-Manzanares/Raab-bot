@@ -42,6 +42,7 @@ export struct Move {
   score_t   score      = 0; ///< for move ordering
   U8        prev_cr    = 0;
   Square    prev_ep    = null_square;
+  sz_t      prev_hmc   = 0; ///< previous half-move clock
   U8        ply        = 0; ///< ply from root node
 
   friend std::ostream &operator<<(std::ostream &os, const Move &m);
