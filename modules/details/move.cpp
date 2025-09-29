@@ -121,11 +121,17 @@ void move(Board &b, const Move m)
     b.ep = null_square;
   }
 
-  // todo hmc
-
   // update fmc
   if (b.stm == black) {
     ++b.fmc;
+  }
+
+  // hmc
+  if (m.from_piece.piece_t == pawn || m.flag == capture) {
+    b.hmc = 0;
+  }
+  else {
+    ++b.hmc;
   }
 
   // update side to move
@@ -186,6 +192,8 @@ void unmove(Board &b, const Move m)
   if (b.stm == white) {
     --b.fmc;
   }
+
+  b.hmc = m.prev_hmc;
 
   // update side to move
   b.stm = ~b.stm;

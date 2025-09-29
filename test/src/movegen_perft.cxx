@@ -64,6 +64,7 @@ constexpr sz_t movegen_perft(Board &b, const int depth,
     auto mat_bal_a = b.mat_bal;
     auto pos_bal_a = b.pos_bal[0] - b.pos_bal[1];
     auto phase_a   = b.phase;
+    auto hmc_a     = b.hmc;
     move(b, m);
     if (is_legal(b)) {
       if (pc) {
@@ -77,11 +78,13 @@ constexpr sz_t movegen_perft(Board &b, const int depth,
     auto mat_bal_b = b.mat_bal;
     auto pos_bal_b = b.pos_bal[0] - b.pos_bal[1];
     auto phase_b   = b.phase;
+    auto hmc_b     = b.hmc;
     assert(hasha == hashb);         // verify move unmove position hash
     assert(m_hash_a == m_hash_b);   // verify move unmove material hash
     assert(mat_bal_a == mat_bal_b); // verify move unmove material balance
     assert(pos_bal_a == pos_bal_b); // verify move unmove position balance
     assert(phase_a == phase_b);     // verify move unmove position balance
+    assert(hmc_a == hmc_b);         // verify move unmove hcm
   }
   return nodes;
 }

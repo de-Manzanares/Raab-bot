@@ -104,6 +104,7 @@ sz_t quiescence_movegen(const Board &b, MlIt out)
                 .score      = mvvlva(b.piece_on[to], b.piece_on[from]),
                 .prev_cr    = b.cr,
                 .prev_ep    = b.ep,
+                .prev_hmc   = b.hmc,
             };
             ++move_count;
             break;
@@ -173,6 +174,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
           .flag       = castle,
           .prev_cr    = b.cr,
           .prev_ep    = b.ep,
+          .prev_hmc   = b.hmc,
       };
       ++move_count;
     }
@@ -185,6 +187,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
           .flag       = castle,
           .prev_cr    = b.cr,
           .prev_ep    = b.ep,
+          .prev_hmc   = b.hmc,
       };
       ++move_count;
     }
@@ -199,6 +202,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
           .flag       = castle,
           .prev_cr    = b.cr,
           .prev_ep    = b.ep,
+          .prev_hmc   = b.hmc,
       };
       ++move_count;
     }
@@ -211,6 +215,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
           .flag       = castle,
           .prev_cr    = b.cr,
           .prev_ep    = b.ep,
+          .prev_hmc   = b.hmc,
       };
       ++move_count;
     }
@@ -246,6 +251,7 @@ sz_t c_pm(const Board &b, MlIt &out, const Square from)
                 .score      = score + (16 * p_vals[p_piece]),
                 .prev_cr    = b.cr,
                 .prev_ep    = b.ep,
+                .prev_hmc   = b.hmc,
             };
             ++move_count;
           }
@@ -260,6 +266,7 @@ sz_t c_pm(const Board &b, MlIt &out, const Square from)
               .score      = score,
               .prev_cr    = b.cr,
               .prev_ep    = b.ep,
+              .prev_hmc   = b.hmc,
           };
           ++move_count;
         }
@@ -274,6 +281,7 @@ sz_t c_pm(const Board &b, MlIt &out, const Square from)
             .score      = mvvlva(pawn, pawn),
             .prev_cr    = b.cr,
             .prev_ep    = b.ep,
+            .prev_hmc   = b.hmc,
         };
         ++move_count;
       }
@@ -301,6 +309,7 @@ sz_t nc_pm(const Board &b, MlIt &out, const Square from)
             .score      = 16 * p_vals[p_piece],
             .prev_cr    = b.cr,
             .prev_ep    = b.ep,
+            .prev_hmc   = b.hmc,
         };
         ++move_count;
       }
@@ -314,6 +323,7 @@ sz_t nc_pm(const Board &b, MlIt &out, const Square from)
           .flag       = normal,
           .prev_cr    = b.cr,
           .prev_ep    = b.ep,
+          .prev_hmc   = b.hmc,
       };
       ++move_count;
       // double move
@@ -327,6 +337,7 @@ sz_t nc_pm(const Board &b, MlIt &out, const Square from)
             .ep_target  = from + dir,
             .prev_cr    = b.cr,
             .prev_ep    = b.ep,
+            .prev_hmc   = b.hmc,
         };
         ++move_count;
       }
@@ -353,6 +364,7 @@ sz_t movegen_not_pawn(const Board &b, MlIt &out, const Square from,
             .flag       = normal,
             .prev_cr    = b.cr,
             .prev_ep    = b.ep,
+            .prev_hmc   = b.hmc,
         };
         ++move_count;
       }
@@ -366,6 +378,7 @@ sz_t movegen_not_pawn(const Board &b, MlIt &out, const Square from,
             .score      = mvvlva(b.piece_on[to], b.piece_on[from]),
             .prev_cr    = b.cr,
             .prev_ep    = b.ep,
+            .prev_hmc   = b.hmc,
         };
         ++move_count;
         break;
