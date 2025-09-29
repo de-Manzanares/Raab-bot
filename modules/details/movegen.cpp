@@ -143,7 +143,9 @@ void movegen_sort(MlIt first, sz_t sz, const TT_move tt_m)
               m.prom_p == tt_m.prom_p);
     };
     auto it = std::find_if(first, std::next(first, sz), is_move);
-    std::iter_swap(first, it);
+    if (it != std::next(first, sz)) {
+      std::iter_swap(first, it);
+    }
   }
   else {
     auto max = first;
