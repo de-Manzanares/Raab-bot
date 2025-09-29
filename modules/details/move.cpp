@@ -41,7 +41,7 @@ std::ostream &operator<<(std::ostream &os, const Move &m)
   print_square(os, m.from_sq);
   print_square(os, m.to_sq);
   if (m.prom_p != null_piece) {
-    os << fen::get_char_code({m.prom_p, m.from_piece.color});
+    os << fen::get_char_code({m.prom_p, black}); /// black for lowercase
   }
   return os;
 }
