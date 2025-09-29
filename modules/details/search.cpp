@@ -31,7 +31,6 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
   root_trees = cnt_legal_moves(b);
   node_count = 0;
 
-  PVLine     line;
   const auto node_hash  = b.t_hash;
   const auto orig_alpha = alpha;
   TT_move    tt_move{};
@@ -47,6 +46,7 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
   sz_t     legal_moves{};
 
   for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n, ++rte) {
+    PVLine line{};
     movegen_sort(std::next(ml.begin(), move_n), sz - move_n, tt_move);
     const Move m = ml[move_n];
     move(b, m);
@@ -63,6 +63,11 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
           g_pv[0] = m;
           auto it = std::ranges::find(line, Move{});
           std::copy(line.begin(), it, std::next(g_pv.begin()));
+          if (const auto pit =
+                  std::next(g_pv.begin(), std::distance(line.begin(), it) + 1);
+              pit != g_pv.end()) {
+            *pit = Move{};
+          }
         }
       }
       if (g_eval >= beta) {
@@ -106,9 +111,9 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
 score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
                    const U8 ply, PVLine *pline)
 {
-  PVLine line{};
   if (depth == 0) {
     // pline->count = 0; ?
+    PVLine line{}; // not used yet
     return quiesce(b, alpha, beta, ply, &line);
   }
   const auto node_hash  = b.t_hash;
@@ -145,6 +150,7 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
   sz_t     move_n{};
   sz_t     legal_moves{};
   for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n) {
+    PVLine line{};
     movegen_sort(std::next(ml.begin(), move_n), sz - move_n, tt_move);
     const Move m = ml[move_n];
     move(b, m);
@@ -155,11 +161,17 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
       if (score > best) {
         best = score;
         if (score > alpha) {
-          alpha       = score;
-          best_move   = m;
+          alpha     = score;
+          best_move = m;
+          assert(!(m == Move{.from_sq = b5, .to_sq = a3}));
           (*pline)[0] = m;
           auto it     = std::ranges::find(line, Move{});
           std::copy(line.begin(), it, std::next(pline->begin()));
+          if (const auto pit = std::next(pline->begin(),
+                                         std::distance(line.begin(), it) + 1);
+              pit != pline->end()) {
+            *pit = Move{};
+          }
         }
       }
       if (score >= beta) {
