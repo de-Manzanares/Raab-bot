@@ -15,9 +15,9 @@ export module search;
 
 //------------------------------------------------------------------------------
 
-export using sctime = std::chrono::time_point<std::chrono::steady_clock>;
-
 export constexpr U8 max_depth = 32;
+
+export using sctime = std::chrono::time_point<std::chrono::steady_clock>;
 
 export using PVLine = std::array<Move, max_depth>;
 
@@ -27,13 +27,19 @@ export struct SearchDriver {
   score_t eval{};             ///< populated by alpha_beta_root
   score_t prev_eval{};        ///< eval from the last finished layer
   sz_t    root_trees{};       ///< legal moves at root node
-  sz_t    rte{};              ///< root trees "examined"
+  sz_t    root_trees_examined{};              ///< root trees "examined"
   bool    root_beta_cutoff{}; ///< exit alpha_beta_root with beta cutoff
   sctime  start;              ///< start time point
   long    allowed_time{};
   long    time_elapsed{};
   long    node_count{};
   U8      depth{};
+
+  /**
+   * called at the beginning of alpha_beta_root to reset variables for a new
+   * layer of iterative deepening
+   */
+  void new_iteration(Board &b);
 };
 
 // todo check elapsed time on node count instead of next move on alpha beta
