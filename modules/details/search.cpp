@@ -16,20 +16,20 @@ import types;
 
 module search;
 
-bool pv_found();
-bool time_up();
+bool time_up(SearchDriver &sd);
 
 //------------------------------------------------------------------------------
 
-void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
+void alpha_beta_root(Board &b, score_t alpha, score_t beta, SearchDriver &sd)
 {
-  std::ranges::fill(g_pv, Move{});
-  g_eval           = 0;
-  rte              = 0;
-  root_beta_cutoff = false;
+  // todo encapsulate into sd.start_new_iteration kinda function
+  std::ranges::fill(sd.pv, Move{});
+  sd.eval             = 0;
+  sd.rte              = 0;
+  sd.root_beta_cutoff = false;
   // todo small optimization don't need to call movegen twice here
-  root_trees = cnt_legal_moves(b);
-  node_count = 0;
+  sd.root_trees = cnt_legal_moves(b);
+  sd.node_count = 0;
 
   const auto node_hash  = b.t_hash;
   const auto orig_alpha = alpha;
@@ -39,65 +39,67 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
       tt_move = e.tt_m;
     }
   }
+
   MoveList ml{};
   Move     best_move{};
   score_t  best = std::numeric_limits<score_t>::min();
   sz_t     move_n{};
   sz_t     legal_moves{};
 
-  for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n, ++rte) {
+  for (const auto sz = movegen(b, ml.begin()); move_n < sz;
+       ++move_n, ++sd.rte) {
     PVLine line{};
     movegen_sort(b.stm, std::next(ml.begin(), move_n), sz - move_n,
                  move_n == 0 ? tt_move : TT_move{});
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
-      ++node_count;
+      ++sd.node_count;
       constexpr U8 ply{};
-      g_eval = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line);
+      sd.eval = -alpha_beta(b, -beta, -alpha, sd.depth - 1, ply + 1, &line, sd);
       ++legal_moves;
-      if (g_eval > best) {
-        best      = g_eval;
+      if (sd.eval > best) {
+        best      = sd.eval;
         best_move = m;
-        if (g_eval > alpha) {
-          alpha   = g_eval;
-          g_pv[0] = m;
-          auto it = std::ranges::find(line, Move{});
-          std::copy(line.begin(), it, std::next(g_pv.begin()));
+        if (sd.eval > alpha) {
+          alpha    = sd.eval;
+          sd.pv[0] = m;
+          auto it  = std::ranges::find(line, Move{});
+          std::copy(line.begin(), it, std::next(sd.pv.begin()));
           if (const auto pit =
-                  std::next(g_pv.begin(), std::distance(line.begin(), it) + 1);
-              pit != g_pv.end()) {
+                  std::next(sd.pv.begin(), std::distance(line.begin(), it) + 1);
+              pit != sd.pv.end()) {
             *pit = Move{};
           }
         }
       }
-      if (g_eval >= beta) {
+      if (sd.eval >= beta) {
         if (auto &e = tt[node_hash & tt_mask];
-            e.hash != node_hash || e.depth < depth) {
+            e.hash != node_hash || e.depth < sd.depth) {
           e = {
               node_hash,
               {m.from_sq, m.to_sq, m.prom_p},
-              g_eval,
+              sd.eval,
               tt_beta,
-              depth
+              sd.depth
           };
         }
         if (m.flag != capture && m.flag != prom_capture &&
             m.flag != promotion) {
-          auto      &h   = history[~b.stm][m.from_sq][m.to_sq];
-          const auto inc = depth * depth;
+          auto      &h   = b.history[~b.stm][m.from_sq][m.to_sq];
+          const auto inc = sd.depth * sd.depth;
           h += inc - (h * inc) / hmax;
         }
         unmove(b, m);
-        root_beta_cutoff = true;
+        sd.root_beta_cutoff = true;
         return;
       }
     }
     unmove(b, m);
-    if ((node_count & 127) == 0 && time_up()) {
-      if (!pv_found()) {
-        prev_layer_g_pv[0] = best_move;
-        prev_layer_g_pv[1] = Move{};
+    if ((sd.node_count & 127) == 0 && time_up(sd)) {
+      if (sd.prev_pv[0] == Move{}) {
+        sd.prev_pv[0] = best_move;
+        sd.prev_pv[1] = Move{};
       }
       break;
     }
@@ -107,29 +109,29 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
   }
   const TT_flag flag = (best <= orig_alpha) ? tt_alpha : tt_exact;
   if (auto &e = tt[node_hash & tt_mask];
-      e.hash != node_hash || e.depth < depth) {
+      e.hash != node_hash || e.depth < sd.depth) {
     e = {
         node_hash,
         {best_move.from_sq, best_move.to_sq, best_move.prom_p},
         best,
         flag,
-        depth
+        sd.depth
     };
   }
   return;
 }
 
 score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
-                   const U8 ply, PVLine *pline)
+                   const U8 ply, PVLine *pline, SearchDriver &sd)
 {
   if (depth == 0) {
     // pline->count = 0; ?
     PVLine line{}; // not used yet
-    return quiesce(b, alpha, beta, ply, &line);
+    return quiesce(b, alpha, beta, ply, &line, sd);
   }
   const auto node_hash  = b.t_hash;
   const auto orig_alpha = alpha;
-  if (is_repetition(node_hash) || b.hmc == 50) {
+  if (is_repetition(b) || b.hmc == 50) {
     if (auto &e = tt[node_hash & tt_mask];
         e.hash != node_hash || e.depth < depth) {
       e = {node_hash, {}, contempt(b), tt_exact, depth};
@@ -167,8 +169,8 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
-      ++node_count;
-      score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line);
+      ++sd.node_count;
+      score = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line, sd);
       ++legal_moves;
       if (score > best) {
         best = score;
@@ -197,7 +199,7 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
         }
         if (m.flag != capture && m.flag != prom_capture &&
             m.flag != promotion) {
-          auto      &h   = history[~b.stm][m.from_sq][m.to_sq];
+          auto      &h   = b.history[~b.stm][m.from_sq][m.to_sq];
           const auto inc = depth * depth;
           h += inc - (h * inc) / hmax;
         }
@@ -206,7 +208,7 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
       }
     }
     unmove(b, m);
-    if ((node_count & 127) == 0 && time_up()) {
+    if ((sd.node_count & 127) == 0 && time_up(sd)) {
       break;
     }
   }
@@ -233,15 +235,15 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
 }
 
 score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
-                PVLine *pline)
+                PVLine *pline, SearchDriver &sd)
 {
   PVLine line{};
-  if (is_repetition(b.t_hash) || b.hmc == 50) {
+  if (is_repetition(b) || b.hmc == 50) {
     return contempt(b);
   }
   score_t best{};
   if (in_check(b)) {
-    best = alpha_beta(b, alpha, beta, 1, ply, &line);
+    best = alpha_beta(b, alpha, beta, 1, ply, &line, sd);
   }
   else {
     best = tmsef(b);
@@ -264,8 +266,8 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
     }
     move(b, m);
     if (is_legal(b)) {
-      ++node_count;
-      score = -quiesce(b, -beta, -alpha, ply + 1, pline);
+      ++sd.node_count;
+      score = -quiesce(b, -beta, -alpha, ply + 1, pline, sd);
       if (score > best) {
         best = score;
         if (score > alpha) {
@@ -278,7 +280,7 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
       }
     }
     unmove(b, m);
-    if ((node_count & 127) == 0 && time_up()) {
+    if ((sd.node_count & 127) == 0 && time_up(sd)) {
       break;
     }
   }
@@ -287,12 +289,10 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
 
 //------------------------------------------------------------------------------
 
-bool pv_found() { return prev_layer_g_pv[0] != Move{}; }
-
-bool time_up()
+bool time_up(SearchDriver &sd)
 {
-  time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-                     std::chrono::steady_clock::now() - start)
-                     .count();
-  return time_elapsed > allowed_time;
+  sd.time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::steady_clock::now() - sd.start)
+                        .count();
+  return sd.time_elapsed > sd.allowed_time;
 }

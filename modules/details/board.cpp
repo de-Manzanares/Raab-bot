@@ -120,6 +120,17 @@ PieceInfo Board::piece_info(const Square sq) const
   return {null_piece, null_color};
 }
 
+void Board::history_decay()
+{
+  for (int c = 0; c < 2; ++c) {
+    for (int from = 0; from < 128; ++from) {
+      for (int to = 0; to < 128; ++to) {
+        history[c][from][to] -= (history[c][from][to] >> 5);
+      }
+    }
+  }
+}
+
 void Board::reset() { *this = Board(fen::startpos); }
 
 void Board::display() const

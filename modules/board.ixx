@@ -7,6 +7,7 @@ module;
 
 #include <array>
 #include <string_view>
+#include <vector>
 
 import fen;
 import types;
@@ -26,6 +27,8 @@ export class Board {
       std::string_view fenstr); ///< set up the board with a fen string
 
   PieceInfo piece_info(Square sq) const;
+
+  void history_decay();
 
   void reset();         ///< reset to startpos
   void display() const; ///< print a simple visualization of the board
@@ -54,6 +57,12 @@ export class Board {
   score_t mat_bal[2]{};    ///< incrementally updated material balance
   score_t mat_cnt[2][6]{}; ///< piece counts
   score_t pos_bal[2]{};    ///< incrementally updated psqt balance
+
+  /// position stack for three-fold repetition detection
+  std::vector<U64> pos_stack;
+
+  /// array for history heuristic
+  I16 history[2][128][128]{};
 };
 
 //------------------------------------------------------------------------------

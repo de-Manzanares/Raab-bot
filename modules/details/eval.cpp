@@ -1,5 +1,7 @@
 module;
 
+#include <algorithm>
+
 import attack;
 import board;
 import movegen;
@@ -57,10 +59,21 @@ score_t tmsef(const Board &b)
   return b.stm == white ? score : -score;
 }
 
+bool is_repetition(const Board &b)
+{
+  auto const last = b.pos_stack.end() - 1;
+  if (const auto first = std::find(b.pos_stack.begin(), last, b.t_hash);
+      first != last) {
+    if (const auto second = std::find(first, last, b.t_hash); second != last) {
+      return true;
+    }
+  }
+  return false;
+}
+
 score_t contempt(const Board &b)
 {
   return (b.mat_bal[white] - b.mat_bal[black]) * (b.stm == white ? -1 : 1);
 }
 
 //------------------------------------------------------------------------------
-
