@@ -136,7 +136,7 @@ sz_t cnt_legal_moves(Board &b)
   return cnt_legal_moves;
 }
 
-void movegen_sort(const Color stm, MlIt first, sz_t sz, const TT_move tt_m)
+void move_select(MlIt first, sz_t sz, const TT_move tt_m)
 {
   // probe the TT
   if (tt_m != TT_move{}) {
