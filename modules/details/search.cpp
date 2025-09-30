@@ -47,7 +47,8 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
 
   for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n, ++rte) {
     PVLine line{};
-    movegen_sort(std::next(ml.begin(), move_n), sz - move_n, tt_move);
+    movegen_sort(b.stm, std::next(ml.begin(), move_n), sz - move_n,
+                 move_n == 0 ? tt_move : TT_move{});
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
@@ -81,13 +82,23 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, const U8 depth)
               depth
           };
         }
+        if (m.flag != capture && m.flag != prom_capture &&
+            m.flag != promotion) {
+          auto      &h   = history[~b.stm][m.from_sq][m.to_sq];
+          const auto inc = depth * depth;
+          h += inc - (h * inc) / hmax;
+        }
         unmove(b, m);
         root_beta_cutoff = true;
         return;
       }
     }
     unmove(b, m);
-    if (pv_found() && time_up()) {
+    if ((node_count & 127) == 0 && time_up()) {
+      if (!pv_found()) {
+        prev_layer_g_pv[0] = best_move;
+        prev_layer_g_pv[1] = Move{};
+      }
       break;
     }
   }
@@ -151,7 +162,8 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
   sz_t     legal_moves{};
   for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n) {
     PVLine line{};
-    movegen_sort(std::next(ml.begin(), move_n), sz - move_n, tt_move);
+    movegen_sort(b.stm, std::next(ml.begin(), move_n), sz - move_n,
+                 move_n == 0 ? tt_move : TT_move{});
     const Move m = ml[move_n];
     move(b, m);
     if (is_legal(b)) {
@@ -183,12 +195,18 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
                score, tt_beta, depth
           };
         }
+        if (m.flag != capture && m.flag != prom_capture &&
+            m.flag != promotion) {
+          auto      &h   = history[~b.stm][m.from_sq][m.to_sq];
+          const auto inc = depth * depth;
+          h += inc - (h * inc) / hmax;
+        }
         unmove(b, m);
         return score;
       }
     }
     unmove(b, m);
-    if (pv_found() && time_up()) {
+    if ((node_count & 127) == 0 && time_up()) {
       break;
     }
   }
@@ -238,7 +256,7 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
   sz_t     move_n{};
   for (const auto sz = quiescence_movegen(b, ml.begin()); move_n < sz;
        ++move_n) {
-    movegen_sort(std::next(ml.begin(), move_n), sz - move_n);
+    movegen_sort(b.stm, std::next(ml.begin(), move_n), sz - move_n);
     const Move m = ml[move_n];
     if (b.phase != end_game && m.flag != promotion && m.flag != prom_capture &&
         best + piece_val[m.cap_piece] + 200 < alpha) {
@@ -260,6 +278,9 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
       }
     }
     unmove(b, m);
+    if ((node_count & 127) == 0 && time_up()) {
+      break;
+    }
   }
   return best;
 }

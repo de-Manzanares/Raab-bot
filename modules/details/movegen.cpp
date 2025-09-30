@@ -136,8 +136,9 @@ sz_t cnt_legal_moves(Board &b)
   return cnt_legal_moves;
 }
 
-void movegen_sort(MlIt first, sz_t sz, const TT_move tt_m)
+void movegen_sort(const Color stm, MlIt first, sz_t sz, const TT_move tt_m)
 {
+  // probe the TT
   if (tt_m != TT_move{}) {
     auto is_move = [&tt_m](const Move &m) {
       return (m.from_sq == tt_m.from && m.to_sq == tt_m.to &&
@@ -148,6 +149,7 @@ void movegen_sort(MlIt first, sz_t sz, const TT_move tt_m)
       std::iter_swap(first, it);
     }
   }
+  // choose captures
   else {
     auto max = first;
     for (auto it = std::next(first); it != std::next(first, sz); ++it) {
@@ -172,6 +174,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
           .to_sq      = g1,
           .from_piece = {.piece_t = king, .color = white},
           .flag       = castle,
+          .score      = history[b.stm][e1][g1],
           .prev_cr    = b.cr,
           .prev_ep    = b.ep,
           .prev_hmc   = b.hmc,
@@ -185,6 +188,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
           .to_sq      = c1,
           .from_piece = {.piece_t = king, .color = white},
           .flag       = castle,
+          .score      = history[b.stm][e1][c1],
           .prev_cr    = b.cr,
           .prev_ep    = b.ep,
           .prev_hmc   = b.hmc,
@@ -200,6 +204,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
           .to_sq      = g8,
           .from_piece = {.piece_t = king, .color = black},
           .flag       = castle,
+          .score      = history[b.stm][e8][g8],
           .prev_cr    = b.cr,
           .prev_ep    = b.ep,
           .prev_hmc   = b.hmc,
@@ -213,6 +218,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
           .to_sq      = c8,
           .from_piece = {.piece_t = king, .color = black},
           .flag       = castle,
+          .score      = history[b.stm][e8][c8],
           .prev_cr    = b.cr,
           .prev_ep    = b.ep,
           .prev_hmc   = b.hmc,
@@ -237,7 +243,7 @@ sz_t c_pm(const Board &b, MlIt &out, const Square from)
   for (const auto dir : dirs) {
     if (const Square to = from + dir; is_on_board(to)) {
       if (b.color_on[to] == ~b.stm) {
-        const score_t score = mvvlva(b.piece_on[to], pawn);
+        const score_t cap_score = mvvlva(b.piece_on[to], pawn);
         if ((from >> 4) == (prom_row >> 4)) {
           for (constexpr std::array p_pieces = {queen, rook, bishop, knight};
                const auto           p_piece : p_pieces) {
@@ -248,7 +254,7 @@ sz_t c_pm(const Board &b, MlIt &out, const Square from)
                 .flag       = prom_capture,
                 .cap_piece  = b.piece_on[to],
                 .prom_p     = p_piece,
-                .score      = score + (16 * p_vals[p_piece]),
+                .score      = hmax + cap_score + (piece_val[p_piece]),
                 .prev_cr    = b.cr,
                 .prev_ep    = b.ep,
                 .prev_hmc   = b.hmc,
@@ -263,7 +269,7 @@ sz_t c_pm(const Board &b, MlIt &out, const Square from)
               .from_piece = {.piece_t = pawn, .color = b.stm},
               .flag       = capture,
               .cap_piece  = b.piece_on[to],
-              .score      = score,
+              .score      = hmax + cap_score,
               .prev_cr    = b.cr,
               .prev_ep    = b.ep,
               .prev_hmc   = b.hmc,
@@ -278,7 +284,7 @@ sz_t c_pm(const Board &b, MlIt &out, const Square from)
             .from_piece = {.piece_t = pawn, .color = b.stm},
             .flag       = en_passant_capture,
             .cap_piece  = pawn,
-            .score      = mvvlva(pawn, pawn),
+            .score      = hmax + mvvlva(pawn, pawn),
             .prev_cr    = b.cr,
             .prev_ep    = b.ep,
             .prev_hmc   = b.hmc,
@@ -306,7 +312,7 @@ sz_t nc_pm(const Board &b, MlIt &out, const Square from)
             .from_piece = {.piece_t = pawn, .color = b.stm},
             .flag       = promotion,
             .prom_p     = p_piece,
-            .score      = 16 * p_vals[p_piece],
+            .score      = hmax + piece_val[p_piece],
             .prev_cr    = b.cr,
             .prev_ep    = b.ep,
             .prev_hmc   = b.hmc,
@@ -321,6 +327,7 @@ sz_t nc_pm(const Board &b, MlIt &out, const Square from)
           .to_sq      = to,
           .from_piece = {.piece_t = pawn, .color = b.stm},
           .flag       = normal,
+          .score      = history[b.stm][from][to],
           .prev_cr    = b.cr,
           .prev_ep    = b.ep,
           .prev_hmc   = b.hmc,
@@ -335,6 +342,7 @@ sz_t nc_pm(const Board &b, MlIt &out, const Square from)
             .from_piece = {.piece_t = pawn, .color = b.stm},
             .flag       = double_push,
             .ep_target  = from + dir,
+            .score      = history[b.stm][from][to],
             .prev_cr    = b.cr,
             .prev_ep    = b.ep,
             .prev_hmc   = b.hmc,
@@ -362,6 +370,7 @@ sz_t movegen_not_pawn(const Board &b, MlIt &out, const Square from,
             .to_sq      = to,
             .from_piece = {.piece_t = piece_t, .color = b.stm},
             .flag       = normal,
+            .score      = history[b.stm][from][to],
             .prev_cr    = b.cr,
             .prev_ep    = b.ep,
             .prev_hmc   = b.hmc,
@@ -375,7 +384,7 @@ sz_t movegen_not_pawn(const Board &b, MlIt &out, const Square from,
             .from_piece = {.piece_t = piece_t, .color = b.stm},
             .flag       = capture,
             .cap_piece  = b.piece_on[to],
-            .score      = mvvlva(b.piece_on[to], b.piece_on[from]),
+            .score      = hmax + mvvlva(b.piece_on[to], b.piece_on[from]),
             .prev_cr    = b.cr,
             .prev_ep    = b.ep,
             .prev_hmc   = b.hmc,
