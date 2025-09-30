@@ -5,10 +5,10 @@ module;
 #include <iostream>
 
 import board;
+import defs;
 import eval;
 import fen;
 import transposition;
-import types;
 
 module move;
 

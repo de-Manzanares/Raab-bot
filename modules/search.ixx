@@ -5,11 +5,11 @@ module;
 
 import attack;
 import board;
+import defs;
 import eval;
 import move;
 import movegen;
 import transposition;
-import types;
 
 export module search;
 

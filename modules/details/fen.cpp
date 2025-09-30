@@ -3,7 +3,7 @@ module;
 #include <array>
 #include <locale>
 
-import types;
+import defs;
 
 module fen;
 

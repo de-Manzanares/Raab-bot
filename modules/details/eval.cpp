@@ -4,8 +4,8 @@ module;
 
 import attack;
 import board;
+import defs;
 import movegen;
-import types;
 import transposition;
 
 module eval;

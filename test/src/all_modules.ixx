@@ -9,5 +9,5 @@ export import move;
 export import movegen;
 export import search;
 export import transposition;
-export import types;
+export import defs;
 export import uci;

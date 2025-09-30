@@ -7,11 +7,11 @@ module;
 #include <string>
 
 import board;
+import defs;
 import move;
-import types;
 import fen;
-import search;
 import movegen;
+import search;
 import transposition;
 
 import log;

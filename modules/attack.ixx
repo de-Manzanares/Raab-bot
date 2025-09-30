@@ -6,7 +6,7 @@
 module;
 
 import board;
-import types;
+import defs;
 
 export module attack;
 

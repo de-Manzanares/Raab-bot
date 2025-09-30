@@ -8,9 +8,9 @@ module;
 #include <array>
 
 import board;
+import defs;
 import move;
 import transposition;
-import types;
 
 export module movegen;
 

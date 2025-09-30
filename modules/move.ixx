@@ -6,18 +6,13 @@
 module;
 
 #include <iostream>
-#include <vector>
 
-import types;
 import board;
+import defs;
 
 export module move;
 
 //------------------------------------------------------------------------------
-
-
-export constexpr int hmax = 1UL << 14;
-export constexpr int hmin = -hmax;
 
 /// categorize moves
 export enum Flag : U8 {
@@ -51,7 +46,6 @@ export struct Move {
 
 /// for quick is_repetition() execution. doesn't compare full struct
 export bool operator==(Move lhs, Move rhs);
-
 
 /**
  * make the move m

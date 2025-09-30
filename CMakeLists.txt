@@ -40,13 +40,15 @@ target_sources(chess_modules
         FILES
         modules/attack.ixx
         modules/board.ixx
+        modules/config.cppm
+        modules/defs.cppm
         modules/eval.ixx
         modules/fen.ixx
+        modules/history.ixx
         modules/move.ixx
         modules/movegen.ixx
         modules/search.ixx
         modules/transposition.ixx
-        modules/types.ixx
         modules/uci.ixx
         modules/auxiliary/log.ixx
 )
@@ -56,7 +58,6 @@ add_library(chess STATIC)
 target_sources(chess
         PRIVATE
         modules/details/attack.cpp
-        modules/details/board.cpp
         modules/details/board.cpp
         modules/details/eval.cpp
         modules/details/fen.cpp

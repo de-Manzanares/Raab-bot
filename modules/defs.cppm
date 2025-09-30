@@ -1,5 +1,5 @@
 /**
- * @file types.ixx
+ * @file defs.cppm
  * enums, aliases, structs, and operators for more expressive code
  */
 
@@ -8,7 +8,7 @@ module;
 #include <array>
 #include <cstdint>
 
-export module types;
+export module defs;
 
 //------------------------------------------------------------------------------
 
@@ -101,6 +101,8 @@ export constexpr std::array<Square, 64> square_sequence{
 
 export enum Phase : U8 { middle_game, end_game };
 
+export constexpr int hmax = 1UL << 14;
+export constexpr int hmin = -hmax;
 //------------------------------------------------------------------------------
 
 bool operator==(const PieceInfo lhs, const PieceInfo rhs)
