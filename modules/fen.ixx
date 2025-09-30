@@ -7,7 +7,7 @@ module;
 
 #include <string_view>
 
-import types;
+import defs;
 
 export module fen;
 

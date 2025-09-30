@@ -1,7 +1,7 @@
 module;
 
 import board;
-import types;
+import defs;
 import transposition;
 
 export module eval;

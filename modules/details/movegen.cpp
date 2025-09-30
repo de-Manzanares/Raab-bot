@@ -5,9 +5,9 @@ module;
 #include <concepts>
 
 import board;
+import defs;
 import move;
 import transposition;
-import types;
 import attack;
 
 module movegen;
@@ -174,7 +174,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
           .to_sq      = g1,
           .from_piece = {.piece_t = king, .color = white},
           .flag       = castle,
-          .score      = b.history[b.stm][e1][g1],
+          .score      = b.get_history(b.stm, e1, g1),
           .prev_cr    = b.cr,
           .prev_ep    = b.ep,
           .prev_hmc   = b.hmc,
@@ -188,7 +188,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
           .to_sq      = c1,
           .from_piece = {.piece_t = king, .color = white},
           .flag       = castle,
-          .score      = b.history[b.stm][e1][c1],
+          .score      = b.get_history(b.stm, e1, c1),
           .prev_cr    = b.cr,
           .prev_ep    = b.ep,
           .prev_hmc   = b.hmc,
@@ -204,7 +204,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
           .to_sq      = g8,
           .from_piece = {.piece_t = king, .color = black},
           .flag       = castle,
-          .score      = b.history[b.stm][e8][g8],
+          .score      = b.get_history(b.stm, e8, g8),
           .prev_cr    = b.cr,
           .prev_ep    = b.ep,
           .prev_hmc   = b.hmc,
@@ -218,7 +218,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
           .to_sq      = c8,
           .from_piece = {.piece_t = king, .color = black},
           .flag       = castle,
-          .score      = b.history[b.stm][e8][c8],
+          .score      = b.get_history(b.stm, e8, c8),
           .prev_cr    = b.cr,
           .prev_ep    = b.ep,
           .prev_hmc   = b.hmc,
@@ -327,7 +327,7 @@ sz_t nc_pm(const Board &b, MlIt &out, const Square from)
           .to_sq      = to,
           .from_piece = {.piece_t = pawn, .color = b.stm},
           .flag       = normal,
-          .score      = b.history[b.stm][from][to],
+          .score      = b.get_history(b.stm, from, to),
           .prev_cr    = b.cr,
           .prev_ep    = b.ep,
           .prev_hmc   = b.hmc,
@@ -342,7 +342,7 @@ sz_t nc_pm(const Board &b, MlIt &out, const Square from)
             .from_piece = {.piece_t = pawn, .color = b.stm},
             .flag       = double_push,
             .ep_target  = from + dir,
-            .score      = b.history[b.stm][from][to],
+            .score      = b.get_history(b.stm, from, to),
             .prev_cr    = b.cr,
             .prev_ep    = b.ep,
             .prev_hmc   = b.hmc,
@@ -370,7 +370,7 @@ sz_t movegen_not_pawn(const Board &b, MlIt &out, const Square from,
             .to_sq      = to,
             .from_piece = {.piece_t = piece_t, .color = b.stm},
             .flag       = normal,
-            .score      = b.history[b.stm][from][to],
+            .score      = b.get_history(b.stm, from, to),
             .prev_cr    = b.cr,
             .prev_ep    = b.ep,
             .prev_hmc   = b.hmc,

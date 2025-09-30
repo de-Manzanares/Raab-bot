@@ -10,7 +10,9 @@ module;
 #include <vector>
 
 import fen;
-import types;
+import config;
+import defs;
+import history;
 
 export module board;
 
@@ -20,15 +22,14 @@ export module board;
  * @class Board
  * @brief 0x88 board representation and associated functionality
  */
-export class Board {
+export class Board : public History<config::history_heuristic> {
  public:
   Board() : Board(fen::startpos) {} ///< default startpos
-  explicit Board(
-      std::string_view fenstr); ///< set up the board with a fen string
+
+  /// set up the board with a fen string
+  explicit Board(std::string_view fenstr);
 
   PieceInfo piece_info(Square sq) const;
-
-  void history_decay();
 
   void reset();         ///< reset to startpos
   void display() const; ///< print a simple visualization of the board
@@ -60,9 +61,6 @@ export class Board {
 
   /// position stack for three-fold repetition detection
   std::vector<U64> pos_stack;
-
-  /// array for history heuristic
-  I16 history[2][128][128]{};
 };
 
 //------------------------------------------------------------------------------

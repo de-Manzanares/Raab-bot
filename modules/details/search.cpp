@@ -9,11 +9,12 @@ module;
 
 import attack;
 import board;
+import config;
 import eval;
 import move;
 import movegen;
 import transposition;
-import types;
+import defs;
 
 module search;
 
@@ -23,7 +24,6 @@ bool check_time(SearchDriver &sd);
 bool is_draw(const Board &b);
 bool is_quiet(const Move &m);
 void tt_entry(U64 hash, const Move &m, score_t eval, TT_flag flag, U8 depth);
-void update_history(Board &b, const Move &m, U8 depth);
 
 //------------------------------------------------------------------------------
 
@@ -88,8 +88,10 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, SearchDriver &sd)
 
     if (sd.eval >= beta) {
       tt_entry(node_hash, m, sd.eval, tt_beta, sd.depth);
-      if (is_quiet(m)) {
-        update_history(b, m, sd.depth);
+      if constexpr (config::history_heuristic) {
+        if (is_quiet(m)) {
+          b.update_history(~b.stm, m.from_sq, m.to_sq, sd.depth);
+        }
       }
       unmove(b, m);
       sd.root_beta_cutoff = true;
@@ -200,8 +202,10 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
 
     if (eval >= beta) {
       tt_entry(node_hash, m, eval, tt_beta, depth);
-      if (is_quiet(m)) {
-        update_history(b, m, depth);
+      if constexpr (config::history_heuristic) {
+        if (is_quiet(m)) {
+          b.update_history(~b.stm, m.from_sq, m.to_sq, sd.depth);
+        }
       }
       unmove(b, m);
       return eval;
@@ -256,9 +260,12 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
     move_select(std::next(ml.begin(), move_n), sz - move_n);
     const Move m = ml[move_n];
 
-    if (b.phase != end_game && m.flag != promotion && m.flag != prom_capture &&
-        best_eval + piece_val[m.cap_piece] + 200 < alpha) {
-      continue;
+    if constexpr (config::delta_pruning) {
+      if (b.phase != end_game && m.flag != promotion &&
+          m.flag != prom_capture &&
+          best_eval + piece_val[m.cap_piece] + config::params::delta < alpha) {
+        continue;
+      }
     }
 
     move(b, m);
@@ -348,11 +355,4 @@ void tt_entry(const U64 hash, const Move &m, const score_t eval,
          eval, flag, depth,
     };
   }
-}
-
-void update_history(Board &b, const Move &m, const U8 depth)
-{
-  auto      &h   = b.history[~b.stm][m.from_sq][m.to_sq];
-  const auto inc = depth * depth;
-  h += inc - (h * inc) / hmax;
 }

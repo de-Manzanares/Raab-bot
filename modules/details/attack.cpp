@@ -1,7 +1,7 @@
 module;
 
 import board;
-import types;
+import defs;
 
 module attack;
 

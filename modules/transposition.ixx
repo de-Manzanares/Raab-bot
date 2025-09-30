@@ -2,7 +2,7 @@ module;
 
 #include <iostream>
 
-import types;
+import defs;
 
 export module transposition;
 
@@ -25,7 +25,7 @@ export class Zobrist {
 export Zobrist zobrist; ///< global Zobrist numbers
 
 /// for categorizing ttable entries
-export enum TT_flag : U8 { tt_exact, tt_alpha, tt_beta, null_flag };
+export enum TT_flag : U8 { tt_exact, tt_alpha, tt_beta, null_tt_flag };
 
 /// store moves in the ttable
 export struct TT_move {
@@ -41,7 +41,7 @@ export struct TT_entry {
   U64     hash{};
   TT_move tt_m{};
   score_t score{};
-  TT_flag flag = null_flag;
+  TT_flag flag = null_tt_flag;
   U8      depth{};
 };
 

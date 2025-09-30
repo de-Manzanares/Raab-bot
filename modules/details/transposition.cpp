@@ -3,7 +3,7 @@ module;
 #include <iostream>
 #include <random>
 
-import types;
+import defs;
 
 module transposition;
 
