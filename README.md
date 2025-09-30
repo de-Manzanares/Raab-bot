@@ -5,6 +5,7 @@ Engine Features
 - 0x88 board
 - search
     - alpha-beta
+    - history heuristic
     - iterative deepening
     - quiescence search with delta pruning
     - transposition table

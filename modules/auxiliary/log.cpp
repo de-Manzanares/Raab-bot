@@ -11,6 +11,7 @@ module;
 import board;
 import search;
 import move;
+import search;
 
 module log;
 
@@ -20,16 +21,16 @@ void log_flush();
 
 //------------------------------------------------------------------------------
 
-void log_search()
+void log_search(SearchDriver &sd)
 {
-  log("info", "depth", static_cast<int>(depth), "score cp", g_eval, "nodes",
-      node_count);
-  if (time_elapsed != 0) {
-    log("nps", node_count / time_elapsed * 1000);
+  log("info", "depth", static_cast<int>(sd.depth), "score cp", sd.eval, "nodes",
+      sd.node_count);
+  if (sd.time_elapsed != 0) {
+    log("nps", sd.node_count / sd.time_elapsed * 1000);
   }
-  log("time", time_elapsed, "pv");
-  const auto last = std::ranges::find(g_pv, Move{});
-  for (auto move = g_pv.begin(); move != last; ++move) {
+  log("time", sd.time_elapsed, "pv");
+  const auto last = std::ranges::find(sd.pv, Move{});
+  for (auto move = sd.pv.begin(); move != last; ++move) {
     log(*move);
   }
   std::cout << std::endl;

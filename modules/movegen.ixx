@@ -26,11 +26,9 @@ export using MlIt = std::array<Move, ml_sz>::iterator;
  * populate a container with pseudo-legal moves, return the count
  * @param b the board in question
  * @param out output iterator
- * @param pc
  * @return number of pseudo-legal moves
  */
 export sz_t movegen(const Board &b, MlIt out);
-// todo ^ history scoring
 
 /**
  * populate a container with pseudo-legal capture moves
@@ -53,11 +51,12 @@ export bool is_legal(const Board &b);
 export sz_t cnt_legal_moves(Board &b);
 
 /**
- * find the highest scored move and put it at the front of the range
+ * find the highest scored move and swap it with `first`
+ * if tt_m is not a null move, choose that move swap it with `first`
  * @param first first iterator in range
  * @param sz the number of elements in the range
- * @param tt_m
+ * @param tt_m put this move at the front of the move list
  */
-export void movegen_sort(Color stm, MlIt first, sz_t sz, TT_move tt_m = TT_move{});
+export void move_select(MlIt first, sz_t sz, TT_move tt_m = TT_move{});
 
 //------------------------------------------------------------------------------
