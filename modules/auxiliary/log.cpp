@@ -32,26 +32,26 @@ void log_search()
   for (auto move = g_pv.begin(); move != last; ++move) {
     log(*move);
   }
-  log_flush();
+  std::cout << std::endl;
 }
 
-void record(const std::string_view from_gui)
-{
-  ofile << ">> " << from_gui << std::endl;
-}
+/// void record(const std::string_view from_gui)
+/// {
+///   ofile << ">> " << from_gui << std::endl;
+/// }
 
 //------------------------------------------------------------------------------
 
 template <class... Ts> void log(const Ts &...xs)
 {
   ((std::cout << xs << ' '), ...);
-  ((ofile << xs << ' '), ...);
+  // ((ofile << xs << ' '), ...);
 }
 
 void log_flush()
 {
   std::cout << std::endl;
-  ofile << std::endl;
+  // ofile << std::endl;
 }
 
 //------------------------------------------------------------------------------
