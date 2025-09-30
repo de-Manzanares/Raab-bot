@@ -36,14 +36,16 @@ void uci_loop()
   std::string gui_cmd; // the command from the GUI
   Board       b;
   while (std::getline(std::cin, gui_cmd)) {
-    record(gui_cmd);
+    // record(gui_cmd);
     preamble(&gui_cmd);
     if (simon_says(&gui_cmd, "position")) {
       if (simon_says(&gui_cmd, "fen")) {
         b = Board{gui_cmd.substr(13)};
+        clear_pos_stack();
       }
       else if (simon_says(&gui_cmd, "startpos")) {
         b.reset();
+        clear_pos_stack();
       }
       if (simon_says(&gui_cmd, "moves")) {
         startpos_moves(b, &gui_cmd);
@@ -89,6 +91,9 @@ void uci_loop()
       // so that we don't timeout before recreating the pv
       prev_layer_g_pv[0] = Move{};
 
+      time_elapsed = 0;
+      start        = std::chrono::steady_clock::now();
+
       for (depth = 1; depth <= target_depth; ++depth) {
         alpha_beta_root(b, alpha, beta, depth);
         if (root_trees <= rte || root_beta_cutoff) {
@@ -103,7 +108,8 @@ void uci_loop()
         }
       }
 
-      logln("bestmove", prev_layer_g_pv[0]);
+      // logln("bestmove", prev_layer_g_pv[0]);
+      std::cout << "bestmove " << prev_layer_g_pv[0] << std::endl;
     }
     else if (gui_cmd.find("stop") != std::string::npos) {
     }
@@ -111,11 +117,19 @@ void uci_loop()
       b.display();
     }
     else if (simon_says(&gui_cmd, "ucinewgame")) {
-      for (int i = 0; i < tt_size; ++i) {
+      for (U32 i = 0; i < tt_size; ++i) {
         tt[i] = TT_entry{};
       }
       std::ranges::fill(g_pv, Move{});
       std::ranges::fill(prev_layer_g_pv, Move{});
+      clear_pos_stack();
+      for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 128; ++j) {
+          for (int k = 0; k < 128; ++k) {
+            history[i][j][k] = 0;
+          }
+        }
+      }
     }
     else if (gui_cmd == "quit") {
       break;
