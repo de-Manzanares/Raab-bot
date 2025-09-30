@@ -52,6 +52,14 @@ void uci_loop()
       }
     }
     if (simon_says(&gui_cmd, "go")) {
+      for (int c = 0; c < 2; ++c) {
+        for (int from = 0; from < 128; ++from) {
+          for (int to = 0; to < 128; ++to) {
+            history[c][from][to] -= (history[c][from][to] >> 5);
+          }
+        }
+      }
+
       long wtime{};
       long winc{};
       long btime{};
@@ -85,8 +93,6 @@ void uci_loop()
         target_depth = std::numeric_limits<decltype(target_depth)>::max();
         allowed_time = std::numeric_limits<decltype(allowed_time)>::max();
       }
-
-      start = std::chrono::steady_clock::now();
 
       // so that we don't timeout before recreating the pv
       prev_layer_g_pv[0] = Move{};
@@ -155,10 +161,10 @@ bool accept_value(const std::string &sup_s, std::string_view sub_s, T &var)
 void preamble(const std::string *in)
 {
   if (*in == "uci") {
-    std::cout << "id name Raab-bot\nid author Schauss\nuciok\n";
+    std::cout << "id name Raab-bot\nid author Schauss\nuciok" << std::endl;
   }
   else if (*in == "isready") {
-    std::cout << "readyok\n";
+    std::cout << "readyok" << std::endl;
   }
 }
 
