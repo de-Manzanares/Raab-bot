@@ -41,24 +41,17 @@ void uci_loop()
     if (simon_says(&gui_cmd, "position")) {
       if (simon_says(&gui_cmd, "fen")) {
         b = Board{gui_cmd.substr(13)};
-        clear_pos_stack();
       }
       else if (simon_says(&gui_cmd, "startpos")) {
         b.reset();
-        clear_pos_stack();
       }
       if (simon_says(&gui_cmd, "moves")) {
         startpos_moves(b, &gui_cmd);
       }
     }
     if (simon_says(&gui_cmd, "go")) {
-      for (int c = 0; c < 2; ++c) {
-        for (int from = 0; from < 128; ++from) {
-          for (int to = 0; to < 128; ++to) {
-            history[c][from][to] -= (history[c][from][to] >> 5);
-          }
-        }
-      }
+      SearchDriver sd;
+      b.history_decay();
 
       long wtime{};
       long winc{};
@@ -72,50 +65,49 @@ void uci_loop()
 
       // my little time per move function
       if (b.stm == white && wtime != 0) {
-        allowed_time = double(wtime) / 60.0 + winc;
+        sd.allowed_time = double(wtime) / 60.0 + winc;
       }
       else if (b.stm == black && btime != 0) {
-        allowed_time = double(btime) / 60.0 + binc;
+        sd.allowed_time = double(btime) / 60.0 + binc;
       }
       else {
-        allowed_time = 1000;
+        sd.allowed_time = 1000;
       }
 
       U8 target_depth = max_depth;
 
-      if (accept_value(gui_cmd, "go movetime", allowed_time)) {
+      if (accept_value(gui_cmd, "go movetime", sd.allowed_time)) {
         ;
       }
       else if (accept_value(gui_cmd, "go depth", target_depth)) {
-        allowed_time = std::numeric_limits<decltype(allowed_time)>::max();
+        sd.allowed_time = std::numeric_limits<decltype(sd.allowed_time)>::max();
       }
       else if (gui_cmd.find("go infinite") != std::string::npos) {
-        target_depth = std::numeric_limits<decltype(target_depth)>::max();
-        allowed_time = std::numeric_limits<decltype(allowed_time)>::max();
+        target_depth    = std::numeric_limits<decltype(target_depth)>::max();
+        sd.allowed_time = std::numeric_limits<decltype(sd.allowed_time)>::max();
       }
 
       // so that we don't timeout before recreating the pv
-      prev_layer_g_pv[0] = Move{};
+      sd.prev_pv[0] = Move{};
 
-      time_elapsed = 0;
-      start        = std::chrono::steady_clock::now();
+      sd.start = std::chrono::steady_clock::now();
 
-      for (depth = 1; depth <= target_depth; ++depth) {
-        alpha_beta_root(b, alpha, beta, depth);
-        if (root_trees <= rte || root_beta_cutoff) {
-          log_search();
+      for (sd.depth = 1; sd.depth <= target_depth; ++sd.depth) {
+        alpha_beta_root(b, alpha, beta, sd);
+        if (sd.root_trees <= sd.rte || sd.root_beta_cutoff) {
+          log_search(sd);
         }
         else {
           break;
         }
-        if (g_pv[0] != Move{}) {
-          prev_layer_g_pv   = g_pv;
-          prev_layer_g_eval = g_eval;
+        if (sd.pv[0] != Move{}) {
+          sd.prev_pv   = sd.pv;
+          sd.prev_eval = sd.eval;
         }
       }
 
-      // logln("bestmove", prev_layer_g_pv[0]);
-      std::cout << "bestmove " << prev_layer_g_pv[0] << std::endl;
+      // logln("bestmove", sd.prev_pv[0]);
+      std::cout << "bestmove " << sd.prev_pv[0] << std::endl;
     }
     else if (gui_cmd.find("stop") != std::string::npos) {
     }
@@ -125,16 +117,6 @@ void uci_loop()
     else if (simon_says(&gui_cmd, "ucinewgame")) {
       for (U32 i = 0; i < tt_size; ++i) {
         tt[i] = TT_entry{};
-      }
-      std::ranges::fill(g_pv, Move{});
-      std::ranges::fill(prev_layer_g_pv, Move{});
-      clear_pos_stack();
-      for (int i = 0; i < 2; ++i) {
-        for (int j = 0; j < 128; ++j) {
-          for (int k = 0; k < 128; ++k) {
-            history[i][j][k] = 0;
-          }
-        }
       }
     }
     else if (gui_cmd == "quit") {

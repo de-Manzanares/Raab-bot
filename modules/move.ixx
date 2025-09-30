@@ -15,11 +15,6 @@ export module move;
 
 //------------------------------------------------------------------------------
 
-/// position stack for three-fold repetition detection
-std::vector<U64> pos_stack;
-
-/// array for history heuristic
-export I16 history[2][128][128]{};
 
 export constexpr int hmax = 1UL << 14;
 export constexpr int hmin = -hmax;
@@ -57,18 +52,6 @@ export struct Move {
 /// for quick is_repetition() execution. doesn't compare full struct
 export bool operator==(Move lhs, Move rhs);
 
-/**
- * @param   hash the current board Zobrist hash
- * @return  true - the current position has been seen twice already
- *          false - !true
- */
-export bool is_repetition(U64 hash);
-
-/**
- * Clear the internal repetition position stack at the start of a new game or
- * when a new position is set.
- */
-export void clear_pos_stack();
 
 /**
  * make the move m

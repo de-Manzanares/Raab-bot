@@ -46,23 +46,6 @@ std::ostream &operator<<(std::ostream &os, const Move &m)
   return os;
 }
 
-bool is_repetition(const U64 hash)
-{
-  auto const last = pos_stack.end() - 1;
-  if (const auto first = std::find(pos_stack.begin(), last, hash);
-      first != last) {
-    if (const auto second = std::find(first, last, hash); second != last) {
-      return true;
-    }
-  }
-  return false;
-}
-
-void clear_pos_stack()
-{
-  pos_stack.clear();
-}
-
 void move(Board &b, const Move m)
 {
   // move pieces
@@ -144,7 +127,7 @@ void move(Board &b, const Move m)
   b.t_hash ^= zobrist.stm;
 
   // update pos_stack
-  pos_stack.push_back(b.t_hash);
+  b.pos_stack.push_back(b.t_hash);
 
   // update phase
   b.phase = set_phase(b);
@@ -205,7 +188,7 @@ void unmove(Board &b, const Move m)
   b.t_hash ^= zobrist.stm;
 
   // update pos_stack
-  pos_stack.pop_back();
+  b.pos_stack.pop_back();
 
   // update phase
   b.phase = set_phase(b);

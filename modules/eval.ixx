@@ -23,6 +23,13 @@ export Phase set_phase(const Board &b);
 export score_t tmsef(const Board &b);
 
 /**
+ * @param   hash the current board Zobrist hash
+ * @return  true - the current position has been seen twice already
+ *          false - !true
+ */
+export bool is_repetition(const Board &b);
+
+/**
  * should we draw or push for the win?
  */
 export score_t contempt(const Board &b);
