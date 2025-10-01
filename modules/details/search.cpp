@@ -154,6 +154,25 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
     }
   }
 
+  if constexpr (config::null_move_pruning) {
+
+    using namespace config::params;
+    if (b.phase != end_game && depth >= nmp_reduction + 1 && !in_check(b) &&
+        tmsef(b) > beta) {
+      const auto nm = Move{.prev_ep = b.ep};
+      // todo we don't want or need a PVLine, but it's part of the signature
+      PVLine line{};
+      move(b, nm); // todo dedicated null move functions
+      score_t nm_eval = -alpha_beta(b, -beta, -beta + 1,
+                                    depth - nmp_reduction - 1, ply, &line, sd);
+      unmove(b, nm);
+      if (nm_eval >= beta) {
+        tt_entry(b.t_hash, {}, nm_eval, tt_beta, depth);
+        return nm_eval;
+      }
+    }
+  }
+
   score_t  best_eval = std::numeric_limits<score_t>::min();
   Move     best_move{};
   sz_t     legal_moves{};
