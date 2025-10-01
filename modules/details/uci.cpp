@@ -40,9 +40,11 @@ void uci_loop()
     preamble(&gui_cmd);
     if (simon_says(&gui_cmd, "position")) {
       if (simon_says(&gui_cmd, "fen")) {
+        // todo probably shouldn't erase history every single time
         b = Board{gui_cmd.substr(13)};
       }
       else if (simon_says(&gui_cmd, "startpos")) {
+        // todo probably shouldn't erase history every single time
         b.reset();
       }
       if (simon_says(&gui_cmd, "moves")) {

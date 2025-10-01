@@ -1,12 +1,15 @@
 Rewriting my first and very terrible chess engine to be my second and hopefully not so terrible chess engine.
 
-Engine Features
+Estimated elo (CCRL distribution): 1436 +/- 16
+
+### Engine Features
 
 - 0x88 board
 - search
     - alpha-beta
     - history heuristic
     - iterative deepening
+    - null move pruning
     - quiescence search with delta pruning
     - transposition table
 - evaluation
@@ -14,7 +17,17 @@ Engine Features
         - (a stand-in while other engine features are being developed)
 - UCI
 
-Principles of Development:
+### Parametric compilation
+
+(see [config.cppm](modules/config.cppm))
+
+| feature                              | default |
+|--------------------------------------|---------|
+| delta pruning in qsearch             | on      |
+| move ordering with history heuristic | on      |
+| null move pruning                    | on      |
+
+#### Principles of Development:
 
     Modularity
         Clear separation of responsibilities

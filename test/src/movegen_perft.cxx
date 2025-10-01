@@ -89,6 +89,64 @@ constexpr sz_t movegen_perft(Board &b, const int depth,
   return nodes;
 }
 
+constexpr sz_t movegen_perft_nullmove_test(Board &b, const int depth,
+                                           PerftCounts *pc = nullptr)
+{
+  MoveList ml;
+  sz_t     nodes{};
+  if (depth == 0) {
+    return 1ULL;
+  }
+  movegen(b, ml.begin());
+  sz_t       i   = 0;
+  const sz_t nme = 3; /// null move every x moves
+  for (const auto &m : ml) {
+    if (m.from_sq == null_square) {
+      break;
+    }
+
+    auto       hasha     = b.t_hash;
+    auto       m_hash_a  = b.m_hash;
+    auto       mat_bal_a = b.mat_bal;
+    auto       pos_bal_a = b.pos_bal[0] - b.pos_bal[1];
+    auto       phase_a   = b.phase;
+    auto       hmc_a     = b.hmc;
+    const auto nm        = Move{.prev_ep = b.ep};
+    if (i % nme == 0) {
+      move(b, nm);
+    }
+    else {
+      move(b, m);
+    }
+    if (is_legal(b) && i % nme != 0) {
+      if (pc) {
+        cnt_mv_t(m, pc);
+      }
+      nodes += movegen_perft(b, depth - 1, pc);
+    }
+    if (i % nme == 0) {
+      unmove(b, nm);
+    }
+    else {
+      unmove(b, m);
+    }
+    auto hashb     = b.t_hash;
+    auto m_hash_b  = b.m_hash;
+    auto mat_bal_b = b.mat_bal;
+    auto pos_bal_b = b.pos_bal[0] - b.pos_bal[1];
+    auto phase_b   = b.phase;
+    auto hmc_b     = b.hmc;
+    assert(hasha == hashb);         // verify move unmove position hash
+    assert(m_hash_a == m_hash_b);   // verify move unmove material hash
+    assert(mat_bal_a == mat_bal_b); // verify move unmove material balance
+    assert(pos_bal_a == pos_bal_b); // verify move unmove position balance
+    assert(phase_a == phase_b);     // verify move unmove position balance
+    assert(hmc_a == hmc_b);         // verify move unmove hcm
+    ++i;
+  }
+  return nodes;
+}
+
 void print_res(const PerftCounts *pc)
 {
   std::cout << "captures " << pc->captures << '\n';
@@ -170,4 +228,11 @@ TEST_CASE("correctness")
              "- - 0 10 ");
     SECTION("depth 4") { CHECK(movegen_perft(b0, 4) == perft_results[6][4]); }
   }
+}
+
+TEST_CASE("null move")
+{
+  Board b0("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w "
+           "- - 0 10 ");
+  SECTION("depth 4") { CHECK(movegen_perft(b0, 4) == perft_results[6][4]); }
 }
