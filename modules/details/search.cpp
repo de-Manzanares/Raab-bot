@@ -238,7 +238,8 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
   }
 
   if (legal_moves == 0) {
-    const score_t terminal_eval = in_check(b) ? -(CHECKMATE - ply) : 0;
+    const score_t terminal_eval =
+        in_check(b) ? -(CHECKMATE - ply) : contempt(b);
     tt_entry(node_hash, {}, terminal_eval, tt_exact, depth);
     return terminal_eval;
   }
