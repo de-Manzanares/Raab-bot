@@ -11,6 +11,7 @@ import attack;
 import board;
 import config;
 import eval;
+import killer;
 import move;
 import movegen;
 import transposition;
@@ -23,6 +24,7 @@ bool time_up(SearchDriver &sd);
 bool check_time(SearchDriver &sd);
 bool is_draw(const Board &b);
 bool is_quiet(const Move &m);
+void lift_killers(MoveList &ml, sz_t sz, const SearchDriver &sd, U8 ply);
 void tt_entry(U64 hash, const Move &m, score_t eval, TT_flag flag, U8 depth);
 
 //------------------------------------------------------------------------------
@@ -46,8 +48,10 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, SearchDriver &sd)
   MoveList ml{};
   sz_t     move_n{};
 
-  for (const auto sz = movegen(b, ml.begin()); move_n < sz;
-       ++move_n, ++sd.root_trees_examined) {
+  const auto sz = movegen(b, ml.begin());
+  lift_killers(ml, sz, sd, 0);
+
+  for (; move_n < sz; ++move_n, ++sd.root_trees_examined) {
 
     const auto first_unseen = std::next(ml.begin(), move_n);
     const auto ml_end       = sz - move_n;
@@ -88,10 +92,9 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, SearchDriver &sd)
 
     if (sd.eval >= beta) {
       tt_entry(node_hash, m, sd.eval, tt_beta, sd.depth);
-      if constexpr (config::history_heuristic) {
-        if (is_quiet(m)) {
-          b.update_history(~b.stm, m.from_sq, m.to_sq, sd.depth);
-        }
+      if (is_quiet(m)) {
+        sd.set_killers(m, ply);
+        b.update_history(~b.stm, m.from_sq, m.to_sq, sd.depth);
       }
       unmove(b, m);
       sd.root_beta_cutoff = true;
@@ -163,8 +166,8 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
       // todo we don't want or need a PVLine, but it's part of the signature
       PVLine line{};
       move(b, nm); // todo dedicated null move functions
-      score_t nm_eval = -alpha_beta(b, -beta, -beta + 1,
-                                    depth - nmp_reduction - 1, ply, &line, sd);
+      score_t nm_eval = -alpha_beta(
+          b, -beta, -beta + 1, depth - nmp_reduction - 1, ply + 1, &line, sd);
       unmove(b, nm);
       if (nm_eval >= beta) {
         tt_entry(b.t_hash, {}, nm_eval, tt_beta, depth);
@@ -180,12 +183,15 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
   sz_t     move_n{};
   score_t  eval{};
 
-  for (const auto sz = movegen(b, ml.begin()); move_n < sz; ++move_n) {
+  const auto sz = movegen(b, ml.begin());
+  lift_killers(ml, sz, sd, ply);
+
+  for (; move_n < sz; ++move_n) {
 
     const auto first_unseen = std::next(ml.begin(), move_n);
     const auto ml_end       = sz - move_n;
 
-    // use the transposition table only for the first root tree
+    // use the transposition table only for the first tree
     // otherwise, allow move ordering to do its work
     if (move_n == 0) {
       move_select(first_unseen, ml_end, tt_move);
@@ -221,10 +227,9 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
 
     if (eval >= beta) {
       tt_entry(node_hash, m, eval, tt_beta, depth);
-      if constexpr (config::history_heuristic) {
-        if (is_quiet(m)) {
-          b.update_history(~b.stm, m.from_sq, m.to_sq, sd.depth);
-        }
+      if (is_quiet(m)) {
+        sd.set_killers(m, ply);
+        b.update_history(~b.stm, m.from_sq, m.to_sq, sd.depth);
       }
       unmove(b, m);
       return eval;
@@ -364,6 +369,24 @@ bool is_draw(const Board &b) { return b.hmc > 49 || is_repetition(b); }
 bool is_quiet(const Move &m)
 {
   return m.flag != capture && m.flag != prom_capture && m.flag != promotion;
+}
+
+void lift_killers(MoveList &ml, const sz_t sz, const SearchDriver &sd,
+                  const U8 ply)
+{
+  if constexpr (config::killer_heuristic) {
+    using std::ranges::find;
+    using std::ranges::subrange;
+    score_t i = 0;
+    for (const auto &killer : sd.get_killers(ply)) {
+      if (const auto k =
+              find(subrange{ml.begin(), std::next(ml.begin(), sz)}, killer);
+          k != ml.end()) {
+        k->score += hmax - i;
+      }
+      ++i;
+    }
+  }
 }
 
 void tt_entry(const U64 hash, const Move &m, const score_t eval,

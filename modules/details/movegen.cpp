@@ -149,7 +149,6 @@ void move_select(MlIt first, sz_t sz, const TT_move tt_m)
       std::iter_swap(first, it);
     }
   }
-  // choose captures
   else {
     auto max = first;
     for (auto it = std::next(first); it != std::next(first, sz); ++it) {

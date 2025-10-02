@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.0)
 
 project(Raab-bot LANGUAGES CXX)
-set(VERSION v2-dev.8.2)
+set(VERSION v2-dev.9)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -45,22 +45,20 @@ target_sources(chess_modules
         modules/eval.ixx
         modules/fen.ixx
         modules/history.ixx
+        modules/killer.ixx
         modules/move.ixx
         modules/movegen.ixx
         modules/search.ixx
         modules/transposition.ixx
         modules/uci.ixx
         modules/auxiliary/log.ixx
-)
-target_link_libraries(chess_modules PUBLIC build_flags)
-
-add_library(chess STATIC)
-target_sources(chess
-        PRIVATE
+        PUBLIC
         modules/details/attack.cpp
         modules/details/board.cpp
         modules/details/eval.cpp
         modules/details/fen.cpp
+        modules/details/history.cpp
+        modules/details/killer.cpp
         modules/details/move.cpp
         modules/details/movegen.cpp
         modules/details/search.cpp
@@ -68,6 +66,9 @@ target_sources(chess
         modules/details/uci.cpp
         modules/auxiliary/log.cpp
 )
+target_link_libraries(chess_modules PUBLIC build_flags)
+
+add_library(chess STATIC)
 target_link_libraries(chess PUBLIC chess_modules build_flags)
 
 add_executable(Raab-bot-${VERSION} src/raab-bot.cpp)

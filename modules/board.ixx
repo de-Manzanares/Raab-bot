@@ -60,7 +60,7 @@ export class Board : public History<config::history_heuristic> {
   score_t pos_bal[2]{};    ///< incrementally updated psqt balance
 
   /// position stack for three-fold repetition detection
-  std::vector<U64> pos_stack;
+  std::vector<U64> pos_stack; // todo maybe array instead?
 };
 
 //------------------------------------------------------------------------------
