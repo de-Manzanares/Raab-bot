@@ -2,6 +2,7 @@ module;
 
 #include "../../include/id.hpp"
 
+#include <cassert>
 #include <chrono>
 #include <iostream>
 #include <string>
@@ -41,11 +42,16 @@ void uci_loop()
     if (simon_says(&gui_cmd, "position")) {
       if (simon_says(&gui_cmd, "fen")) {
         // todo probably shouldn't erase history every single time
-        b = Board{gui_cmd.substr(13)};
+        auto h    = std::move(b.history);
+        b         = Board{gui_cmd.substr(13)};
+        b.history = std::move(h);
+        // eh? EH!?
       }
       else if (simon_says(&gui_cmd, "startpos")) {
         // todo probably shouldn't erase history every single time
+        auto h = std::move(b.history);
         b.reset();
+        b.history = std::move(h);
       }
       if (simon_says(&gui_cmd, "moves")) {
         startpos_moves(b, &gui_cmd);
@@ -120,6 +126,7 @@ void uci_loop()
       for (U32 i = 0; i < tt_size; ++i) {
         tt[i] = TT_entry{};
       }
+      b.reset();
     }
     else if (gui_cmd == "quit") {
       break;
