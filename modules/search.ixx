@@ -5,8 +5,10 @@ module;
 
 import attack;
 import board;
+import config;
 import defs;
 import eval;
+import killer;
 import move;
 import movegen;
 import transposition;
@@ -15,13 +17,11 @@ export module search;
 
 //------------------------------------------------------------------------------
 
-export constexpr U8 max_depth = 32;
-
 export using sctime = std::chrono::time_point<std::chrono::steady_clock>;
 
-export using PVLine = std::array<Move, max_depth>;
+export using PVLine = std::array<Move, config::params::max_depth>;
 
-export struct SearchDriver {
+export struct SearchDriver : Killer<config::killer_heuristic> {
   PVLine  pv{};                  ///< populated by alpha_beta_root
   PVLine  prev_pv{};             ///< pv from last finished layer
   score_t eval{};                ///< populated by alpha_beta_root

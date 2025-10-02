@@ -8,6 +8,7 @@ module;
 #include <string>
 
 import board;
+import config;
 import defs;
 import move;
 import fen;
@@ -82,7 +83,7 @@ void uci_loop()
         sd.allowed_time = 1000;
       }
 
-      U8 target_depth = max_depth;
+      U8 target_depth = config::params::max_depth;
 
       if (accept_value(gui_cmd, "go movetime", sd.allowed_time)) {
         ;
