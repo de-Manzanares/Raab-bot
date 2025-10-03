@@ -4,6 +4,7 @@ module;
 #include <array>
 #include <cassert>
 #include <chrono>
+#include <iostream>
 #include <limits>
 #include <ranges>
 
@@ -175,7 +176,7 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
     }
   }
 
-  // todo PVS ... I guess?
+  // todo exclude pv nodes from razoring and futility pruning
 
   if constexpr (config::razoring) {
     if (!in_check(b)) {
@@ -183,6 +184,16 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
         PVLine line{};
         return quiesce(b, alpha, beta, ply, &line, sd);
       }
+    }
+  }
+
+  bool is_futile_node = false;
+  if constexpr (config::futility_pruning) {
+    if (constexpr score_t futility_margin[4] = {0, 200, 300, 500};
+        depth <= 3 && !in_check(b) &&
+        tmsef(b) + futility_margin[depth] <= alpha) {
+      b.display();
+      is_futile_node = true;
     }
   }
 
@@ -213,6 +224,12 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
     if (!is_legal(b)) {
       unmove(b, m);
       continue;
+    }
+    if (is_futile_node) {
+      if (is_quiet(m) && !in_check(b)) {
+        unmove(b, m);
+        continue;
+      }
     }
 
     ++legal_moves;

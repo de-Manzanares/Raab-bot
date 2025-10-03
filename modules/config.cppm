@@ -15,6 +15,7 @@ export namespace config {
 
 // pruning
 constexpr bool delta_pruning     = true;
+constexpr bool futility_pruning  = false;
 constexpr bool null_move_pruning = true;
 constexpr bool razoring          = true;
 
