@@ -3,6 +3,7 @@ module;
 #include <algorithm>
 #include <array>
 #include <concepts>
+#include <span>
 
 import board;
 import defs;
@@ -57,7 +58,7 @@ sz_t movegen_not_pawn(const Board &b, MlIt &out, Square from, Piece piece_t,
                       int max_i);
 
 //------------------------------------------------------------------------------
-sz_t movegen(const Board &b, MlIt out)
+sz_t movegen_sz(const Board &b, MlIt out)
 {
   sz_t move_count = 0;
   move_count += movegen_castle(b, out);
@@ -76,7 +77,14 @@ sz_t movegen(const Board &b, MlIt out)
   return move_count;
 }
 
-sz_t quiescence_movegen(const Board &b, MlIt out)
+std::span<Move> movegen(const Board &b, MlIt out)
+{
+  auto orig_out = out;
+  sz_t sz       = movegen_sz(b, out);
+  return {orig_out, sz};
+}
+
+sz_t quiescence_movegen_sz(const Board &b, MlIt out)
 {
   sz_t move_count = 0;
   for (const auto from : square_sequence) {
@@ -116,6 +124,13 @@ sz_t quiescence_movegen(const Board &b, MlIt out)
   return move_count;
 }
 
+std::span<Move> quiescence_movegen(const Board &b, MlIt out)
+{
+  auto orig_out = out;
+  auto sz       = quiescence_movegen_sz(b, out);
+  return {orig_out, sz};
+}
+
 bool is_legal(const Board &b)
 {
   return !is_attacked(b, b.stm == white ? b.bks : b.wks, b.stm);
@@ -123,20 +138,20 @@ bool is_legal(const Board &b)
 
 sz_t cnt_legal_moves(Board &b)
 {
-  MoveList   ml;
+  MoveList   buff;
   sz_t       cnt_legal_moves{};
-  const auto sz = movegen(b, ml.begin());
-  for (sz_t i = 0; i < sz; ++i) {
-    move(b, ml[i]);
+  const auto ml = movegen(b, buff.begin());
+  for (const auto &m : ml) {
+    move(b, m);
     if (is_legal(b)) {
       ++cnt_legal_moves;
     }
-    unmove(b, ml[i]);
+    unmove(b, m);
   }
   return cnt_legal_moves;
 }
 
-void move_select(MlIt first, sz_t sz, const TT_move tt_m)
+void move_select(std::span<Move> ml, const TT_move tt_m)
 {
   // probe the TT
   if (tt_m != TT_move{}) {
@@ -144,19 +159,19 @@ void move_select(MlIt first, sz_t sz, const TT_move tt_m)
       return (m.from_sq == tt_m.from && m.to_sq == tt_m.to &&
               m.prom_p == tt_m.prom_p);
     };
-    auto it = std::find_if(first, std::next(first, sz), is_move);
-    if (it != std::next(first, sz)) {
-      std::iter_swap(first, it);
+    auto it = std::ranges::find_if(ml, is_move);
+    if (it != ml.end()) {
+      std::iter_swap(ml.begin(), it);
     }
   }
   else {
-    auto max = first;
-    for (auto it = std::next(first); it != std::next(first, sz); ++it) {
+    auto max = ml.begin();
+    for (auto it = std::next(max); it != ml.end(); ++it) {
       if (it->score > max->score) {
         max = it;
       }
     }
-    std::iter_swap(first, max);
+    std::iter_swap(ml.begin(), max);
   }
 }
 

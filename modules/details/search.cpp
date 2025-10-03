@@ -24,7 +24,7 @@ bool time_up(SearchDriver &sd);
 bool check_time(SearchDriver &sd);
 bool is_draw(const Board &b);
 bool is_quiet(const Move &m);
-void lift_killers(MoveList &ml, sz_t sz, const SearchDriver &sd, U8 ply);
+void lift_killers(std::span<Move> ml, const SearchDriver &sd, U8 ply);
 void tt_entry(U64 hash, const Move &m, score_t eval, TT_flag flag, U8 depth);
 
 //------------------------------------------------------------------------------
@@ -45,29 +45,26 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, SearchDriver &sd)
   score_t  best_eval = std::numeric_limits<score_t>::min();
   Move     best_move{};
   sz_t     legal_moves{};
-  MoveList ml{};
+  MoveList buf{};
   sz_t     move_n{};
 
-  const auto sz = movegen(b, ml.begin());
-  lift_killers(ml, sz, sd, 0);
+  const auto ml = movegen(b, buf.begin());
+  lift_killers(ml, sd, 0);
 
-  for (; move_n < sz; ++move_n, ++sd.root_trees_examined) {
-
-    const auto first_unseen = std::next(ml.begin(), move_n);
-    const auto ml_end       = sz - move_n;
+  for (const auto &m : ml) {
+    // todo replace others with subspan
+    const std::span curr_view = ml.subspan(move_n++);
 
     // use the transposition table only for the first root tree
     // otherwise, allow move ordering to do its work
-    if (move_n == 0) {
-      move_select(first_unseen, ml_end, tt_move);
+    if (move_n == 1) {
+      move_select(curr_view, tt_move);
     }
     else {
-      move_select(first_unseen, ml_end);
+      move_select(curr_view);
     }
 
-    const Move m = ml[move_n];
     move(b, m);
-
     if (!is_legal(b)) {
       unmove(b, m);
       continue;
@@ -113,6 +110,7 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, SearchDriver &sd)
 
       break;
     }
+    ++sd.root_trees_examined;
   }
 
   if (legal_moves == 0) {
@@ -179,30 +177,27 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
   score_t  best_eval = std::numeric_limits<score_t>::min();
   Move     best_move{};
   sz_t     legal_moves{};
-  MoveList ml{};
+  MoveList buf{};
   sz_t     move_n{};
   score_t  eval{};
 
-  const auto sz = movegen(b, ml.begin());
-  lift_killers(ml, sz, sd, ply);
+  const auto ml = movegen(b, buf.begin());
+  lift_killers(ml, sd, ply);
 
-  for (; move_n < sz; ++move_n) {
+  for (const auto &m : ml) {
 
-    const auto first_unseen = std::next(ml.begin(), move_n);
-    const auto ml_end       = sz - move_n;
+    const auto curr_view = ml.subspan(move_n++);
 
     // use the transposition table only for the first tree
     // otherwise, allow move ordering to do its work
-    if (move_n == 0) {
-      move_select(first_unseen, ml_end, tt_move);
+    if (move_n == 1) {
+      move_select(curr_view, tt_move);
     }
     else {
-      move_select(first_unseen, ml_end);
+      move_select(curr_view);
     }
 
-    const Move m = ml[move_n];
     move(b, m);
-
     if (!is_legal(b)) {
       unmove(b, m);
       continue;
@@ -276,14 +271,14 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
   alpha = std::max(best_eval, alpha);
 
   score_t  eval{};
-  MoveList ml{};
+  MoveList buf{};
   sz_t     move_n{};
 
-  for (const auto sz = quiescence_movegen(b, ml.begin()); move_n < sz;
-       ++move_n) {
+  for (const auto ml = quiescence_movegen(b, buf.begin()); const auto &m : ml) {
 
-    move_select(std::next(ml.begin(), move_n), sz - move_n);
-    const Move m = ml[move_n];
+    const auto curr_view = ml.subspan(move_n++);
+
+    move_select(curr_view);
 
     if constexpr (config::delta_pruning) {
       if (b.phase != end_game && m.flag != promotion &&
@@ -305,9 +300,9 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
     if (eval > best_eval) {
       best_eval = eval;
       if (eval > alpha) {
-        PVLine line{};
         alpha = eval;
         if (b.hmc < 51) {
+          PVLine line{};
           bubble_up_pv(*pline, m, line);
         }
       }
@@ -371,17 +366,14 @@ bool is_quiet(const Move &m)
   return m.flag != capture && m.flag != prom_capture && m.flag != promotion;
 }
 
-void lift_killers(MoveList &ml, const sz_t sz, const SearchDriver &sd,
-                  const U8 ply)
+void lift_killers(std::span<Move> ml, const SearchDriver &sd, const U8 ply)
 {
   if constexpr (config::killer_heuristic) {
     using std::ranges::find;
     using std::ranges::subrange;
     score_t i = 0;
     for (const auto &killer : sd.get_killers(ply)) {
-      if (const auto k =
-              find(subrange{ml.begin(), std::next(ml.begin(), sz)}, killer);
-          k != ml.end()) {
+      if (const auto k = find(ml, killer); k != ml.end()) {
         k->score += hmax - i;
       }
       ++i;

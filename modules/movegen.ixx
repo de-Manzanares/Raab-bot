@@ -6,6 +6,7 @@
 module;
 
 #include <array>
+#include <span>
 
 import board;
 import defs;
@@ -28,16 +29,33 @@ export using MlIt = std::array<Move, ml_sz>::iterator;
  * @param out output iterator
  * @return number of pseudo-legal moves
  */
-export sz_t movegen(const Board &b, MlIt out);
+sz_t movegen_sz(const Board &b, MlIt out);
+
+/**
+ * populate a container with pseudo-legal moves
+ * @param b the board in question
+ * @param out output iterator
+ * @return a view of the generated moves
+ */
+export std::span<Move> movegen(const Board &b, MlIt out);
 
 /**
  * populate a container with pseudo-legal capture moves
  * @param b the board in question
- * @param out
+ * @param out output iterator
  * @return the number of pseudo-legal capture moves
  * @note used by the quiescence search
  */
-export sz_t quiescence_movegen(const Board &b, MlIt out);
+sz_t quiescence_movegen_sz(const Board &b, MlIt out);
+
+/**
+ * populate a container with pseudo-legal capture moves
+ * @param b the board in question
+ * @param out output iterator
+ * @return a view of the generated moves
+ * @note used by the quiescence search
+ */
+export std::span<Move> quiescence_movegen(const Board &b, MlIt out);
 
 /**
  * called after making a move to determine if it is legal (leaves us in check)
@@ -51,12 +69,11 @@ export bool is_legal(const Board &b);
 export sz_t cnt_legal_moves(Board &b);
 
 /**
- * find the highest scored move and swap it with `first`
- * if tt_m is not a null move, choose that move swap it with `first`
- * @param first first iterator in range
- * @param sz the number of elements in the range
- * @param tt_m put this move at the front of the move list
+ * find the highest scored move and swap it with the front element
+ * if tt_m is not a null move, place that move at the front
+ * @param ml a span of moves
+ * @param tt_m (optional) put this move at the front of the move list
  */
-export void move_select(MlIt first, sz_t sz, TT_move tt_m = TT_move{});
+export void move_select(std::span<Move> ml, TT_move tt_m = TT_move{});
 
 //------------------------------------------------------------------------------
