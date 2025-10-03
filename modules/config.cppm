@@ -18,8 +18,8 @@ constexpr bool delta_pruning     = true;
 constexpr bool null_move_pruning = true;
 
 // move ordering
-constexpr bool history_heuristic = false;
-constexpr bool killer_heuristic  = !history_heuristic;
+constexpr bool history_heuristic = true;
+constexpr bool killer_heuristic  = false;
 
 namespace params {
 
