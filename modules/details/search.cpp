@@ -77,7 +77,20 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, SearchDriver &sd)
     ++legal_moves;
     ++sd.node_count;
 
-    sd.eval = -alpha_beta(b, -beta, -alpha, sd.depth - 1, ply + 1, &line, sd);
+    constexpr bool pv     = true;
+    constexpr bool not_pv = false;
+
+    if (best_eval == std::numeric_limits<score_t>::min()) {
+      sd.eval =
+          -alpha_beta(b, -beta, -alpha, sd.depth - 1, ply + 1, &line, sd, pv);
+    }
+    else {
+      if (-alpha_beta(b, -alpha - 1, -alpha, sd.depth - 1, ply + 1, &line, sd,
+                      not_pv) > alpha) {
+        sd.eval =
+            -alpha_beta(b, -beta, -alpha, sd.depth - 1, ply + 1, &line, sd, pv);
+      }
+    }
 
     if (sd.eval > best_eval) {
       best_eval = sd.eval;
@@ -122,13 +135,13 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, SearchDriver &sd)
   tt_entry(node_hash, best_move, best_eval, flag, sd.depth);
 }
 
-score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
+score_t alpha_beta(Board &b, score_t alpha, score_t beta, const U8 depth,
                    const U8 ply, PVLine *pline, SearchDriver &sd,
-                   const bool can_null)
+                   const bool is_pv, const bool can_null)
 {
   if (depth == 0) {
     PVLine line{};
-    return quiesce(b, alpha, beta, ply, &line, sd);
+    return quiesce(b, alpha, beta, ply, &line, sd, is_pv);
   }
 
   if (is_draw(b)) {
@@ -160,14 +173,14 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
   if constexpr (config::null_move_pruning) {
     using namespace config::params;
     constexpr auto r = nmp_reduction;
-    if (can_null && b.phase != end_game && depth >= r + 1 && !in_check(b) &&
-        tmsef(b) > beta) {
+    if (!is_pv && can_null && b.phase != end_game && depth >= r + 1 &&
+        !in_check(b) && tmsef(b) > beta) {
       const auto nm = Move{.prev_ep = b.ep};
       // todo we don't want or need a PVLine, but it's part of the signature
       PVLine line{};
       move(b, nm); // todo dedicated null move functions
       score_t nm_eval = -alpha_beta(b, -beta, -beta + 1, depth - r - 1, ply + 1,
-                                    &line, sd, false);
+                                    &line, sd, is_pv, false);
       unmove(b, nm);
       if (nm_eval >= beta) {
         tt_entry(b.t_hash, {}, nm_eval, tt_beta, depth);
@@ -179,10 +192,10 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
   // todo exclude pv nodes from razoring and futility pruning
 
   if constexpr (config::razoring) {
-    if (!in_check(b)) {
+    if (!is_pv && !in_check(b)) {
       if (tmsef(b) < alpha - 300 - depth * depth * 30) {
         PVLine line{};
-        return quiesce(b, alpha, beta, ply, &line, sd);
+        return quiesce(b, alpha, beta, ply, &line, sd, is_pv);
       }
     }
   }
@@ -190,9 +203,8 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
   bool is_futile_node = false;
   if constexpr (config::futility_pruning) {
     if (constexpr score_t futility_margin[4] = {0, 200, 300, 500};
-        depth <= 3 && !in_check(b) &&
+        !is_pv && depth <= 3 && alpha < CHECKMATE && !in_check(b) &&
         tmsef(b) + futility_margin[depth] <= alpha) {
-      b.display();
       is_futile_node = true;
     }
   }
@@ -203,6 +215,7 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
   MoveList buf{};
   sz_t     move_n{};
   score_t  eval{};
+  bool     raised_alpha = false;
 
   const auto ml = movegen(b, buf.begin());
   lift_killers(ml, sd, ply);
@@ -226,7 +239,7 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
       continue;
     }
     if (is_futile_node) {
-      if (is_quiet(m) && !in_check(b)) {
+      if (is_quiet(m)) {
         unmove(b, m);
         continue;
       }
@@ -235,8 +248,20 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
     ++legal_moves;
     ++sd.node_count;
 
-    PVLine line{};
-    eval = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line, sd);
+    PVLine         line{};
+    constexpr bool pv     = true;
+    constexpr bool not_pv = false;
+
+    if (alpha <= orig_alpha) {
+      eval = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line, sd, pv);
+    }
+    else {
+      if (-alpha_beta(b, -alpha - 1, -alpha, depth - 1, ply + 1, &line, sd,
+                      not_pv) > alpha) {
+        eval =
+            -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line, sd, is_pv);
+      }
+    }
 
     if (eval > best_eval) {
       best_eval = eval;
@@ -279,7 +304,7 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
 }
 
 score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
-                PVLine *pline, SearchDriver &sd)
+                PVLine *pline, SearchDriver &sd, bool is_pv)
 {
   if (is_draw(b)) {
     return contempt(b);
@@ -289,7 +314,7 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
 
   if (in_check(b)) {
     PVLine line{};
-    best_eval = alpha_beta(b, alpha, beta, 1, ply, &line, sd);
+    best_eval = alpha_beta(b, alpha, beta, 1, ply, &line, sd, is_pv);
   }
   else {
     best_eval = tmsef(b);
@@ -324,7 +349,7 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
     }
 
     ++sd.node_count;
-    eval = -quiesce(b, -beta, -alpha, ply + 1, pline, sd);
+    eval = -quiesce(b, -beta, -alpha, ply + 1, pline, sd, is_pv);
 
     if (eval > best_eval) {
       best_eval = eval;

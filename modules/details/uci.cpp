@@ -101,7 +101,9 @@ void uci_loop()
 
       sd.start = std::chrono::steady_clock::now();
 
-      for (sd.depth = 1; sd.depth <= target_depth; ++sd.depth) {
+      alpha_beta_root(b, alpha, beta, sd);
+
+      for (sd.depth = 2; sd.depth <= target_depth; ++sd.depth) {
         alpha_beta_root(b, alpha, beta, sd);
         if (sd.root_trees <= sd.root_trees_examined || sd.root_beta_cutoff) {
           log_search(sd);

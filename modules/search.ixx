@@ -33,7 +33,7 @@ export struct SearchDriver : Killer<config::killer_heuristic> {
   long    allowed_time{};
   long    time_elapsed{};
   long    node_count{};
-  U8      depth{};
+  U8      depth = 1;
 
   /**
    * called at the beginning of alpha_beta_root to reset variables for a new
@@ -56,13 +56,13 @@ export void alpha_beta_root(Board &b, score_t alpha, score_t beta,
  * @return the best score found by searching to depth `depth`
  */
 export score_t alpha_beta(Board &b, score_t alpha, score_t beta, U8 depth,
-                          U8 ply, PVLine *pline, SearchDriver &sd,
+                          U8 ply, PVLine *pline, SearchDriver &sd, bool is_pv,
                           bool can_null = true);
 /**
  * called by alpha_beta to quiet the position before static eval
  * @return static eval from a quiet position
  */
 export score_t quiesce(Board &b, score_t alpha, score_t beta, U8 ply,
-                       PVLine *pline, SearchDriver &sd);
+                       PVLine *pline, SearchDriver &sd, bool is_pv);
 
 //------------------------------------------------------------------------------
