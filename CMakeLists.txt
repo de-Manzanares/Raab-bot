@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.0)
 
 project(Raab-bot LANGUAGES CXX)
-set(VERSION v2-dev.9)
+set(VERSION v2-dev.9.1)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
