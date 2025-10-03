@@ -16,6 +16,7 @@ export namespace config {
 // pruning
 constexpr bool delta_pruning     = true;
 constexpr bool null_move_pruning = true;
+constexpr bool razoring          = true;
 
 // move ordering
 constexpr bool history_heuristic = true;

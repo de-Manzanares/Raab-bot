@@ -9,8 +9,10 @@ Estimated elo (CCRL distribution): 1436 +/- 16
     - alpha-beta
     - history heuristic
     - iterative deepening
+    - killer move heuristic
     - null move pruning
     - quiescence search with delta pruning
+    - razoring
     - transposition table
 - evaluation
     - Tomasz Michniewski's simplified evaluation function
@@ -25,7 +27,9 @@ Estimated elo (CCRL distribution): 1436 +/- 16
 |--------------------------------------|---------|
 | delta pruning in qsearch             | on      |
 | move ordering with history heuristic | on      |
+| move ordering with killer heuristic  | off     |
 | null move pruning                    | on      |
+| razoring                             | on      |
 
 #### Principles of Development:
 
@@ -45,3 +49,7 @@ Estimated elo (CCRL distribution): 1436 +/- 16
     Sustainable Development
         Clear roadmap for high-level goals
         Concise and measurable low-level goals
+
+    Debugging is twice as hard as writing the code in the first place. 
+    Therefore, if you write the code as cleverly as possible, you are, by definition, not smart enough to debug it.
+    -- Brian W. Kernighan

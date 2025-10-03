@@ -175,6 +175,17 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
     }
   }
 
+  // todo PVS ... I guess?
+
+  if constexpr (config::razoring) {
+    if (!in_check(b)) {
+      if (tmsef(b) < alpha - 300 - depth * depth * 30) {
+        PVLine line{};
+        return quiesce(b, alpha, beta, ply, &line, sd);
+      }
+    }
+  }
+
   score_t  best_eval = std::numeric_limits<score_t>::min();
   Move     best_move{};
   sz_t     legal_moves{};
