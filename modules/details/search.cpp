@@ -122,7 +122,8 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, SearchDriver &sd)
 }
 
 score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
-                   const U8 ply, PVLine *pline, SearchDriver &sd)
+                   const U8 ply, PVLine *pline, SearchDriver &sd,
+                   const bool can_null)
 {
   if (depth == 0) {
     PVLine line{};
@@ -156,16 +157,16 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth,
   }
 
   if constexpr (config::null_move_pruning) {
-
     using namespace config::params;
-    if (b.phase != end_game && depth >= nmp_reduction + 1 && !in_check(b) &&
+    constexpr auto r = nmp_reduction;
+    if (can_null && b.phase != end_game && depth >= r + 1 && !in_check(b) &&
         tmsef(b) > beta) {
       const auto nm = Move{.prev_ep = b.ep};
       // todo we don't want or need a PVLine, but it's part of the signature
       PVLine line{};
       move(b, nm); // todo dedicated null move functions
-      score_t nm_eval = -alpha_beta(
-          b, -beta, -beta + 1, depth - nmp_reduction - 1, ply + 1, &line, sd);
+      score_t nm_eval = -alpha_beta(b, -beta, -beta + 1, depth - r - 1, ply + 1,
+                                    &line, sd, false);
       unmove(b, nm);
       if (nm_eval >= beta) {
         tt_entry(b.t_hash, {}, nm_eval, tt_beta, depth);

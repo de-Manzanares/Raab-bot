@@ -56,7 +56,8 @@ export void alpha_beta_root(Board &b, score_t alpha, score_t beta,
  * @return the best score found by searching to depth `depth`
  */
 export score_t alpha_beta(Board &b, score_t alpha, score_t beta, U8 depth,
-                          U8 ply, PVLine *pline, SearchDriver &sd);
+                          U8 ply, PVLine *pline, SearchDriver &sd,
+                          bool can_null = true);
 /**
  * called by alpha_beta to quiet the position before static eval
  * @return static eval from a quiet position
