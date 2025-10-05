@@ -1,12 +1,13 @@
 Rewriting my first and very terrible chess engine to be my second and hopefully not so terrible chess engine.
 
-Estimated elo (CCRL distribution): 1436 +/- 16
+Estimated elo (CCRL distribution): 1477 +/- 8
 
 ### Engine Features
 
 - 0x88 board
 - search
-    - alpha-beta
+    - alpha-beta with principal variation search
+    - futility pruning
     - history heuristic
     - iterative deepening
     - killer move heuristic
@@ -23,13 +24,14 @@ Estimated elo (CCRL distribution): 1436 +/- 16
 
 (see [config.cppm](modules/config.cppm))
 
-| feature                              | default |
-|--------------------------------------|---------|
-| delta pruning in qsearch             | on      |
-| move ordering with history heuristic | on      |
-| move ordering with killer heuristic  | off     |
-| null move pruning                    | on      |
-| razoring                             | on      |
+| feature                  | default |
+|--------------------------|---------|
+| delta pruning in qsearch | ON      |
+| futility pruning         | OFF     |
+| history heuristic        | ON      |
+| killer heuristic         | OFF     |
+| null move pruning        | ON      |
+| razoring                 | OFF     |
 
 #### Principles of Development:
 

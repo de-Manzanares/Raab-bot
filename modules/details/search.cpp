@@ -170,6 +170,28 @@ score_t alpha_beta(Board &b, score_t alpha, score_t beta, const U8 depth,
     }
   }
 
+  if constexpr (config::razoring) {
+    // depth check to save the time cost of eval on nodes that we are probably
+    // not going to cut
+    if (!is_pv && depth <= 3 && !in_check(b)) {
+      if (tmsef(b) < alpha - 300 - depth * depth * 30) {
+        PVLine line{};
+        return quiesce(b, alpha, beta, ply, &line, sd, is_pv);
+      }
+    }
+  }
+
+  bool is_futile_node = false;
+  if constexpr (config::futility_pruning) {
+    constexpr double mult = 1;
+    if (constexpr double futility_margin[4] = {0, 200 * mult, 300 * mult,
+                                               500 * mult};
+        !is_pv && depth <= 3 && !in_check(b) &&
+        tmsef(b) + futility_margin[depth] <= alpha) {
+      is_futile_node = true;
+    }
+  }
+
   if constexpr (config::null_move_pruning) {
     using namespace config::params;
     constexpr auto r = nmp_reduction;
@@ -186,26 +208,6 @@ score_t alpha_beta(Board &b, score_t alpha, score_t beta, const U8 depth,
         tt_entry(b.t_hash, {}, nm_eval, tt_beta, depth);
         return nm_eval;
       }
-    }
-  }
-
-  // todo exclude pv nodes from razoring and futility pruning
-
-  if constexpr (config::razoring) {
-    if (!is_pv && !in_check(b)) {
-      if (tmsef(b) < alpha - 300 - depth * depth * 30) {
-        PVLine line{};
-        return quiesce(b, alpha, beta, ply, &line, sd, is_pv);
-      }
-    }
-  }
-
-  bool is_futile_node = false;
-  if constexpr (config::futility_pruning) {
-    if (constexpr score_t futility_margin[4] = {0, 200, 300, 500};
-        !is_pv && depth <= 3 && alpha < CHECKMATE && !in_check(b) &&
-        tmsef(b) + futility_margin[depth] <= alpha) {
-      is_futile_node = true;
     }
   }
 
@@ -239,7 +241,7 @@ score_t alpha_beta(Board &b, score_t alpha, score_t beta, const U8 depth,
       continue;
     }
     if (is_futile_node) {
-      if (is_quiet(m)) {
+      if (is_quiet(m) && !in_check(b)) {
         unmove(b, m);
         continue;
       }
