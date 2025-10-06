@@ -43,51 +43,50 @@ score_t mvvlva(const Piece victim, const Piece attacker)
   return (10 * p_vals[victim]) - p_vals[attacker];
 }
 
-sz_t movegen_castle(const Board &b, MlIt &out);
+MlIt movegen_castle(const Board &b, MlIt out);
 
 /// capturing pawn moves
-sz_t c_pm(const Board &b, MlIt &out, Square from);
+MlIt c_pm(const Board &b, MlIt out, Square from);
 
 /// non-capture pawn moves
-sz_t nc_pm(const Board &b, MlIt &out, Square from);
+MlIt nc_pm(const Board &b, MlIt out, Square from);
 
-sz_t movegen_pawn(const Board &b, MlIt &out, const Square from)
+MlIt movegen_pawn(const Board &b, const MlIt out, const Square from)
 {
-  return c_pm(b, out, from) + nc_pm(b, out, from);
+  return nc_pm(b, c_pm(b, out, from), from); // disgusting lol
 }
 
-sz_t movegen_not_pawn(const Board &b, MlIt &out, Square from, Piece piece_t, int max_i);
+MlIt movegen_not_pawn(const Board &b, MlIt out, Square from, Piece piece_t, int max_i);
 
 //------------------------------------------------------------------------------
-sz_t movegen_sz(const Board &b, MlIt out)
+
+std::span<Move> movegen(const Board &b, const MlIt out)
 {
-  sz_t move_count = 0;
-  move_count += movegen_castle(b, out);
+  auto end = out;
+  end = movegen_castle(b, end);
   for (const auto from : square_sequence) {
     if (b.color_on[from] == b.stm) {
       const auto [piece_t, color] = b.piece_info(from);
       if (piece_t == pawn) {
-        move_count += movegen_pawn(b, out, from);
+        end = movegen_pawn(b, end, from);
         continue;
       }
       sz_t max_i{};
       piece_t == knight || piece_t == king ? max_i = 1 : max_i = 7;
-      move_count += movegen_not_pawn(b, out, from, piece_t, max_i);
+      end = movegen_not_pawn(b, end, from, piece_t, max_i);
     }
   }
-  return move_count;
+  return {out, end};
 }
 
-std::span<Move> movegen(const Board &b, const MlIt out) { return {out, movegen_sz(b, out)}; }
-
-sz_t quiescence_movegen_sz(const Board &b, MlIt out)
+std::span<Move> quiescence_movegen(const Board &b, MlIt out)
 {
-  sz_t move_count{};
+  auto end = out;
   for (const auto from : square_sequence) {
     if (b.color_on[from] == b.stm) {
       const auto [piece_t, color] = b.piece_info(from);
       if (piece_t == pawn) {
-        move_count += c_pm(b, out, from);
+        end = c_pm(b, end, from);
         continue;
       }
       int max_i{};
@@ -99,7 +98,7 @@ sz_t quiescence_movegen_sz(const Board &b, MlIt out)
             break;
           }
           if (all_capturable(b, to)) {
-            *out++ = Move{
+            *end++ = Move{
                 .from_sq    = from,
                 .to_sq      = to,
                 .from_piece = {.piece_t = piece_t, .color = b.stm},
@@ -110,19 +109,13 @@ sz_t quiescence_movegen_sz(const Board &b, MlIt out)
                 .prev_ep    = b.ep,
                 .prev_hmc   = b.hmc,
             };
-            ++move_count;
             break;
           }
         }
       }
     }
   }
-  return move_count;
-}
-
-std::span<Move> quiescence_movegen(const Board &b, const MlIt out)
-{
-  return {out, quiescence_movegen_sz(b, out)};
+  return {out, end};
 }
 
 bool is_legal(const Board &b) { return !is_attacked(b, b.stm == white ? b.bks : b.wks, b.stm); }
@@ -165,71 +158,59 @@ void move_select(std::span<Move> ml, const TT_move tt_m)
 
 //------------------------------------------------------------------------------
 
-sz_t movegen_castle(const Board &b, MlIt &out)
+MlIt movegen_castle(const Board &b, MlIt out)
 {
-  sz_t move_count{};
+  auto castle_move = [&b](const Square to) {
+    const auto ksq = b.stm == white ? e1 : e8;
+    return Move{
+        .from_sq    = ksq,
+        .to_sq      = to,
+        .from_piece = {.piece_t = king, .color = b.stm},
+        .flag       = castle,
+        .score      = b.get_history(b.stm, ksq, to),
+        .prev_cr    = b.cr,
+        .prev_ep    = b.ep,
+        .prev_hmc   = b.hmc,
+    };
+  };
+
   if (b.stm == white) {
     if ((b.cr & 1) && all_empty(b, f1, g1) && all_not_attacked(b, black, e1, f1, g1)) {
-      *out++ = Move{
-          .from_sq    = e1,
-          .to_sq      = g1,
-          .from_piece = {.piece_t = king, .color = white},
-          .flag       = castle,
-          .score      = b.get_history(b.stm, e1, g1),
-          .prev_cr    = b.cr,
-          .prev_ep    = b.ep,
-          .prev_hmc   = b.hmc,
-      };
-      ++move_count;
+      *out++ = castle_move(g1);
     }
     if ((b.cr & 2) && all_empty(b, b1, c1, d1) && all_not_attacked(b, black, c1, d1, e1)) {
-      *out++ = Move{
-          .from_sq    = e1,
-          .to_sq      = c1,
-          .from_piece = {.piece_t = king, .color = white},
-          .flag       = castle,
-          .score      = b.get_history(b.stm, e1, c1),
-          .prev_cr    = b.cr,
-          .prev_ep    = b.ep,
-          .prev_hmc   = b.hmc,
-      };
-      ++move_count;
+      *out++ = castle_move(c1);
     }
   }
   else {
     if ((b.cr & 4) && all_empty(b, f8, g8) && all_not_attacked(b, white, e8, f8, g8)) {
-      *out++ = Move{
-          .from_sq    = e8,
-          .to_sq      = g8,
-          .from_piece = {.piece_t = king, .color = black},
-          .flag       = castle,
-          .score      = b.get_history(b.stm, e8, g8),
-          .prev_cr    = b.cr,
-          .prev_ep    = b.ep,
-          .prev_hmc   = b.hmc,
-      };
-      ++move_count;
+      *out++ = castle_move(g8);
     }
     if ((b.cr & 8) && all_empty(b, b8, c8, d8) && all_not_attacked(b, white, c8, d8, e8)) {
-      *out++ = Move{
-          .from_sq    = e8,
-          .to_sq      = c8,
-          .from_piece = {.piece_t = king, .color = black},
-          .flag       = castle,
-          .score      = b.get_history(b.stm, e8, c8),
-          .prev_cr    = b.cr,
-          .prev_ep    = b.ep,
-          .prev_hmc   = b.hmc,
-      };
-      ++move_count;
+      *out++ = castle_move(c8);
     }
   }
-  return move_count;
+  return out;
 }
 
-sz_t c_pm(const Board &b, MlIt &out, const Square from)
+MlIt c_pm(const Board &b, MlIt out, const Square from)
 {
-  sz_t                     move_count{};
+  auto capture_pawn_move = [&b, from](const Square to, const Flag flag, const score_t score,
+                                      const Piece prom_piece = null_piece) {
+    return Move{
+        .from_sq    = from,
+        .to_sq      = to,
+        .from_piece = {.piece_t = pawn, .color = b.stm},
+        .flag       = flag,
+        .cap_piece  = flag == en_passant_capture ? pawn : b.piece_on[to],
+        .prom_p     = prom_piece,
+        .score      = score,
+        .prev_cr    = b.cr,
+        .prev_ep    = b.ep,
+        .prev_hmc   = b.hmc,
+    };
+  };
+
   std::array<Direction, 2> dirs;
   const Square             prom_row = b.stm == white ? a7 : a2;
   if (b.stm == white) {
@@ -242,120 +223,89 @@ sz_t c_pm(const Board &b, MlIt &out, const Square from)
     if (const Square to = from + dir; is_on_board(to)) {
       if (b.color_on[to] == ~b.stm) {
         const score_t cap_score = mvvlva(b.piece_on[to], pawn);
+
         if ((from >> 4) == (prom_row >> 4)) {
-          for (constexpr std::array p_pieces = {queen, rook, bishop, knight};
-               const auto           p_piece : p_pieces) {
-            *out++ = Move{
-                .from_sq    = from,
-                .to_sq      = to,
-                .from_piece = {.piece_t = pawn, .color = b.stm},
-                .flag       = prom_capture,
-                .cap_piece  = b.piece_on[to],
-                .prom_p     = p_piece,
-                .score      = hmax + cap_score + (piece_val[p_piece]),
-                .prev_cr    = b.cr,
-                .prev_ep    = b.ep,
-                .prev_hmc   = b.hmc,
-            };
-            ++move_count;
+          for (constexpr std::array prom_pieces = {queen, rook, bishop, knight};
+               const auto           prom_piece : prom_pieces) {
+            *out++ = capture_pawn_move(to, prom_capture, hmax + cap_score + piece_val[prom_piece],
+                                       prom_piece);
           }
         }
         else {
-          *out++ = Move{
-              .from_sq    = from,
-              .to_sq      = to,
-              .from_piece = {.piece_t = pawn, .color = b.stm},
-              .flag       = capture,
-              .cap_piece  = b.piece_on[to],
-              .score      = hmax + cap_score,
-              .prev_cr    = b.cr,
-              .prev_ep    = b.ep,
-              .prev_hmc   = b.hmc,
-          };
-          ++move_count;
+          *out++ = capture_pawn_move(to, capture, hmax + cap_score);
         }
       }
       else if (to == b.ep) {
-        *out++ = Move{
-            .from_sq    = from,
-            .to_sq      = to,
-            .from_piece = {.piece_t = pawn, .color = b.stm},
-            .flag       = en_passant_capture,
-            .cap_piece  = pawn,
-            .score      = hmax + mvvlva(pawn, pawn),
-            .prev_cr    = b.cr,
-            .prev_ep    = b.ep,
-            .prev_hmc   = b.hmc,
-        };
-        ++move_count;
+        *out++ = capture_pawn_move(to, en_passant_capture, hmax + mvvlva(pawn, pawn));
       }
     }
   }
-  return move_count;
+  return out;
 }
 
-sz_t nc_pm(const Board &b, MlIt &out, const Square from)
+MlIt nc_pm(const Board &b, MlIt out, const Square from)
 {
-  sz_t            move_count{};
+  constexpr auto no_ep   = null_square;
+  constexpr auto no_prom = null_piece;
+
+  auto non_capture_pawn_move = [&b, from](const Square to, const Flag flag, const score_t score,
+                                          const Square ep_target  = null_square,
+                                          const Piece  prom_piece = null_piece) {
+    return Move{
+        .from_sq    = from,
+        .to_sq      = to,
+        .from_piece = {.piece_t = pawn, .color = b.stm},
+        .flag       = flag,
+        .prom_p     = prom_piece,
+        .ep_target  = ep_target,
+        .score      = score,
+        .prev_cr    = b.cr,
+        .prev_ep    = b.ep,
+        .prev_hmc   = b.hmc,
+    };
+  };
+
   const Direction dir        = b.stm == white ? N : S;
   const Square    prom_row   = b.stm == white ? a7 : a2;
   const Square    double_row = b.stm == white ? a2 : a7;
   if (Square to{from + dir}; is_on_board(to) && all_empty(b, to)) {
     if (from >> 4 == prom_row >> 4) { // if on 7th rank -> promotions
-      for (constexpr std::array p_pieces = {queen, rook, bishop, knight};
-           const auto           p_piece : p_pieces) {
-        *out++ = Move{
-            .from_sq    = from,
-            .to_sq      = to,
-            .from_piece = {.piece_t = pawn, .color = b.stm},
-            .flag       = promotion,
-            .prom_p     = p_piece,
-            .score      = hmax + piece_val[p_piece],
-            .prev_cr    = b.cr,
-            .prev_ep    = b.ep,
-            .prev_hmc   = b.hmc,
-        };
-        ++move_count;
+      for (constexpr std::array prom_pieces = {queen, rook, bishop, knight};
+           const auto           prom_piece : prom_pieces) {
+        *out++ =
+            non_capture_pawn_move(to, promotion, hmax + piece_val[prom_piece], no_ep, prom_piece);
       }
     }
     else {
-      // single move
-      *out++ = Move{
-          .from_sq    = from,
-          .to_sq      = to,
-          .from_piece = {.piece_t = pawn, .color = b.stm},
-          .flag       = normal,
-          .score      = b.get_history(b.stm, from, to),
-          .prev_cr    = b.cr,
-          .prev_ep    = b.ep,
-          .prev_hmc   = b.hmc,
-      };
-      ++move_count;
-      // double move
+      *out++ = non_capture_pawn_move(to, normal, b.get_history(b.stm, from, to));
       if (from >> 4 == double_row >> 4 && all_empty(b, from + (2 * dir))) {
-        to     = from + (2 * dir);
-        *out++ = Move{
-            .from_sq    = from,
-            .to_sq      = to,
-            .from_piece = {.piece_t = pawn, .color = b.stm},
-            .flag       = double_push,
-            .ep_target  = from + dir,
-            .score      = b.get_history(b.stm, from, to),
-            .prev_cr    = b.cr,
-            .prev_ep    = b.ep,
-            .prev_hmc   = b.hmc,
-        };
-        ++move_count;
+        const auto ep_target = from + dir;
+        to                   = from + (2 * dir);
+        *out++ = non_capture_pawn_move(to, double_push, b.get_history(b.stm, from, to), ep_target);
       }
     }
   }
-  return move_count;
+  return out;
 }
 
-sz_t movegen_not_pawn(const Board &b, MlIt &out, const Square from, const Piece piece_t,
+MlIt movegen_not_pawn(const Board &b, MlIt out, const Square from, const Piece piece_t,
                       const int max_i)
 {
-  sz_t move_count{};
+  auto not_pawn_move = [&b, from, piece_t](const Square to, const Flag flag, const score_t score,
+                                           const Piece cap_piece = null_piece) {
+    return Move{
+        .from_sq    = from,
+        .to_sq      = to,
+        .from_piece = {.piece_t = piece_t, .color = b.stm},
+        .flag       = flag,
+        .cap_piece  = cap_piece,
+        .score      = score,
+        .prev_cr    = b.cr,
+        .prev_ep    = b.ep,
+        .prev_hmc   = b.hmc,
+    };
+  };
+
   for (const auto vec : unit_vectors[piece_t]) {
     for (int i = 1; i <= max_i; ++i) {
       const Square to{from + (vec * i)};
@@ -363,36 +313,16 @@ sz_t movegen_not_pawn(const Board &b, MlIt &out, const Square from, const Piece 
         break;
       }
       if (all_empty(b, to)) {
-        *out++ = Move{
-            .from_sq    = from,
-            .to_sq      = to,
-            .from_piece = {.piece_t = piece_t, .color = b.stm},
-            .flag       = normal,
-            .score      = b.get_history(b.stm, from, to),
-            .prev_cr    = b.cr,
-            .prev_ep    = b.ep,
-            .prev_hmc   = b.hmc,
-        };
-        ++move_count;
+        *out++ = not_pawn_move(to, normal, b.get_history(b.stm, from, to));
       }
       else if (all_capturable(b, to)) {
-        *out++ = Move{
-            .from_sq    = from,
-            .to_sq      = to,
-            .from_piece = {.piece_t = piece_t, .color = b.stm},
-            .flag       = capture,
-            .cap_piece  = b.piece_on[to],
-            .score      = hmax + mvvlva(b.piece_on[to], b.piece_on[from]),
-            .prev_cr    = b.cr,
-            .prev_ep    = b.ep,
-            .prev_hmc   = b.hmc,
-        };
-        ++move_count;
+        const auto score = hmax + mvvlva(b.piece_on[to], b.piece_on[from]);
+        *out++           = not_pawn_move(to, capture, score, b.piece_on[to]);
         break;
       }
     }
   }
-  return move_count;
+  return out;
 }
 
 } // namespace raab_bot
