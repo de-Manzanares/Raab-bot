@@ -26,29 +26,12 @@ export using MoveList = std::array<Move, ml_sz>;
 export using MlIt = std::array<Move, ml_sz>::iterator;
 
 /**
- * populate a container with pseudo-legal moves, return the count
- * @param b the board in question
- * @param out output iterator
- * @return number of pseudo-legal moves
- */
-sz_t movegen_sz(const Board &b, MlIt out);
-
-/**
  * populate a container with pseudo-legal moves
  * @param b the board in question
  * @param out output iterator
  * @return a view of the generated moves
  */
 export std::span<Move> movegen(const Board &b, MlIt out);
-
-/**
- * populate a container with pseudo-legal capture moves
- * @param b the board in question
- * @param out output iterator
- * @return the number of pseudo-legal capture moves
- * @note used by the quiescence search
- */
-sz_t quiescence_movegen_sz(const Board &b, MlIt out);
 
 /**
  * populate a container with pseudo-legal capture moves
