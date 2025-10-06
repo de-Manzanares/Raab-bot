@@ -4,7 +4,6 @@ module;
 #include <array>
 #include <cassert>
 #include <chrono>
-#include <iostream>
 #include <limits>
 #include <ranges>
 
@@ -20,6 +19,8 @@ import defs;
 
 module search;
 
+namespace raab_bot {
+
 void bubble_up_pv(PVLine &p_pv, const Move &best_move, const PVLine &c_pv);
 bool time_up(SearchDriver &sd);
 bool check_time(SearchDriver &sd);
@@ -30,7 +31,7 @@ void tt_entry(U64 hash, const Move &m, score_t eval, TT_flag flag, U8 depth);
 
 //------------------------------------------------------------------------------
 
-void alpha_beta_root(Board &b, score_t alpha, score_t beta, SearchDriver &sd)
+void alpha_beta_root(Board &b, score_t alpha, const score_t beta, SearchDriver &sd)
 {
   sd.new_iteration(b);
 
@@ -77,18 +78,15 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, SearchDriver &sd)
     ++legal_moves;
     ++sd.node_count;
 
-    constexpr bool pv     = true;
-    constexpr bool not_pv = false;
+    constexpr bool pv = true;
 
     if (best_eval == std::numeric_limits<score_t>::min()) {
-      sd.eval =
-          -alpha_beta(b, -beta, -alpha, sd.depth - 1, ply + 1, &line, sd, pv);
+      sd.eval = -alpha_beta(b, -beta, -alpha, sd.depth - 1, ply + 1, &line, sd, pv);
     }
     else {
-      if (-alpha_beta(b, -alpha - 1, -alpha, sd.depth - 1, ply + 1, &line, sd,
-                      not_pv) > alpha) {
-        sd.eval =
-            -alpha_beta(b, -beta, -alpha, sd.depth - 1, ply + 1, &line, sd, pv);
+      if (constexpr bool not_pv = false;
+          -alpha_beta(b, -alpha - 1, -alpha, sd.depth - 1, ply + 1, &line, sd, not_pv) > alpha) {
+        sd.eval = -alpha_beta(b, -beta, -alpha, sd.depth - 1, ply + 1, &line, sd, pv);
       }
     }
 
@@ -135,9 +133,8 @@ void alpha_beta_root(Board &b, score_t alpha, score_t beta, SearchDriver &sd)
   tt_entry(node_hash, best_move, best_eval, flag, sd.depth);
 }
 
-score_t alpha_beta(Board &b, score_t alpha, score_t beta, const U8 depth,
-                   const U8 ply, PVLine *pline, SearchDriver &sd,
-                   const bool is_pv, const bool can_null)
+score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth, const U8 ply,
+                   PVLine *pline, SearchDriver &sd, const bool is_pv, const bool can_null)
 {
   if (depth == 0) {
     PVLine line{};
@@ -183,26 +180,23 @@ score_t alpha_beta(Board &b, score_t alpha, score_t beta, const U8 depth,
 
   bool is_futile_node = false;
   if constexpr (config::futility_pruning) {
-    constexpr double mult = 1;
-    if (constexpr double futility_margin[4] = {0, 200 * mult, 300 * mult,
-                                               500 * mult};
-        !is_pv && depth <= 3 && !in_check(b) &&
-        tmsef(b) + futility_margin[depth] <= alpha) {
+    constexpr double mult = 1.0;
+    if (constexpr double futility_margin[4] = {0, 200 * mult, 300 * mult, 500 * mult};
+        !is_pv && depth <= 3 && !in_check(b) && tmsef(b) + futility_margin[depth] <= alpha) {
       is_futile_node = true;
     }
   }
 
   if constexpr (config::null_move_pruning) {
     using namespace config::params;
-    constexpr auto r = nmp_reduction;
-    if (!is_pv && can_null && b.phase != end_game && depth >= r + 1 &&
-        !in_check(b) && tmsef(b) > beta) {
+    if (constexpr auto r = nmp_reduction; !is_pv && can_null && b.phase != end_game
+                                          && depth >= r + 1 && !in_check(b) && tmsef(b) > beta) {
       const auto nm = Move{.prev_ep = b.ep};
       // todo we don't want or need a PVLine, but it's part of the signature
       PVLine line{};
       move(b, nm); // todo dedicated null move functions
-      score_t nm_eval = -alpha_beta(b, -beta, -beta + 1, depth - r - 1, ply + 1,
-                                    &line, sd, is_pv, false);
+      const score_t nm_eval =
+          -alpha_beta(b, -beta, -beta + 1, depth - r - 1, ply + 1, &line, sd, is_pv, false);
       unmove(b, nm);
       if (nm_eval >= beta) {
         tt_entry(b.t_hash, {}, nm_eval, tt_beta, depth);
@@ -217,7 +211,6 @@ score_t alpha_beta(Board &b, score_t alpha, score_t beta, const U8 depth,
   MoveList buf{};
   sz_t     move_n{};
   score_t  eval{};
-  bool     raised_alpha = false;
 
   const auto ml = movegen(b, buf.begin());
   lift_killers(ml, sd, ply);
@@ -250,18 +243,16 @@ score_t alpha_beta(Board &b, score_t alpha, score_t beta, const U8 depth,
     ++legal_moves;
     ++sd.node_count;
 
-    PVLine         line{};
-    constexpr bool pv     = true;
-    constexpr bool not_pv = false;
+    PVLine line{};
 
     if (alpha <= orig_alpha) {
-      eval = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line, sd, pv);
+      constexpr bool pv = true;
+      eval              = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line, sd, pv);
     }
     else {
-      if (-alpha_beta(b, -alpha - 1, -alpha, depth - 1, ply + 1, &line, sd,
-                      not_pv) > alpha) {
-        eval =
-            -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line, sd, is_pv);
+      if (constexpr bool not_pv = false;
+          -alpha_beta(b, -alpha - 1, -alpha, depth - 1, ply + 1, &line, sd, not_pv) > alpha) {
+        eval = -alpha_beta(b, -beta, -alpha, depth - 1, ply + 1, &line, sd, is_pv);
       }
     }
 
@@ -294,8 +285,7 @@ score_t alpha_beta(Board &b, score_t alpha, score_t beta, const U8 depth,
   }
 
   if (legal_moves == 0) {
-    const score_t terminal_eval =
-        in_check(b) ? -(CHECKMATE - ply) : contempt(b);
+    const score_t terminal_eval = in_check(b) ? -(CHECKMATE - ply) : contempt(b);
     tt_entry(node_hash, {}, terminal_eval, tt_exact, depth);
     return terminal_eval;
   }
@@ -305,8 +295,8 @@ score_t alpha_beta(Board &b, score_t alpha, score_t beta, const U8 depth,
   return best_eval;
 }
 
-score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
-                PVLine *pline, SearchDriver &sd, bool is_pv)
+score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply, PVLine *pline,
+                SearchDriver &sd, const bool is_pv)
 {
   if (is_draw(b)) {
     return contempt(b);
@@ -327,7 +317,7 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
   alpha = std::max(best_eval, alpha);
 
   score_t  eval{};
-  MoveList buf{};
+  MoveList buf;
   sz_t     move_n{};
 
   for (const auto ml = quiescence_movegen(b, buf.begin()); const auto &m : ml) {
@@ -337,9 +327,8 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply,
     move_select(curr_view);
 
     if constexpr (config::delta_pruning) {
-      if (b.phase != end_game && m.flag != promotion &&
-          m.flag != prom_capture &&
-          best_eval + piece_val[m.cap_piece] + config::params::delta < alpha) {
+      if (b.phase != end_game && m.flag != promotion && m.flag != prom_capture
+          && best_eval + piece_val[m.cap_piece] + config::params::delta < alpha) {
         continue;
       }
     }
@@ -394,19 +383,18 @@ void SearchDriver::new_iteration(Board &b)
 
 void bubble_up_pv(PVLine &p_pv, const Move &best_move, const PVLine &c_pv)
 {
-  p_pv[0] = best_move;
-  const auto child_line =
-      c_pv | std::views::take_while([](const Move &m) { return m != Move{}; });
-  const auto [in, out] = std::ranges::copy(child_line, std::next(p_pv.begin()));
-  if (out != p_pv.end()) {
+  p_pv[0]               = best_move;
+  const auto child_line = c_pv | std::views::take_while([](const Move &m) { return m != Move{}; });
+  if (const auto [in, out] = std::ranges::copy(child_line, std::next(p_pv.begin()));
+      out != p_pv.end()) {
     *out = Move{}; // sentinel
   }
 }
 
 bool time_up(SearchDriver &sd)
 {
-  constexpr U16 check_every_n_nodes = (1UL << 11UL) - 1;
-  if ((sd.node_count & check_every_n_nodes) == 0) {
+  if (constexpr U16 check_every_n_nodes = (1UL << 11UL) - 1;
+      (sd.node_count & check_every_n_nodes) == 0) {
     sd.time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
                           std::chrono::steady_clock::now() - sd.start)
                           .count();
@@ -437,8 +425,7 @@ void lift_killers(std::span<Move> ml, const SearchDriver &sd, const U8 ply)
   }
 }
 
-void tt_entry(const U64 hash, const Move &m, const score_t eval,
-              const TT_flag flag, const U8 depth)
+void tt_entry(const U64 hash, const Move &m, const score_t eval, const TT_flag flag, const U8 depth)
 {
   if (auto &e = tt[hash & tt_mask]; e.hash != hash || e.depth < depth) {
     e = {
@@ -447,3 +434,5 @@ void tt_entry(const U64 hash, const Move &m, const score_t eval,
     };
   }
 }
+
+} // namespace raab_bot

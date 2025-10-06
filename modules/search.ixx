@@ -15,6 +15,8 @@ import transposition;
 
 export module search;
 
+namespace raab_bot {
+
 //------------------------------------------------------------------------------
 
 export using sctime = std::chrono::time_point<std::chrono::steady_clock>;
@@ -48,21 +50,21 @@ export struct SearchDriver : Killer<config::killer_heuristic> {
 /**
  * populates the global PV
  */
-export void alpha_beta_root(Board &b, score_t alpha, score_t beta,
-                            SearchDriver &sd);
+export void alpha_beta_root(Board &b, score_t alpha, score_t beta, SearchDriver &sd);
 
 /**
  * called by alpha_beta_root to start searching on root nodes
  * @return the best score found by searching to depth `depth`
  */
-export score_t alpha_beta(Board &b, score_t alpha, score_t beta, U8 depth,
-                          U8 ply, PVLine *pline, SearchDriver &sd, bool is_pv,
-                          bool can_null = true);
+export score_t alpha_beta(Board &b, score_t alpha, score_t beta, U8 depth, U8 ply, PVLine *pline,
+                          SearchDriver &sd, bool is_pv, bool can_null = true);
 /**
  * called by alpha_beta to quiet the position before static eval
  * @return static eval from a quiet position
  */
-export score_t quiesce(Board &b, score_t alpha, score_t beta, U8 ply,
-                       PVLine *pline, SearchDriver &sd, bool is_pv);
+export score_t quiesce(Board &b, score_t alpha, score_t beta, U8 ply, PVLine *pline,
+                       SearchDriver &sd, bool is_pv);
 
 //------------------------------------------------------------------------------
+
+} // namespace raab_bot

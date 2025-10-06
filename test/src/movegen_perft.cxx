@@ -5,7 +5,9 @@
 
 // https://www.chessprogramming.org/Perft_Results
 
-import all_modules;
+#include "all_modules.h"
+
+using namespace raab_bot;
 
 sz_t perft_results[7][7] = {
     {0,  0,    0,     0,       0,         0,          0},
@@ -46,8 +48,7 @@ void cnt_mv_t(const Move &m, PerftCounts *pc)
   }
 }
 
-constexpr sz_t movegen_perft(Board &b, const int depth,
-                             PerftCounts *pc = nullptr)
+constexpr sz_t movegen_perft(Board &b, const int depth, PerftCounts *pc = nullptr)
 {
   MoveList ml;
   sz_t     nodes{};
@@ -89,8 +90,7 @@ constexpr sz_t movegen_perft(Board &b, const int depth,
   return nodes;
 }
 
-constexpr sz_t movegen_perft_nullmove_test(Board &b, const int depth,
-                                           PerftCounts *pc = nullptr)
+constexpr sz_t movegen_perft_nullmove_test(Board &b, const int depth, PerftCounts *pc = nullptr)
 {
   MoveList ml;
   sz_t     nodes{};
@@ -167,8 +167,7 @@ TEST_CASE("nps")
   using namespace n_movegen_perft;
   std::array board{
       Board{},
-      Board{
-          "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - "},
+      Board{"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - "},
       Board{"8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1 "},
       Board{"r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1"},
       Board{"rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8  "},
@@ -185,11 +184,11 @@ TEST_CASE("nps")
   end = std::chrono::steady_clock::now();
 
   std::cout << "nps: "
-            << total_nodes /
-                   std::chrono::duration_cast<std::chrono::milliseconds>(
-                       end - n_movegen_perft::start)
-                       .count() *
-                   1000
+            << total_nodes
+                   / std::chrono::duration_cast<std::chrono::milliseconds>(end
+                                                                           - n_movegen_perft::start)
+                         .count()
+                   * 1000
             << '\n';
 }
 
@@ -202,8 +201,7 @@ TEST_CASE("correctness")
   }
   SECTION("perft position 2")
   {
-    Board b0(
-        "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ");
+    Board b0("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ");
     SECTION("depth 3") { CHECK(movegen_perft(b0, 3) == perft_results[2][3]); }
   }
   SECTION("perft position 3")
@@ -213,8 +211,7 @@ TEST_CASE("correctness")
   }
   SECTION("perft position 4")
   {
-    Board b0(
-        "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
+    Board b0("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
     SECTION("depth 4") { CHECK(movegen_perft(b0, 4) == perft_results[4][4]); }
   }
   SECTION("perft position 5")

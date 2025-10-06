@@ -12,6 +12,8 @@ import defs;
 
 export module move;
 
+namespace raab_bot {
+
 //------------------------------------------------------------------------------
 
 /// categorize moves
@@ -45,16 +47,18 @@ export struct Move {
 };
 
 /// for quick is_repetition() execution. doesn't compare full struct
-export bool operator==(Move lhs, Move rhs);
+export bool operator==(const Move &lhs, const Move &rhs);
 
 /**
  * make the move m
  */
-export void move(Board &b, Move m);
+export void move(Board &b, const Move &m);
 
 /**
  * unmake the move m
  */
-export void unmove(Board &b, Move m);
+export void unmove(Board &b, const Move &m);
 
 //------------------------------------------------------------------------------
+
+} // namespace raab_bot

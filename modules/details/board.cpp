@@ -11,6 +11,8 @@ import eval;
 
 module board;
 
+namespace raab_bot {
+
 using svci = std::string_view::const_iterator;
 
 Board::Board(const std::string_view fenstr)
@@ -95,7 +97,7 @@ Board::Board(const std::string_view fenstr)
     std::advance(it, 2);
   }
   else {
-    ep = static_cast<Square>((16 * (*std::next(it) - '0' - 1)) + *it - 'a');
+    ep = static_cast<Square>(16 * (*std::next(it) - '0' - 1) + *it - 'a');
     std::advance(it, 3);
     t_hash ^= zobrist.ep[ep];
   }
@@ -168,3 +170,5 @@ void Board::display() const
   std::cout << "fmc: " << fmc;
   std::cout << std::endl;
 }
+
+} // namespace raab_bot

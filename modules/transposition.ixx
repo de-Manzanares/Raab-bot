@@ -6,6 +6,8 @@ import defs;
 
 export module transposition;
 
+namespace raab_bot {
+
 //------------------------------------------------------------------------------
 
 /**
@@ -71,9 +73,10 @@ export template <class Class> void print_tt_size_info()
   for (U32 i = 1; i < 33; ++i) {
     const auto n_entries = 1ULL << i;
     std::cout << 2 << " ^ " << i << " = " << n_entries << " entries "
-              << static_cast<double>(n_entries) * sz / mb << " MB "
-              << std::endl;
+              << static_cast<double>(n_entries) * sz / mb << " MB " << std::endl;
   }
 }
 
 //------------------------------------------------------------------------------
+
+} // namespace raab_bot

@@ -67,6 +67,7 @@ target_sources(chess_modules
         modules/auxiliary/log.cpp
 )
 target_link_libraries(chess_modules PUBLIC build_flags)
+target_include_directories(chess_modules PUBLIC include)
 
 add_library(chess STATIC)
 target_link_libraries(chess PUBLIC chess_modules build_flags)

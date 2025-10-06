@@ -1,6 +1,6 @@
 module;
 
-#include "../../include/id.hpp"
+#include "id.hpp"
 
 #include <cassert>
 #include <chrono>
@@ -20,11 +20,12 @@ import log;
 
 module uci;
 
+namespace raab_bot {
+
 constexpr score_t alpha = std::numeric_limits<score_t>::min() / 2; ///< lb
 constexpr score_t beta  = std::numeric_limits<score_t>::max() / 2; ///< ub
 
-template <typename T>
-bool accept_value(const std::string &sup_s, std::string_view sub_s, T &var);
+template <typename T> bool accept_value(const std::string &sup_s, std::string_view sub_s, T &var);
 
 void preamble(const std::string *in);
 bool simon_says(const std::string *s, const std::string &has);
@@ -96,7 +97,7 @@ void uci_loop()
         sd.allowed_time = std::numeric_limits<decltype(sd.allowed_time)>::max();
       }
 
-      // so that we don't timeout before recreating the pv
+      // so that we don't time out before recreating the pv
       sd.prev_pv[0] = Move{};
 
       sd.start = std::chrono::steady_clock::now();
@@ -140,7 +141,7 @@ void uci_loop()
 //------------------------------------------------------------------------------
 
 template <typename T>
-bool accept_value(const std::string &sup_s, std::string_view sub_s, T &var)
+bool accept_value(const std::string &sup_s, const std::string_view sub_s, T &var)
 {
   if constexpr (std::is_integral_v<T>) {
     if (const auto it = sup_s.find(sub_s); it != std::string::npos) {
@@ -151,7 +152,7 @@ bool accept_value(const std::string &sup_s, std::string_view sub_s, T &var)
   return false;
 }
 
-// for some reason, Scid vs PC is very sensitive to the format of the preamble
+// for some reason, Scid vs. PC is very sensitive to the format of the preamble
 void preamble(const std::string *in)
 {
   if (*in == "uci") {
@@ -196,15 +197,13 @@ void startpos_moves(Board &b, const std::string *in)
 
 Move to_move(const Board &b, const std::string_view s, const MlIt out)
 {
-  auto       ch = s.begin();
-  const auto from_sq =
-      static_cast<Square>((16 * (*std::next(ch) - '0' - 1)) + *ch - 'a');
+  auto       ch      = s.begin();
+  const auto from_sq = static_cast<Square>((16 * (*std::next(ch) - '0' - 1)) + *ch - 'a');
   std::advance(ch, 2);
   if (*ch == 'x') {
     std::advance(ch, 1);
   }
-  const auto to_sq =
-      static_cast<Square>((16 * (*std::next(ch) - '0' - 1)) + *ch - 'a');
+  const auto to_sq = static_cast<Square>((16 * (*std::next(ch) - '0' - 1)) + *ch - 'a');
   std::advance(ch, 2);
   auto prom_p = null_piece;
   if (ch != s.end()) {
@@ -218,3 +217,5 @@ Move to_move(const Board &b, const std::string_view s, const MlIt out)
   }
   throw(std::invalid_argument("move not found in move list")); //< todo catch
 }
+
+} // namespace raab_bot

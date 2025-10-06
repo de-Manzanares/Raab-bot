@@ -1,11 +1,12 @@
 module;
 
-#include <iostream>
 #include <random>
 
 import defs;
 
 module transposition;
+
+namespace raab_bot {
 
 //------------------------------------------------------------------------------
 
@@ -41,3 +42,5 @@ bool TT_move::operator==(const TT_move &rhs) const
 bool TT_move::operator!=(const TT_move &rhs) const { return !(*this == rhs); }
 
 //------------------------------------------------------------------------------
+
+} // namespace raab_bot

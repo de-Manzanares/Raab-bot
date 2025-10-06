@@ -11,13 +11,14 @@ import defs;
 
 export module fen;
 
+namespace raab_bot {
+
 //------------------------------------------------------------------------------
 
 export namespace fen {
 
 /// startpos FEN string
-constexpr std::string_view startpos =
-    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+constexpr std::string_view startpos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 /**
  * @param ch a character in a fen string
@@ -46,15 +47,12 @@ constexpr std::array<I8, 64> fen_0x88_idx_sequence = {
  * @param n n'th square in the fen sequence
  * @return corresponding index on a 0x88 board
  */
-constexpr I8 to_0x88_idx(const unsigned long int n)
-{
-  return fen_0x88_idx_sequence[n];
-}
+constexpr I8 to_0x88_idx(const unsigned long int n) { return fen_0x88_idx_sequence[n]; }
 
 /**
  * @param ch fen piece code
  * @return corresponding PieceInfo
- * @example P-> {pawn, white}. k -> {king, black}
+ * @example P -> {pawn, white}. k -> {king, black}
  * @note the inverse of get_fen_char_code
  */
 PieceInfo get_piece_info(char ch);
@@ -70,3 +68,5 @@ char get_char_code(PieceInfo piece_info);
 } // namespace fen
 
 //------------------------------------------------------------------------------
+
+} // namespace raab_bot

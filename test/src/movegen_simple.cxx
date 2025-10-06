@@ -3,7 +3,9 @@
 #include <concepts>
 #include <ranges>
 
-import all_modules;
+#include "all_modules.h"
+
+using namespace raab_bot;
 
 template <class Container>
   requires std::default_initializable<typename Container::value_type>
@@ -24,8 +26,7 @@ template <class Container>
   requires std::is_same_v<typename Container::value_type, Move>
 constexpr bool is_immobile(const Container &c, Square sq)
 {
-  return std::ranges::none_of(c,
-                              [sq](const Move &m) { return m.from_sq == sq; });
+  return std::ranges::none_of(c, [sq](const Move &m) { return m.from_sq == sq; });
 }
 
 template <class Container>
@@ -202,10 +203,8 @@ TEST_CASE("pawn")
       fill_default_init(ml);
       Board b0("1q1q4/2P5/8/8/8/8/8/8 w - - 0 1");
       movegen(b0, ml.begin());
-      CHECK(has(ml, Move{c7, b8, .flag = prom_capture, .cap_piece = queen,
-                         .prom_p = queen}));
-      CHECK(has(ml, Move{c7, d8, .flag = prom_capture, .cap_piece = queen,
-                         .prom_p = queen}));
+      CHECK(has(ml, Move{c7, b8, .flag = prom_capture, .cap_piece = queen, .prom_p = queen}));
+      CHECK(has(ml, Move{c7, d8, .flag = prom_capture, .cap_piece = queen, .prom_p = queen}));
     }
   }
 }
