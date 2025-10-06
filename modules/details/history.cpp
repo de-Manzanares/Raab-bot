@@ -6,6 +6,8 @@ import defs;
 
 module history;
 
+namespace raab_bot {
+
 //------------------------------------------------------------------------------
 
 void History<true>::history_decay()
@@ -16,16 +18,15 @@ void History<true>::history_decay()
         history[c][from][to] >>= 3;
 }
 
-I16 History<true>::get_history(const Color color, const Square from,
-                               const Square to) const
+I16 History<true>::get_history(const Color color, const Square from, const Square to) const
 {
   return history[color][from][to];
 }
 
-void History<true>::update_history(const Color color, const Square from,
-                                   const Square to, const U8 depth)
+void History<true>::update_history(const Color color, const Square from, const Square to,
+                                   const U8 depth)
 {
-  auto       h   = get_history(color, from, to);
+  const auto h   = get_history(color, from, to);
   const auto inc = depth * depth;
   history[color][from][to] += inc - (h * inc) / hmax;
 }
@@ -34,15 +35,16 @@ void History<true>::update_history(const Color color, const Square from,
 
 void History<false>::history_decay() {}
 
-I16 History<false>::get_history(const Color color, const Square from,
-                                const Square to) const
+I16 History<false>::get_history(const Color color, const Square from, const Square to)
 {
   return 0;
 }
 
-void History<false>::update_history(const Color color, const Square from,
-                                    const Square to, const U8 depth)
+void History<false>::update_history(const Color color, const Square from, const Square to,
+                                    const U8 depth)
 {
 }
 
 //------------------------------------------------------------------------------
+
+} // namespace raab_bot

@@ -13,6 +13,8 @@ import attack;
 
 module movegen;
 
+namespace raab_bot {
+
 template <class... Squares>
   requires(std::same_as<Square, Squares> && ...)
 bool all_empty(const Board &b, Squares... sq)
@@ -54,8 +56,7 @@ sz_t movegen_pawn(const Board &b, MlIt &out, const Square from)
   return c_pm(b, out, from) + nc_pm(b, out, from);
 }
 
-sz_t movegen_not_pawn(const Board &b, MlIt &out, Square from, Piece piece_t,
-                      int max_i);
+sz_t movegen_not_pawn(const Board &b, MlIt &out, Square from, Piece piece_t, int max_i);
 
 //------------------------------------------------------------------------------
 sz_t movegen_sz(const Board &b, MlIt out)
@@ -77,16 +78,11 @@ sz_t movegen_sz(const Board &b, MlIt out)
   return move_count;
 }
 
-std::span<Move> movegen(const Board &b, MlIt out)
-{
-  auto orig_out = out;
-  sz_t sz       = movegen_sz(b, out);
-  return {orig_out, sz};
-}
+std::span<Move> movegen(const Board &b, const MlIt out) { return {out, movegen_sz(b, out)}; }
 
 sz_t quiescence_movegen_sz(const Board &b, MlIt out)
 {
-  sz_t move_count = 0;
+  sz_t move_count{};
   for (const auto from : square_sequence) {
     if (b.color_on[from] == b.stm) {
       const auto [piece_t, color] = b.piece_info(from);
@@ -124,31 +120,25 @@ sz_t quiescence_movegen_sz(const Board &b, MlIt out)
   return move_count;
 }
 
-std::span<Move> quiescence_movegen(const Board &b, MlIt out)
+std::span<Move> quiescence_movegen(const Board &b, const MlIt out)
 {
-  auto orig_out = out;
-  auto sz       = quiescence_movegen_sz(b, out);
-  return {orig_out, sz};
+  return {out, quiescence_movegen_sz(b, out)};
 }
 
-bool is_legal(const Board &b)
-{
-  return !is_attacked(b, b.stm == white ? b.bks : b.wks, b.stm);
-}
+bool is_legal(const Board &b) { return !is_attacked(b, b.stm == white ? b.bks : b.wks, b.stm); }
 
 sz_t cnt_legal_moves(Board &b)
 {
-  MoveList   buff;
-  sz_t       cnt_legal_moves{};
-  const auto ml = movegen(b, buff.begin());
-  for (const auto &m : ml) {
+  MoveList buf;
+  sz_t     cnt{};
+  for (const auto ml = movegen(b, buf.begin()); const auto &m : ml) {
     move(b, m);
     if (is_legal(b)) {
-      ++cnt_legal_moves;
+      ++cnt;
     }
     unmove(b, m);
   }
-  return cnt_legal_moves;
+  return cnt;
 }
 
 void move_select(std::span<Move> ml, const TT_move tt_m)
@@ -156,11 +146,9 @@ void move_select(std::span<Move> ml, const TT_move tt_m)
   // probe the TT
   if (tt_m != TT_move{}) {
     auto is_move = [&tt_m](const Move &m) {
-      return (m.from_sq == tt_m.from && m.to_sq == tt_m.to &&
-              m.prom_p == tt_m.prom_p);
+      return (m.from_sq == tt_m.from && m.to_sq == tt_m.to && m.prom_p == tt_m.prom_p);
     };
-    auto it = std::ranges::find_if(ml, is_move);
-    if (it != ml.end()) {
+    if (const auto it = std::ranges::find_if(ml, is_move); it != ml.end()) {
       std::iter_swap(ml.begin(), it);
     }
   }
@@ -181,8 +169,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
 {
   sz_t move_count{};
   if (b.stm == white) {
-    if ((b.cr & 1) && all_empty(b, f1, g1) &&
-        all_not_attacked(b, black, e1, f1, g1)) {
+    if ((b.cr & 1) && all_empty(b, f1, g1) && all_not_attacked(b, black, e1, f1, g1)) {
       *out++ = Move{
           .from_sq    = e1,
           .to_sq      = g1,
@@ -195,8 +182,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
       };
       ++move_count;
     }
-    if ((b.cr & 2) && all_empty(b, b1, c1, d1) &&
-        all_not_attacked(b, black, c1, d1, e1)) {
+    if ((b.cr & 2) && all_empty(b, b1, c1, d1) && all_not_attacked(b, black, c1, d1, e1)) {
       *out++ = Move{
           .from_sq    = e1,
           .to_sq      = c1,
@@ -211,8 +197,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
     }
   }
   else {
-    if ((b.cr & 4) && all_empty(b, f8, g8) &&
-        all_not_attacked(b, white, e8, f8, g8)) {
+    if ((b.cr & 4) && all_empty(b, f8, g8) && all_not_attacked(b, white, e8, f8, g8)) {
       *out++ = Move{
           .from_sq    = e8,
           .to_sq      = g8,
@@ -225,8 +210,7 @@ sz_t movegen_castle(const Board &b, MlIt &out)
       };
       ++move_count;
     }
-    if ((b.cr & 8) && all_empty(b, b8, c8, d8) &&
-        all_not_attacked(b, white, c8, d8, e8)) {
+    if ((b.cr & 8) && all_empty(b, b8, c8, d8) && all_not_attacked(b, white, c8, d8, e8)) {
       *out++ = Move{
           .from_sq    = e8,
           .to_sq      = c8,
@@ -368,8 +352,8 @@ sz_t nc_pm(const Board &b, MlIt &out, const Square from)
   return move_count;
 }
 
-sz_t movegen_not_pawn(const Board &b, MlIt &out, const Square from,
-                      const Piece piece_t, const int max_i)
+sz_t movegen_not_pawn(const Board &b, MlIt &out, const Square from, const Piece piece_t,
+                      const int max_i)
 {
   sz_t move_count{};
   for (const auto vec : unit_vectors[piece_t]) {
@@ -410,3 +394,5 @@ sz_t movegen_not_pawn(const Board &b, MlIt &out, const Square from,
   }
   return move_count;
 }
+
+} // namespace raab_bot

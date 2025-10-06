@@ -8,6 +8,8 @@ import move;
 
 module killer;
 
+namespace raab_bot {
+
 //------------------------------------------------------------------------------
 
 void Killer<true>::set_killers(const Move &m, const U8 ply)
@@ -20,7 +22,7 @@ void Killer<true>::set_killers(const Move &m, const U8 ply)
   }
 }
 
-const std::array<Move, killer_moves> &Killer<true>::get_killers(U8 ply) const
+const std::array<Move, killer_moves> &Killer<true>::get_killers(const U8 ply) const
 {
   return killers[ply];
 }
@@ -29,6 +31,8 @@ const std::array<Move, killer_moves> &Killer<true>::get_killers(U8 ply) const
 
 void Killer<false>::set_killers(const Move &m, const U8 ply) {}
 
-auto Killer<false>::get_killers(U8 ply) const -> Killers { return {}; }
+auto Killer<false>::get_killers(U8 ply) -> Killers { return {}; }
 
 //------------------------------------------------------------------------------
+
+} // namespace raab_bot

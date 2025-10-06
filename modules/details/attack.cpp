@@ -5,6 +5,8 @@ import defs;
 
 module attack;
 
+namespace raab_bot {
+
 bool ia_pawn(const Board &b, Square sq, Color by_color);
 bool ia_non_sliding(const Board &b, Square sq, Color by_color, Piece piece);
 bool ia_sliding(const Board &b, Square sq, Color by_color, Piece piece);
@@ -16,12 +18,10 @@ bool is_attacked(const Board &b, const Square sq, const Color by_color)
   if (ia_pawn(b, sq, by_color)) {
     return true;
   }
-  if (ia_sliding(b, sq, by_color, bishop) ||
-      ia_sliding(b, sq, by_color, rook)) {
+  if (ia_sliding(b, sq, by_color, bishop) || ia_sliding(b, sq, by_color, rook)) {
     return true;
   }
-  if (ia_non_sliding(b, sq, by_color, knight) ||
-      ia_non_sliding(b, sq, by_color, king)) {
+  if (ia_non_sliding(b, sq, by_color, knight) || ia_non_sliding(b, sq, by_color, king)) {
     return true;
   }
   return false;
@@ -53,8 +53,7 @@ bool ia_pawn(const Board &b, const Square sq, const Color by_color)
 }
 
 /// attacked by a knight || king ?
-bool ia_non_sliding(const Board &b, const Square sq, const Color by_color,
-                    const Piece piece)
+bool ia_non_sliding(const Board &b, const Square sq, const Color by_color, const Piece piece)
 {
   for (const auto dir : unit_vectors[piece]) {
     if (const Square vec{sq + dir};
@@ -67,8 +66,7 @@ bool ia_non_sliding(const Board &b, const Square sq, const Color by_color,
 
 /// attacked by a <bishop || rook> || queen ?
 /// @warning needs to be called twice - once for bishop and rook each
-bool ia_sliding(const Board &b, const Square sq, const Color by_color,
-                const Piece piece)
+bool ia_sliding(const Board &b, const Square sq, const Color by_color, const Piece piece)
 {
   sz_t directions = 4;
   for (const auto dir : unit_vectors[piece]) {
@@ -84,8 +82,7 @@ bool ia_sliding(const Board &b, const Square sq, const Color by_color,
       if (pi.color == ~by_color) { // friendly occupied square
         break;
       }
-      if (pi == PieceInfo{piece, by_color} ||
-          pi == PieceInfo{queen, by_color}) {
+      if (pi == PieceInfo{piece, by_color} || pi == PieceInfo{queen, by_color}) {
         return true;
       }
       if (pi.piece_t != null_piece) {
@@ -98,3 +95,5 @@ bool ia_sliding(const Board &b, const Square sq, const Color by_color,
   }
   return false;
 }
+
+} // namespace raab_bot

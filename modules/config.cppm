@@ -9,6 +9,8 @@ import defs;
 
 export module config;
 
+namespace raab_bot {
+
 //------------------------------------------------------------------------------
 
 export namespace config {
@@ -36,10 +38,13 @@ constexpr U8  max_depth     = 32;
 
 //------------------------------------------------------------------------------
 
-using namespace config;
-using namespace config::params;
+using config::history_heuristic;
+using config::killer_heuristic;
+using config::params::killer_moves;
 
 // these don't seem to mix well in my engine ... yet
 static_assert(history_heuristic != killer_heuristic);
 
 static_assert(killer_heuristic == false || killer_moves > 0);
+
+} // namespace raab_bot

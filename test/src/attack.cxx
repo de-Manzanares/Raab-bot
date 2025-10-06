@@ -1,6 +1,8 @@
 #include <catch2/catch_all.hpp>
 
-import all_modules;
+#include "all_modules.h"
+
+using namespace raab_bot;
 
 TEST_CASE("pawn")
 {
@@ -87,8 +89,7 @@ TEST_CASE("queen")
 }
 TEST_CASE("king")
 {
-  const Board b0(
-      "rnbqkbnr/pppppppp/8/8/3K1k2/8/PPPPPPPP/RNBQKBNR w HAha - 0 1");
+  const Board b0("rnbqkbnr/pppppppp/8/8/3K1k2/8/PPPPPPPP/RNBQKBNR w HAha - 0 1");
   const Board b1;
   SECTION("white")
   {

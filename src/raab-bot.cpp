@@ -7,4 +7,4 @@
 
 import uci;
 
-int main() { uci_loop(); }
+int main() { raab_bot::uci_loop(); }

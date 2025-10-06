@@ -10,6 +10,8 @@ import defs;
 
 export module attack;
 
+namespace raab_bot {
+
 //------------------------------------------------------------------------------
 
 /**
@@ -19,9 +21,11 @@ export module attack;
 export bool is_attacked(const Board &b, Square sq, Color by_color);
 
 /**
- * @return  true - stm is in check \n
+ * @return  true - side to move (stm) is in check \n
  *          false - stm is not in check
  */
 export bool in_check(const Board &b);
 
 //------------------------------------------------------------------------------
+
+} // namespace raab_bot

@@ -7,6 +7,8 @@ import search;
 
 export module log;
 
+namespace raab_bot {
+
 /// creates a time-stamped name for the log file
 std::string log_name();
 
@@ -33,3 +35,5 @@ export void record(std::string_view from_gui);
 //------------------------------------------------------------------------------
 
 #include "log.inl"
+
+} // namespace raab_bot

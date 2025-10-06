@@ -7,6 +7,8 @@ import defs;
 
 module fen;
 
+namespace raab_bot {
+
 bool fen::is_piece(const char ch)
 {
   switch (std::tolower(ch)) {
@@ -95,3 +97,5 @@ char fen::get_char_code(const PieceInfo piece_info)
 
   return ch;
 }
+
+} // namespace raab_bot

@@ -15,6 +15,8 @@ import transposition;
 
 export module movegen;
 
+namespace raab_bot {
+
 //------------------------------------------------------------------------------
 
 export constexpr sz_t ml_sz = 256; ///< move list size
@@ -77,3 +79,5 @@ export sz_t cnt_legal_moves(Board &b);
 export void move_select(std::span<Move> ml, TT_move tt_m = TT_move{});
 
 //------------------------------------------------------------------------------
+
+} // namespace raab_bot

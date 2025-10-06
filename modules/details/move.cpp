@@ -3,6 +3,7 @@ module;
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <stdexcept>
 
 import board;
 import defs;
@@ -11,6 +12,8 @@ import fen;
 import transposition;
 
 module move;
+
+namespace raab_bot {
 
 PieceInfo captured_piece(const Move &m);
 PieceInfo from_piece(const Move &m);
@@ -27,7 +30,7 @@ std::ostream &print_square(std::ostream &os, Square sq);
 
 //------------------------------------------------------------------------------
 
-bool operator==(const Move lhs, const Move rhs)
+bool operator==(const Move &lhs, const Move &rhs)
 {
   return lhs.from_sq == rhs.from_sq && lhs.to_sq == rhs.to_sq;
 }
@@ -46,7 +49,7 @@ std::ostream &operator<<(std::ostream &os, const Move &m)
   return os;
 }
 
-void move(Board &b, const Move m)
+void move(Board &b, const Move &m)
 {
   // move pieces
   clear_sq(b, m.from_sq);
@@ -68,6 +71,8 @@ void move(Board &b, const Move m)
       b.bks = m.to_sq;
     }
     finish_castle(b, m.to_sq);
+  }
+  else {
   }
 
   // update king position
@@ -133,7 +138,7 @@ void move(Board &b, const Move m)
   b.phase = set_phase(b);
 }
 
-void unmove(Board &b, const Move m)
+void unmove(Board &b, const Move &m)
 {
   // move pieces
   set_sq(b, m.from_sq, from_piece(m));
@@ -196,20 +201,11 @@ void unmove(Board &b, const Move m)
 
 //------------------------------------------------------------------------------
 
-PieceInfo captured_piece(const Move &m)
-{
-  return PieceInfo{m.cap_piece, ~m.from_piece.color};
-}
+PieceInfo captured_piece(const Move &m) { return PieceInfo{m.cap_piece, ~m.from_piece.color}; }
 
-PieceInfo from_piece(const Move &m)
-{
-  return PieceInfo{m.from_piece.piece_t, m.from_piece.color};
-}
+PieceInfo from_piece(const Move &m) { return PieceInfo{m.from_piece.piece_t, m.from_piece.color}; }
 
-PieceInfo prom_piece(const Move &m)
-{
-  return PieceInfo{m.prom_p, m.from_piece.color};
-}
+PieceInfo prom_piece(const Move &m) { return PieceInfo{m.prom_p, m.from_piece.color}; }
 
 void clear_sq(Board &b, const Square sq)
 {
@@ -266,7 +262,8 @@ void finish_castle(Board &b, const Square to)
     set_sq(b, f8, {rook, black});
     rm_castle_rights(b, black);
     break;
-  default:;
+  default:
+    throw std::invalid_argument("finish_castle(): invalid Square `to`");
   }
 }
 
@@ -289,7 +286,8 @@ void unfinish_castle(Board &b, const Square to)
     clear_sq(b, f8);
     set_sq(b, h8, {rook, black});
     break;
-  default:;
+  default:
+    throw std::invalid_argument("unfinish_castle(): invalid Square `to`");
   }
 }
 
@@ -317,7 +315,9 @@ void rook_mv_castle_rights(Board &b, const Square sq)
     break;
   case h8:
     b.cr &= 0b1011;
-  default:;
+    break;
+  default:
+    break;
   }
 }
 
@@ -328,3 +328,5 @@ std::ostream &print_square(std::ostream &os, const Square sq)
   os.put(file).put(rank);
   return os;
 }
+
+} // namespace raab_bot

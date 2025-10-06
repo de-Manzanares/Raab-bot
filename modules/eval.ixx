@@ -6,11 +6,13 @@ import transposition;
 
 export module eval;
 
+namespace raab_bot {
+
 //------------------------------------------------------------------------------
 
 // arbitrary values should be powers of 2 from now on LOL
 
-export constexpr score_t CHECKMATE = 1ULL << 30; ///< checkmate score
+export constexpr score_t CHECKMATE = 1ULL << 30U; ///< checkmate score
 
 /**
  * for switching between middle game and end game piece square tables
@@ -35,10 +37,12 @@ export bool is_repetition(const Board &b);
 export score_t contempt(const Board &b);
 
 // clang-format off
+// NOLINTBEGIN(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
+
 /**
  * Tomasz Michniewski's piece square table
  */
-export score_t psqt_val[2][6][128] = {
+export constexpr score_t psqt_val[2][6][128] = {
    // middle game
     {// white
       // king
@@ -156,7 +160,7 @@ export score_t psqt_val[2][6][128] = {
 
    // white
    // king
-export score_t eg_psqt[2][128] =
+export constexpr score_t eg_psqt[2][128] =
    {{-50, -30, -30, -30, -30, -30, -30, -50, 0, 0, 0, 0, 0, 0, 0, 0,
     -30, -30, 0,   0,   0,   0,   -30, -30, 0, 0, 0, 0, 0, 0, 0, 0,
     -30, -10, 20,  30,  30,  20,  -10, -30, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -176,5 +180,8 @@ export score_t eg_psqt[2][128] =
       -50, -30, -30, -30, -30, -30, -30, -50, 0, 0, 0, 0, 0, 0, 0, 0}};
 
 // clang-format on
+// NOLINTEND(readability-magic-numbers,cppcoreguidelines-avoid-magic-numbers)
 
 //------------------------------------------------------------------------------
+
+} // namespace raab_bot
