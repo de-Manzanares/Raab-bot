@@ -16,7 +16,7 @@ namespace raab_bot {
 
 Phase set_phase(const Board &b)
 {
-  auto lte_one_minor_piece = [&](const Color c) {
+  auto lte_one_minor_piece = [&](const Color c) -> bool {
     int sum{};
     for (int p = bishop; p <= knight; ++p) {
       sum += b.mat_cnt[c][p];
@@ -27,8 +27,13 @@ Phase set_phase(const Board &b)
     return true;
   };
 
+  auto no_queens = [&]() -> bool {
+    return b.mat_cnt[white][queen] == 0 && b.mat_cnt[black][queen] == 0;
+  };
+
   Phase phase{};
-  if (bool no_queens = b.mat_cnt[white][queen] == 0 && b.mat_cnt[black][queen] == 0) {
+
+  if (no_queens()) {
     phase = end_game;
   }
   else {
