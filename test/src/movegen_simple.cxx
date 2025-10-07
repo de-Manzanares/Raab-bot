@@ -42,7 +42,7 @@ constexpr sz_t has_n_moves(const Container &ml, Square sq, Flag f)
   return n_moves;
 }
 
-std::array<Move, 124> ml{};
+Array<Move, 124> ml{};
 
 TEST_CASE("castling")
 {

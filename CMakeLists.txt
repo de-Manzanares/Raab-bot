@@ -32,12 +32,19 @@ target_link_options(build_flags
         $<$<CONFIG:Sanitizer>:$<$<CXX_COMPILER_ID:GNU,Clang>:${SANLinkerOptions}>>
 )
 
+add_library(containers OBJECT)
+target_sources(containers
+        PUBLIC
+        FILE_SET cxx_modules TYPE CXX_MODULES FILES
+        modules/containers/Array.cppm
+        modules/containers/Vector.cppm
+)
+target_link_libraries(containers PUBLIC build_flags)
+
 add_library(chess_modules OBJECT)
 target_sources(chess_modules
         PUBLIC
-        FILE_SET cxx_modules
-        TYPE CXX_MODULES
-        FILES
+        FILE_SET cxx_modules TYPE CXX_MODULES FILES
         modules/attack.ixx
         modules/board.ixx
         modules/config.cppm
@@ -66,11 +73,11 @@ target_sources(chess_modules
         modules/details/uci.cpp
         modules/auxiliary/log.cpp
 )
-target_link_libraries(chess_modules PUBLIC build_flags)
+target_link_libraries(chess_modules PUBLIC containers build_flags)
 target_include_directories(chess_modules PUBLIC include)
 
 add_library(chess STATIC)
-target_link_libraries(chess PUBLIC chess_modules build_flags)
+target_link_libraries(chess PUBLIC chess_modules containers build_flags)
 
 add_executable(Raab-bot-${VERSION} src/raab-bot.cpp)
 target_link_libraries(Raab-bot-${VERSION} PRIVATE chess)

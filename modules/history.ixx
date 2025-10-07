@@ -1,14 +1,13 @@
 module;
 
-#include <array>
-
+import Array;
 import defs;
 
 export module history;
 
 namespace raab_bot {
 
-using HistoryArray = std::array<std::array<std::array<I16, 128>, 128>, 2>;
+using HistoryArray = Array<Array<Array<I16, 128>, 128>, 2>;
 
 //------------------------------------------------------------------------------
 

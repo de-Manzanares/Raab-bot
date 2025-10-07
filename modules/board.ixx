@@ -9,10 +9,12 @@ module;
 #include <string_view>
 #include <vector>
 
+import Array;
 import fen;
 import config;
 import defs;
 import history;
+import Vector;
 
 export module board;
 
@@ -39,8 +41,8 @@ export class Board : public History<config::history_heuristic> {
 
   // piece tracking
 
-  std::array<Piece, 128> piece_on{}; ///< 0x88 board representation
-  std::array<Color, 128> color_on{}; ///< redundant 0x88 color tracking
+  Array<Piece, 128> piece_on{}; ///< 0x88 board representation
+  Array<Color, 128> color_on{}; ///< redundant 0x88 color tracking
 
   // game state tracking
 
@@ -59,7 +61,7 @@ export class Board : public History<config::history_heuristic> {
   score_t pos_bal[2]{};    ///< incrementally updated psqt balance
 
   // todo maybe array instead?
-  std::vector<U64> pos_stack{}; ///< position stack for three-fold repetition detection
+  Vector<U64> pos_stack{}; ///< position stack for three-fold repetition detection
 };
 
 //------------------------------------------------------------------------------

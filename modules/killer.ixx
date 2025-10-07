@@ -1,7 +1,6 @@
 module;
 
-#include <array>
-
+import Array;
 import config;
 import defs;
 import move;
@@ -13,8 +12,8 @@ namespace raab_bot {
 using config::params::killer_moves;
 using config::params::max_depth;
 
-using Killers    = std::array<Move, killer_moves>;
-using KillerList = std::array<Killers, 2 * max_depth>;
+using Killers    = Array<Move, killer_moves>;
+using KillerList = Array<Killers, 2 * max_depth>;
 
 //------------------------------------------------------------------------------
 

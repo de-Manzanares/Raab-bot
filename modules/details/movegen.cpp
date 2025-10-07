@@ -1,10 +1,10 @@
 module;
 
 #include <algorithm>
-#include <array>
 #include <concepts>
 #include <span>
 
+import Array;
 import board;
 import defs;
 import move;
@@ -63,7 +63,7 @@ MlIt movegen_not_pawn(const Board &b, MlIt out, Square from, Piece piece_t, int 
 std::span<Move> movegen(const Board &b, const MlIt out)
 {
   auto end = out;
-  end = movegen_castle(b, end);
+  end      = movegen_castle(b, end);
   for (const auto from : square_sequence) {
     if (b.color_on[from] == b.stm) {
       const auto [piece_t, color] = b.piece_info(from);
@@ -211,8 +211,8 @@ MlIt c_pm(const Board &b, MlIt out, const Square from)
     };
   };
 
-  std::array<Direction, 2> dirs;
-  const Square             prom_row = b.stm == white ? a7 : a2;
+  Array<Direction, 2> dirs;
+  const Square        prom_row = b.stm == white ? a7 : a2;
   if (b.stm == white) {
     dirs = {NW, NE};
   }
@@ -245,7 +245,7 @@ MlIt c_pm(const Board &b, MlIt out, const Square from)
 
 MlIt nc_pm(const Board &b, MlIt out, const Square from)
 {
-  constexpr auto no_ep   = null_square;
+  constexpr auto no_ep = null_square;
 
   auto non_capture_pawn_move = [&b, from](const Square to, const Flag flag, const score_t score,
                                           const Square ep_target  = null_square,
