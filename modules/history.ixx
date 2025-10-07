@@ -24,12 +24,10 @@ template <> struct History<true> {
 };
 
 template <> struct History<false> {
-  I16         history{};
-  static void history_decay();
-  static I16  get_history(Color color, Square from, Square to) ; // NOLINT(*-use-nodiscard)
-  static void update_history(Color color, Square from, Square to, U8 depth);
+  I16                                   history{};
+  static void                           history_decay() {}
+  template <typename... Ts> static I16  get_history(Ts... /*unused*/) { return 0; }
+  template <typename... Ts> static void update_history(Ts... /*unused*/) {}
 };
-
-//------------------------------------------------------------------------------
 
 } // namespace raab_bot

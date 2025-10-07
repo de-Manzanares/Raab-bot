@@ -246,7 +246,6 @@ MlIt c_pm(const Board &b, MlIt out, const Square from)
 MlIt nc_pm(const Board &b, MlIt out, const Square from)
 {
   constexpr auto no_ep   = null_square;
-  constexpr auto no_prom = null_piece;
 
   auto non_capture_pawn_move = [&b, from](const Square to, const Flag flag, const score_t score,
                                           const Square ep_target  = null_square,

@@ -8,8 +8,6 @@ module history;
 
 namespace raab_bot {
 
-//------------------------------------------------------------------------------
-
 void History<true>::history_decay()
 {
   for (int c = 0; c < 2; ++c)
@@ -30,21 +28,5 @@ void History<true>::update_history(const Color color, const Square from, const S
   const auto inc = depth * depth;
   history[color][from][to] += inc - (h * inc) / hmax;
 }
-
-//------------------------------------------------------------------------------
-
-void History<false>::history_decay() {}
-
-I16 History<false>::get_history(const Color color, const Square from, const Square to)
-{
-  return 0;
-}
-
-void History<false>::update_history(const Color color, const Square from, const Square to,
-                                    const U8 depth)
-{
-}
-
-//------------------------------------------------------------------------------
 
 } // namespace raab_bot

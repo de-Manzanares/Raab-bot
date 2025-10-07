@@ -23,16 +23,16 @@ export template <bool> struct Killer;
 //------------------------------------------------------------------------------
 
 template <> struct Killer<true> {
-  KillerList         killers{};
   void               set_killers(const Move &m, U8 ply);
   [[nodiscard]] auto get_killers(U8 ply) const -> const Killers &;
+
+ private:
+  KillerList killers{};
 };
 
 template <> struct Killer<false> {
-  static void set_killers(const Move &m, U8 ply);
-  static auto get_killers(U8 ply) -> Killers; // NOLINT(*-use-nodiscard)
+  template <typename... Ts> static void    set_killers(Ts... /*unused*/) {}
+  template <typename... Ts> static Killers get_killers(Ts... /*unused*/) { return {}; }
 };
-
-//------------------------------------------------------------------------------
 
 } // namespace raab_bot

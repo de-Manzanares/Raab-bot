@@ -10,8 +10,6 @@ module killer;
 
 namespace raab_bot {
 
-//------------------------------------------------------------------------------
-
 void Killer<true>::set_killers(const Move &m, const U8 ply)
 {
   if (m != killers[ply][0]) {
@@ -26,13 +24,5 @@ const std::array<Move, killer_moves> &Killer<true>::get_killers(const U8 ply) co
 {
   return killers[ply];
 }
-
-//------------------------------------------------------------------------------
-
-void Killer<false>::set_killers(const Move &m, const U8 ply) {}
-
-auto Killer<false>::get_killers(U8 ply) -> Killers { return {}; }
-
-//------------------------------------------------------------------------------
 
 } // namespace raab_bot
