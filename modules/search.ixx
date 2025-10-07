@@ -1,8 +1,8 @@
 module;
 
-#include <array>
 #include <chrono>
 
+import Array;
 import attack;
 import board;
 import config;
@@ -21,7 +21,7 @@ namespace raab_bot {
 
 export using sctime = std::chrono::time_point<std::chrono::steady_clock>;
 
-export using PVLine = std::array<Move, config::params::max_depth>;
+export using PVLine = Array<Move, config::params::max_depth>;
 
 export struct SearchDriver : Killer<config::killer_heuristic> {
   PVLine  pv{};                  ///< populated by alpha_beta_root

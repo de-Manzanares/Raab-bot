@@ -5,9 +5,9 @@
 
 module;
 
-#include <array>
 #include <span>
 
+import Array;
 import board;
 import defs;
 import move;
@@ -21,9 +21,8 @@ namespace raab_bot {
 
 export constexpr sz_t ml_sz = 256; ///< move list size
 
-export using MoveList = std::array<Move, ml_sz>;
-
-export using MlIt = std::array<Move, ml_sz>::iterator;
+export using MoveList = Array<Move, ml_sz>;
+export using MlIt     = Array<Move, ml_sz>::iterator;
 
 /**
  * populate a container with pseudo-legal moves

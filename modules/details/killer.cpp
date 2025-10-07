@@ -1,7 +1,6 @@
 module;
 
-#include <array>
-
+import Array;
 import config;
 import defs;
 import move;
@@ -20,7 +19,7 @@ void Killer<true>::set_killers(const Move &m, const U8 ply)
   }
 }
 
-const std::array<Move, killer_moves> &Killer<true>::get_killers(const U8 ply) const
+const Array<Move, killer_moves> &Killer<true>::get_killers(const U8 ply) const
 {
   return killers[ply];
 }

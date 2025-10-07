@@ -1,6 +1,7 @@
 #ifndef RAAB_BOT_ALL_MODULES_H
 #define RAAB_BOT_ALL_MODULES_H
 
+import Array;
 import attack;
 import board;
 import eval;
@@ -12,5 +13,6 @@ import search;
 import transposition;
 import defs;
 import uci;
+import Vector;
 
 #endif // RAAB_BOT_ALL_MODULES_H

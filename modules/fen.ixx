@@ -7,6 +7,7 @@ module;
 
 #include <string_view>
 
+import Array;
 import defs;
 
 export module fen;
@@ -30,7 +31,7 @@ bool is_piece(char ch);
 /**
  * @brief to easily iterate over the board while reading a fen string
  */
-constexpr std::array<I8, 64> fen_0x88_idx_sequence = {
+constexpr Array<I8, 64> fen_0x88_idx_sequence = {
   {
     0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77,
     0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67,
