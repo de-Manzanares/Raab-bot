@@ -35,7 +35,7 @@ void alpha_beta_root(Board &b, score_t alpha, const score_t beta, SearchDriver &
 {
   sd.new_iteration(b);
 
-  const auto node_hash  = b.t_hash;
+  const auto node_hash  = b.t_hash();
   const auto orig_alpha = alpha;
 
   // probe TT
@@ -103,7 +103,7 @@ void alpha_beta_root(Board &b, score_t alpha, const score_t beta, SearchDriver &
       tt_entry(node_hash, m, sd.eval, tt_beta, sd.depth);
       if (is_quiet(m)) {
         sd.set_killers(m, ply);
-        b.update_history(~b.stm, m.from_sq, m.to_sq, sd.depth);
+        b.update_history(~b.stm(), m.from_sq, m.to_sq, sd.depth);
       }
       unmove(b, m);
       sd.root_beta_cutoff = true;
@@ -143,11 +143,11 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth, 
 
   if (is_draw(b)) {
     const auto eval = contempt(b);
-    tt_entry(b.t_hash, {}, eval, tt_exact, depth);
+    tt_entry(b.t_hash(), {}, eval, tt_exact, depth);
     return eval;
   }
 
-  const auto node_hash  = b.t_hash;
+  const auto node_hash  = b.t_hash();
   const auto orig_alpha = alpha;
 
   // probe tt
@@ -189,9 +189,9 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth, 
 
   if constexpr (config::null_move_pruning) {
     using namespace config::params;
-    if (constexpr auto r = nmp_reduction; !is_pv && can_null && b.phase != end_game
+    if (constexpr auto r = nmp_reduction; !is_pv && can_null && b.phase() != end_game
                                           && depth >= r + 1 && !in_check(b) && tmsef(b) > beta) {
-      const auto nm = Move{.prev_ep = b.ep};
+      const auto nm = Move{.prev_ep = b.ep()};
       // todo we don't want or need a PVLine, but it's part of the signature
       PVLine line{};
       move(b, nm); // todo dedicated null move functions
@@ -199,7 +199,7 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth, 
           -alpha_beta(b, -beta, -beta + 1, depth - r - 1, ply + 1, &line, sd, is_pv, false);
       unmove(b, nm);
       if (nm_eval >= beta) {
-        tt_entry(b.t_hash, {}, nm_eval, tt_beta, depth);
+        tt_entry(b.t_hash(), {}, nm_eval, tt_beta, depth);
         return nm_eval;
       }
     }
@@ -261,7 +261,7 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth, 
       best_move = m;
       if (eval > alpha) {
         alpha = eval;
-        if (b.hmc < 51) {
+        if (b.hmc() < 51) {
           bubble_up_pv(*pline, best_move, line);
         }
       }
@@ -271,7 +271,7 @@ score_t alpha_beta(Board &b, score_t alpha, const score_t beta, const U8 depth, 
       tt_entry(node_hash, m, eval, tt_beta, depth);
       if (is_quiet(m)) {
         sd.set_killers(m, ply);
-        b.update_history(~b.stm, m.from_sq, m.to_sq, sd.depth);
+        b.update_history(~b.stm(), m.from_sq, m.to_sq, sd.depth);
       }
       unmove(b, m);
       return eval;
@@ -327,7 +327,7 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply, PVLin
     move_select(curr_view);
 
     if constexpr (config::delta_pruning) {
-      if (b.phase != end_game && m.flag != promotion && m.flag != prom_capture
+      if (b.phase() != end_game && m.flag != promotion && m.flag != prom_capture
           && best_eval + piece_val[m.cap_piece] + config::params::delta < alpha) {
         continue;
       }
@@ -346,7 +346,7 @@ score_t quiesce(Board &b, score_t alpha, const score_t beta, const U8 ply, PVLin
       best_eval = eval;
       if (eval > alpha) {
         alpha = eval;
-        if (b.hmc < 51) {
+        if (b.hmc() < 51) {
           PVLine line{};
           bubble_up_pv(*pline, m, line);
         }
@@ -403,7 +403,7 @@ bool time_up(SearchDriver &sd)
   return false;
 }
 
-bool is_draw(const Board &b) { return b.hmc > 49 || is_repetition(b); }
+bool is_draw(const Board &b) { return b.hmc() > 49 || is_repetition(b); }
 
 bool is_quiet(const Move &m)
 {

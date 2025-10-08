@@ -44,7 +44,7 @@ void cnt_mv_t(const Move &m, PerftCounts *pc)
   case promotion:
     pc->promotions++;
     break;
-  default:
+  default:;
   }
 }
 
@@ -60,12 +60,12 @@ constexpr sz_t movegen_perft(Board &b, const int depth, PerftCounts *pc = nullpt
     if (m.from_sq == null_square) {
       break;
     }
-    auto hasha     = b.t_hash;
-    auto m_hash_a  = b.m_hash;
-    auto mat_bal_a = b.mat_bal;
-    auto pos_bal_a = b.pos_bal[0] - b.pos_bal[1];
-    auto phase_a   = b.phase;
-    auto hmc_a     = b.hmc;
+    auto hasha     = b.t_hash();
+    auto m_hash_a  = b.m_hash();
+    auto mat_bal_a = b.mat_bal();
+    auto pos_bal_a = b.pos_bal();
+    auto phase_a   = b.phase();
+    auto hmc_a     = b.hmc();
     move(b, m);
     if (is_legal(b)) {
       if (pc) {
@@ -74,12 +74,12 @@ constexpr sz_t movegen_perft(Board &b, const int depth, PerftCounts *pc = nullpt
       nodes += movegen_perft(b, depth - 1, pc);
     }
     unmove(b, m);
-    auto hashb     = b.t_hash;
-    auto m_hash_b  = b.m_hash;
-    auto mat_bal_b = b.mat_bal;
-    auto pos_bal_b = b.pos_bal[0] - b.pos_bal[1];
-    auto phase_b   = b.phase;
-    auto hmc_b     = b.hmc;
+    auto hashb     = b.t_hash();
+    auto m_hash_b  = b.m_hash();
+    auto mat_bal_b = b.mat_bal();
+    auto pos_bal_b = b.pos_bal();
+    auto phase_b   = b.phase();
+    auto hmc_b     = b.hmc();
     assert(hasha == hashb);         // verify move unmove position hash
     assert(m_hash_a == m_hash_b);   // verify move unmove material hash
     assert(mat_bal_a == mat_bal_b); // verify move unmove material balance
@@ -105,13 +105,13 @@ constexpr sz_t movegen_perft_nullmove_test(Board &b, const int depth, PerftCount
       break;
     }
 
-    auto       hasha     = b.t_hash;
-    auto       m_hash_a  = b.m_hash;
-    auto       mat_bal_a = b.mat_bal;
-    auto       pos_bal_a = b.pos_bal[0] - b.pos_bal[1];
-    auto       phase_a   = b.phase;
-    auto       hmc_a     = b.hmc;
-    const auto nm        = Move{.prev_ep = b.ep};
+    auto       hasha     = b.t_hash();
+    auto       m_hash_a  = b.m_hash();
+    auto       mat_bal_a = b.mat_bal();
+    auto       pos_bal_a = b.pos_bal();
+    auto       phase_a   = b.phase();
+    auto       hmc_a     = b.hmc();
+    const auto nm        = Move{.prev_ep = b.ep()};
     if (i % nme == 0) {
       move(b, nm);
     }
@@ -130,12 +130,12 @@ constexpr sz_t movegen_perft_nullmove_test(Board &b, const int depth, PerftCount
     else {
       unmove(b, m);
     }
-    auto hashb     = b.t_hash;
-    auto m_hash_b  = b.m_hash;
-    auto mat_bal_b = b.mat_bal;
-    auto pos_bal_b = b.pos_bal[0] - b.pos_bal[1];
-    auto phase_b   = b.phase;
-    auto hmc_b     = b.hmc;
+    auto hashb     = b.t_hash();
+    auto m_hash_b  = b.m_hash();
+    auto mat_bal_b = b.mat_bal();
+    auto pos_bal_b = b.pos_bal();
+    auto phase_b   = b.phase();
+    auto hmc_b     = b.hmc();
     assert(hasha == hashb);         // verify move unmove position hash
     assert(m_hash_a == m_hash_b);   // verify move unmove material hash
     assert(mat_bal_a == mat_bal_b); // verify move unmove material balance

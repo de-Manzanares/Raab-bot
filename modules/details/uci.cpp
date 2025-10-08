@@ -74,10 +74,10 @@ void uci_loop()
       accept_value(gui_cmd, "binc", binc);
 
       // my little time per move function
-      if (b.stm == white && wtime != 0) {
+      if (b.stm() == white && wtime != 0) {
         sd.allowed_time = double(wtime) / 60.0 + winc;
       }
-      else if (b.stm == black && btime != 0) {
+      else if (b.stm() == black && btime != 0) {
         sd.allowed_time = double(btime) / 60.0 + binc;
       }
       else {
