@@ -113,6 +113,7 @@ Board::Board(const std::string_view fenstr)
   mt[m_hash & mt_mask] = {m_hash, mat_bal[white] - mat_bal[black]};
 
   phase = set_phase(*this);
+  pos_stack.reserve(64);
 }
 
 PieceInfo Board::piece_info(const Square sq) const

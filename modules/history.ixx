@@ -7,7 +7,7 @@ export module history;
 
 namespace raab_bot {
 
-using HistoryArray = Array<Array<Array<I16, 128>, 128>, 2>;
+using HistoryArray = ndArray<I16, 2, 128, 128>;
 
 //------------------------------------------------------------------------------
 

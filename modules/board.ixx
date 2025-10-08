@@ -46,19 +46,22 @@ export class Board : public History<config::history_heuristic> {
 
   // game state tracking
 
-  Color   stm{};           ///< side to move
-  Square  ep{};            ///< en passant target
-  U8      cr = 0b0000;     /// castling rights \n bqs = 8, bks = 4, wqs = 2, wks = 1
-  sz_t    hmc{};           ///< half move clock
-  sz_t    fmc{};           ///< full move clock
-  Square  wks{};           ///< white king square
-  Square  bks{};           ///< black king square
-  Phase   phase{};         ///< middle_game or end_game
-  U64     t_hash{};        ///< hash for transposition table
-  U64     m_hash{};        ///< hash for material table
-  score_t mat_bal[2]{};    ///< incrementally updated material balance
-  score_t mat_cnt[2][6]{}; ///< piece counts
-  score_t pos_bal[2]{};    ///< incrementally updated psqt balance
+  Color  stm{};       ///< side to move
+  Square ep{};        ///< en passant target
+  U8     cr = 0b0000; /// castling rights \n bqs = 8, bks = 4, wqs = 2, wks = 1
+  sz_t   hmc{};       ///< half move clock
+  sz_t   fmc{};       ///< full move clock
+  Square wks{};       ///< white king square
+  Square bks{};       ///< black king square
+  Phase  phase{};     ///< middle_game or end_game
+  U64    t_hash{};    ///< hash for transposition table
+  U64    m_hash{};    ///< hash for material table
+
+  // incrementally updated for eval
+
+  Array<score_t, 2>      mat_bal{}; ///< incrementally updated material balance
+  ndArray<score_t, 2, 6> mat_cnt{};
+  Array<score_t, 2>      pos_bal{}; ///< incrementally updated psqt balance
 
   // todo maybe array instead?
   Vector<U64> pos_stack{}; ///< position stack for three-fold repetition detection
