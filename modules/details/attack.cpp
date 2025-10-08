@@ -29,8 +29,8 @@ bool is_attacked(const Board &b, const Square sq, const Color by_color)
 
 bool in_check(const Board &b)
 {
-  const Square sq = b.stm == white ? b.wks : b.bks;
-  return is_attacked(b, sq, ~b.stm);
+  const Square sq = b.stm() == white ? b.king_sq(white) : b.king_sq(black);
+  return is_attacked(b, sq, ~b.stm());
 }
 
 //------------------------------------------------------------------------------

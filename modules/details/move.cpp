@@ -60,15 +60,15 @@ void move(Board &b, const Move &m)
     set_sq(b, m.to_sq, from_piece(m));
   }
   if (m.flag == en_passant_capture) {
-    const auto sq = m.to_sq + (b.stm == white ? S : N);
+    const auto sq = m.to_sq + (b.stm() == white ? S : N);
     clear_sq(b, sq);
   }
   else if (m.flag == castle) {
-    if (b.stm == white) {
-      b.wks = m.to_sq;
+    if (b.stm() == white) {
+      b.king_sq(white) = m.to_sq;
     }
     else {
-      b.bks = m.to_sq;
+      b.king_sq(black) = m.to_sq;
     }
     finish_castle(b, m.to_sq);
   }
@@ -78,18 +78,18 @@ void move(Board &b, const Move &m)
   // update king position
   // second condition is to prevent reversal of hash
   if (m.from_piece.piece_t == king && m.flag != castle) {
-    if (b.stm == white) {
-      b.wks = m.to_sq;
+    if (b.stm() == white) {
+      b.king_sq(white) = m.to_sq;
       rm_castle_rights(b, white);
     }
     else {
-      b.bks = m.to_sq;
+      b.king_sq(black) = m.to_sq;
       rm_castle_rights(b, black);
     }
   }
 
   // update castling rights
-  if (b.cr != 0) {
+  if (b.cr() != 0) {
     if (m.from_piece.piece_t == rook) {
       rook_mv_castle_rights(b, m.from_sq);
     }
@@ -98,44 +98,44 @@ void move(Board &b, const Move &m)
     }
   }
 
-  b.t_hash ^= zobrist.cr[m.prev_cr];
-  b.t_hash ^= zobrist.cr[b.cr];
+  b.t_hash() ^= zobrist.cr[m.prev_cr];
+  b.t_hash() ^= zobrist.cr[b.cr()];
 
-  if (b.ep != null_square) {
-    b.t_hash ^= zobrist.ep[b.ep]; // undo the previous
+  if (b.ep() != null_square) {
+    b.t_hash() ^= zobrist.ep[b.ep()]; // undo the previous
   }
 
   // update en_passant target
   if (m.flag == double_push) {
-    b.ep = m.ep_target;
-    b.t_hash ^= zobrist.ep[b.ep];
+    b.ep() = m.ep_target;
+    b.t_hash() ^= zobrist.ep[b.ep()];
   }
   else {
-    b.ep = null_square;
+    b.ep() = null_square;
   }
 
   // update fmc
-  if (b.stm == black) {
-    ++b.fmc;
+  if (b.stm() == black) {
+    ++b.fmc();
   }
 
   // hmc
   if (m.from_piece.piece_t == pawn || m.flag == capture) {
-    b.hmc = 0;
+    b.hmc() = 0;
   }
   else {
-    ++b.hmc;
+    ++b.hmc();
   }
 
   // update side to move
-  b.stm = ~b.stm;
-  b.t_hash ^= zobrist.stm;
+  b.stm() = ~b.stm();
+  b.t_hash() ^= zobrist.stm;
 
-  // update pos_stack
-  b.pos_stack.push_back(b.t_hash);
+  // update rep_stack
+  b.rep_stack().push_back(b.t_hash());
 
   // update phase
-  b.phase = set_phase(b);
+  b.phase() = set_phase(b);
 }
 
 void unmove(Board &b, const Move &m)
@@ -143,9 +143,9 @@ void unmove(Board &b, const Move &m)
   // move pieces
   set_sq(b, m.from_sq, from_piece(m));
   if (m.flag == en_passant_capture) {
-    const auto sq = m.to_sq + (b.stm == black ? S : N);
+    const auto sq = m.to_sq + (b.stm() == black ? S : N);
     clear_sq(b, m.to_sq);
-    set_sq(b, sq, {pawn, b.stm});
+    set_sq(b, sq, {pawn, b.stm()});
   }
   else if (m.cap_piece != null_piece) { // cannot be m.flag == capture (?)
     set_sq(b, m.to_sq, captured_piece(m));
@@ -159,44 +159,44 @@ void unmove(Board &b, const Move &m)
 
   // update king position
   if (m.from_piece.piece_t == king) {
-    if (~b.stm == white) {
-      b.wks = m.from_sq;
+    if (~b.stm() == white) {
+      b.king_sq(white) = m.from_sq;
     }
     else {
-      b.bks = m.from_sq;
+      b.king_sq(black) = m.from_sq;
     }
   }
 
   // update castling rights
-  b.t_hash ^= zobrist.cr[m.prev_cr];
-  b.t_hash ^= zobrist.cr[b.cr];
-  b.cr = m.prev_cr;
+  b.t_hash() ^= zobrist.cr[m.prev_cr];
+  b.t_hash() ^= zobrist.cr[b.cr()];
+  b.cr() = m.prev_cr;
 
   // en passant
-  if (b.ep != null_square) {
-    b.t_hash ^= zobrist.ep[b.ep];
+  if (b.ep() != null_square) {
+    b.t_hash() ^= zobrist.ep[b.ep()];
   }
   if (m.prev_ep != null_square) {
-    b.t_hash ^= zobrist.ep[m.prev_ep];
+    b.t_hash() ^= zobrist.ep[m.prev_ep];
   }
-  b.ep = m.prev_ep;
+  b.ep() = m.prev_ep;
 
   // todo update hmc
-  if (b.stm == white) {
-    --b.fmc;
+  if (b.stm() == white) {
+    --b.fmc();
   }
 
-  b.hmc = m.prev_hmc;
+  b.hmc() = m.prev_hmc;
 
   // update side to move
-  b.stm = ~b.stm;
-  b.t_hash ^= zobrist.stm;
+  b.stm() = ~b.stm();
+  b.t_hash() ^= zobrist.stm;
 
-  // update pos_stack
-  b.pos_stack.pop_back();
+  // update rep_stack
+  b.rep_stack().pop_back();
 
   // update phase
-  b.phase = set_phase(b);
+  b.phase() = set_phase(b);
 }
 
 //------------------------------------------------------------------------------
@@ -210,13 +210,13 @@ PieceInfo prom_piece(const Move &m) { return PieceInfo{m.prom_p, m.from_piece.co
 void clear_sq(Board &b, const Square sq)
 {
   if (auto [piece_t, color] = b.piece_info(sq); piece_t != null_piece) {
-    b.piece_on[sq] = null_piece;                 // clear
-    b.color_on[sq] = null_color;                 // clear
-    b.t_hash ^= zobrist.pcs[piece_t][color][sq]; // update hash
-    // b.m_hash-= zobrist.mat[piece_t][color];     // update m_hash
-    b.mat_bal[color] -= piece_val[piece_t];
-    --b.mat_cnt[color][piece_t];
-    b.pos_bal[color] -= psqt_val[color][piece_t][sq];
+    b.piece_on(sq) = null_piece;                   // clear
+    b.color_on(sq) = null_color;                   // clear
+    b.t_hash() ^= zobrist.pcs[piece_t][color][sq]; // update hash
+    // b.m_hash()-= zobrist.mat[piece_t][color];     // update m_hash
+    b.mat_bal(color) -= piece_val[piece_t];
+    --b.mat_cnt({piece_t, color});
+    b.pos_bal(color) -= psqt_val[color][piece_t][sq];
   }
   else {
     // no action needed
@@ -228,14 +228,14 @@ void set_sq(Board &b, const Square sq, const PieceInfo pi)
 {
   if (is_on_board(sq)) { // todo when are we passed an invalid square?
     clear_sq(b, sq);
-    b.piece_on[sq] = pi.piece_t;
-    b.color_on[sq] = pi.color;
+    b.piece_on(sq) = pi.piece_t;
+    b.color_on(sq) = pi.color;
     assert(pi.piece_t != null_piece);
-    b.t_hash ^= zobrist.pcs[pi.piece_t][pi.color][sq];
-    // b.m_hash+= zobrist.mat[pi.piece_t][pi.color];
-    b.mat_bal[pi.color] += piece_val[pi.piece_t];
-    ++b.mat_cnt[pi.color][pi.piece_t];
-    b.pos_bal[pi.color] += psqt_val[pi.color][pi.piece_t][sq];
+    b.t_hash() ^= zobrist.pcs[pi.piece_t][pi.color][sq];
+    // b.m_hash()+= zobrist.mat[pi.piece_t][pi.color];
+    b.mat_bal(pi.color) += piece_val[pi.piece_t];
+    ++b.mat_cnt(pi);
+    b.pos_bal(pi.color) += psqt_val[pi.color][pi.piece_t][sq];
   }
 }
 
@@ -294,10 +294,10 @@ void unfinish_castle(Board &b, const Square to)
 void rm_castle_rights(Board &b, const Color c)
 {
   if (c == white) {
-    b.cr &= 0b1100;
+    b.cr() &= 0b1100;
   }
   else if (c == black) {
-    b.cr &= 0b0011;
+    b.cr() &= 0b0011;
   }
 }
 
@@ -305,16 +305,16 @@ void rook_mv_castle_rights(Board &b, const Square sq)
 {
   switch (sq) {
   case a1:
-    b.cr &= 0b1101;
+    b.cr() &= 0b1101;
     break;
   case h1:
-    b.cr &= 0b1110;
+    b.cr() &= 0b1110;
     break;
   case a8:
-    b.cr &= 0b0111;
+    b.cr() &= 0b0111;
     break;
   case h8:
-    b.cr &= 0b1011;
+    b.cr() &= 0b1011;
     break;
   default:
     break;

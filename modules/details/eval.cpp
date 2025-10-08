@@ -19,7 +19,8 @@ Phase set_phase(const Board &b)
   auto lte_one_minor_piece = [&](const Color c) -> bool {
     int sum{};
     for (int p = bishop; p <= knight; ++p) {
-      sum += b.mat_cnt[c][p];
+      // todo Piece - overload? conversion? ++/-- and comp operators?
+      sum += b.mat_cnt({static_cast<Piece>(p), static_cast<Color>(c)});
       if (sum > 1) {
         return false;
       }
@@ -28,7 +29,7 @@ Phase set_phase(const Board &b)
   };
 
   auto no_queens = [&]() -> bool {
-    return b.mat_cnt[white][queen] == 0 && b.mat_cnt[black][queen] == 0;
+    return b.mat_cnt({queen, white}) == 0 && b.mat_cnt({queen, black}) == 0;
   };
 
   Phase phase{};
@@ -39,7 +40,8 @@ Phase set_phase(const Board &b)
   else {
     bool cnd = true;
     for (int color = white; color <= black; ++color) {
-      if (b.mat_cnt[color][queen] > 0) {
+      // todo Color - conversion? overload mat_cnt?
+      if (b.mat_cnt({queen, static_cast<Color>(color)}) > 0) {
         if (!lte_one_minor_piece(static_cast<Color>(color))) {
           cnd = false;
         }
@@ -54,31 +56,28 @@ Phase set_phase(const Board &b)
 
 score_t tmsef(const Board &b)
 {
-  score_t score = (b.mat_bal[white] - b.mat_bal[black]) + (b.pos_bal[white] - b.pos_bal[black]);
-  if (b.phase == end_game) {
-    score -= psqt_val[white][king][b.wks];
-    score -= psqt_val[black][king][b.bks];
-    score += eg_psqt[white][b.wks];
-    score += eg_psqt[black][b.bks];
+  score_t score = b.mat_bal() + b.pos_bal();
+  if (b.phase() == end_game) {
+    score -= psqt_val[white][king][b.king_sq(white)];
+    score -= psqt_val[black][king][b.king_sq(black)];
+    score += eg_psqt[white][b.king_sq(white)];
+    score += eg_psqt[black][b.king_sq(black)];
   }
-  return b.stm == white ? score : -score;
+  return b.stm() == white ? score : -score;
 }
 
 bool is_repetition(const Board &b)
 {
-  auto const last = b.pos_stack.end() - 1;
-  if (const auto first = std::find(b.pos_stack.begin(), last, b.t_hash); first != last) {
-    if (const auto second = std::find(first, last, b.t_hash); second != last) {
+  auto const last = b.rep_stack().end() - 1;
+  if (const auto first = std::find(b.rep_stack().begin(), last, b.t_hash()); first != last) {
+    if (const auto second = std::find(first, last, b.t_hash()); second != last) {
       return true;
     }
   }
   return false;
 }
 
-score_t contempt(const Board &b)
-{
-  return (b.mat_bal[white] - b.mat_bal[black]) * (b.stm == white ? -1 : 1);
-}
+score_t contempt(const Board &b) { return b.mat_bal() * (b.stm() == white ? -1 : 1); }
 
 //------------------------------------------------------------------------------
 
