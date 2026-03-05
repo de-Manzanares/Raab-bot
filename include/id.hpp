@@ -7,7 +7,7 @@ namespace raab_bot::id {
 
 constexpr std::string_view name    = "Raab-bot";
 constexpr std::string_view version = "v2-dev.11";
-constexpr std::string_view author  = "Drake M";
+constexpr std::string_view author  = "D.E. Manzanares";
 
 } // namespace raab_bot::id
 
