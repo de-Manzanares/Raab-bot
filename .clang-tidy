@@ -16,7 +16,8 @@ Checks: >
   readability-*,
   -*-use-trailing-return-type,
   -*-use-internal-linkage,
-  -*-include-cleaner
+  -*-include-cleaner,
+  -*-avoid-pragma-once
 
 CheckOptions:
   - { key: readability-identifier-naming.ClassCase,                       value: CamelCase }

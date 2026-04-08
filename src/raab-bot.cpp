@@ -14,6 +14,4 @@
  * May Raab-bot go forth and be victorious in his stead.
  */
 
-import uci;
-
-int main() { raab_bot::uci_loop(); }
+int main() {}

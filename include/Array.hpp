@@ -1,11 +1,14 @@
-module;
+/**
+ * @file Array.hpp
+ * debug build bounds-checking array
+ */
+
+#pragma once
 
 #include <array>
 #include <cassert>
 
-export module Array;
-
-export template <typename T, std::size_t N> struct Array : std::array<T, N> {
+template <typename T, std::size_t N> struct Array : std::array<T, N> {
   using reference       = std::array<T, N>::reference;
   using const_reference = std::array<T, N>::const_reference;
   using size_type       = std::array<T, N>::size_type;
@@ -27,7 +30,7 @@ export template <typename T, std::size_t N> struct Array : std::array<T, N> {
  * n-dimensional array of a homogeneous type
  * @note see "Variadic Templates Multidimensional Array Container" at https://tinyurl.com/4fj779wk
  */
-export template <typename T, std::size_t... Nx> struct ndArray;
+template <typename T, std::size_t... Nx> struct ndArray;
 
 template <typename T, std::size_t N> struct ndArray<T, N> : Array<T, N> {};
 

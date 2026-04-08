@@ -1,11 +1,14 @@
-module;
+/**
+* @file Vector.hpp
+ * debug build bounds-checking vector
+ */
+
+#pragma once
 
 #include <cassert>
 #include <vector>
 
-export module Vector;
-
-export template <typename T> class Vector : public std::vector<T> {
+template <typename T> class Vector : public std::vector<T> {
  public:
   using reference       = std::vector<T>::reference;
   using const_reference = std::vector<T>::const_reference;

@@ -1,2 +1,5 @@
 InheritParentConfig: true
-Checks: '-*-avoid-do-while'
+Checks: >
+  -*-avoid-do-while,
+  -*-use-anonymous-namespace
+  -*-throwing-static-initialization

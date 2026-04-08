@@ -7,18 +7,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
-add_executable(attack-test src/attack.cxx)
-target_link_libraries(attack-test PRIVATE chess Catch2::Catch2WithMain)
-add_test(NAME AttackTest COMMAND attack-test)
+add_executable(test0 src/test0.cxx)
+target_include_directories(test0 PRIVATE ../include)
+target_link_libraries(test0 PRIVATE build_flags Catch2::Catch2WithMain includes)
+add_test(NAME PerfT COMMAND test0)
 
-add_executable(movegen-simple-test src/movegen_simple.cxx)
-target_link_libraries(movegen-simple-test PRIVATE chess Catch2::Catch2WithMain)
-add_test(NAME MovegenSimpleTest COMMAND movegen-simple-test)
-
-add_executable(movegen-perft-test src/movegen_perft.cxx)
-target_link_libraries(movegen-perft-test PRIVATE chess Catch2::Catch2WithMain)
-add_test(NAME MovegenPerftTest COMMAND movegen-perft-test)
-
-add_executable(search-test src/search.cxx)
-target_link_libraries(search-test PRIVATE chess Catch2::Catch2WithMain)
-add_test(NAME SearchTest COMMAND search-test)

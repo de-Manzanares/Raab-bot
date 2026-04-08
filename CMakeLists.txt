@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 4.0)
 
+################################################################################
+
 project(Raab-bot LANGUAGES CXX)
-set(VERSION v2)
+set(VERSION v3-dev.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -18,6 +20,8 @@ set(SANCompilerOptions -fsanitize=address,undefined ${CompilerOptions})
 set(SANLinkerOptions -fsanitize=address,undefined)
 set(ReleaseCompilerOptions -O3 -ffast-math -march=native)
 
+################################################################################
+
 add_library(build_flags INTERFACE)
 target_compile_options(build_flags
         INTERFACE
@@ -32,59 +36,22 @@ target_link_options(build_flags
         $<$<CONFIG:Sanitizer>:$<$<CXX_COMPILER_ID:GNU,Clang>:${SANLinkerOptions}>>
 )
 
-add_library(containers OBJECT)
-target_sources(containers
-        PUBLIC
-        FILE_SET cxx_modules TYPE CXX_MODULES FILES
-        modules/containers/Array.cppm
-        modules/containers/Vector.cppm
+add_library(includes INTERFACE)
+target_sources(includes PRIVATE
+        include/Array.hpp
+        include/defs.h
+        include/Vector.hpp
 )
-target_link_libraries(containers PUBLIC build_flags)
 
-add_library(chess_modules OBJECT)
-target_sources(chess_modules
-        PUBLIC
-        FILE_SET cxx_modules TYPE CXX_MODULES FILES
-        modules/attack.ixx
-        modules/board.ixx
-        modules/config.cppm
-        modules/defs.cppm
-        modules/eval.ixx
-        modules/fen.ixx
-        modules/history.ixx
-        modules/killer.ixx
-        modules/move.ixx
-        modules/movegen.ixx
-        modules/search.ixx
-        modules/transposition.ixx
-        modules/uci.ixx
-        modules/auxiliary/log.ixx
-        PUBLIC
-        modules/details/attack.cpp
-        modules/details/board.cpp
-        modules/details/eval.cpp
-        modules/details/fen.cpp
-        modules/details/history.cpp
-        modules/details/killer.cpp
-        modules/details/move.cpp
-        modules/details/movegen.cpp
-        modules/details/search.cpp
-        modules/details/transposition.cpp
-        modules/details/uci.cpp
-        modules/auxiliary/log.cpp
-)
-target_link_libraries(chess_modules PUBLIC containers build_flags)
-target_include_directories(chess_modules PUBLIC include)
-
-add_library(chess STATIC)
-target_link_libraries(chess PUBLIC chess_modules containers build_flags)
+################################################################################
 
 add_executable(Raab-bot-${VERSION} src/raab-bot.cpp)
-target_link_libraries(Raab-bot-${VERSION} PRIVATE chess)
+target_include_directories(Raab-bot-${VERSION} PRIVATE include)
+target_link_libraries(Raab-bot-${VERSION} PRIVATE build_flags includes)
+
+################################################################################
 
 include(CTest)
 enable_testing()
 
 add_subdirectory(test)
-
-add_subdirectory(tools)
